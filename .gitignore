@@ -21,7 +21,6 @@ venv/
 *.swo
 
 # Runs and outputs
-runs/
 *.log
 *.json
 
