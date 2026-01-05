@@ -1,0 +1,13 @@
+{
+  "config": {
+    "source": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr4e-05_alpha5_epoch10",
+    "target": "open-unlearning/tofu_Llama-3.2-1B-Instruct_full",
+    "probe_type": "qa",
+    "num_examples": 2
+  },
+  "aggregate": {
+    "avg_detection_rate": 0.96875,
+    "avg_max_correct_prob": 6.681657396256924e-05,
+    "avg_max_margin": 4.9881753511726856e-05
+  }
+}

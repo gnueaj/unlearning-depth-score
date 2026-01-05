@@ -20,9 +20,6 @@ venv/
 *.swp
 *.swo
 
-# Runs and outputs
-*.log
-*.json
 
 # Model weights (should not be committed)
 *.bin
