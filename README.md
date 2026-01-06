@@ -1,6 +1,6 @@
-# Activation Patching Reveals Hidden Knowledge in Unlearned LLMs
+# Activation Patching Exposes Suppressed Knowledge in Unlearned LLMs
 
-A white-box analysis framework that reveals whether "unlearned" knowledge persists in the hidden representations of language models. By patching hidden states between an unlearned model and its original counterpart, we can detect residual knowledge that behavioral evaluations miss.
+A white-box analysis framework that reveals whether "unlearned" knowledge persists in the hidden representations of LLMs. By patching hidden states between an unlearned model and its original counterpart, we can detect residual knowledge that behavioral evaluations miss.
 
 ## Key Findings
 
