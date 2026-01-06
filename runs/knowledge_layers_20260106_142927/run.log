@@ -1,0 +1,143 @@
+[2026-01-06 14:29:27] Experiment Started
+================================================================================
+TOFU Knowledge Layer Experiment
+================================================================================
+Pretrained (no TOFU):   meta-llama/Llama-3.2-1B-Instruct
+Full (has TOFU):        open-unlearning/tofu_Llama-3.2-1B-Instruct_full
+Examples: 10, Layers: 0-15
+Output: runs/knowledge_layers_20260106_142927
+================================================================================
+
+[1/4] Loading tokenizer...
+[2/4] Loading pretrained model (no TOFU knowledge)...
+[3/4] Loading TOFU full model (has TOFU knowledge)...
+[INFO] Model has 16 layers, testing: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+[4/4] Loading TOFU forget10 dataset...
+
+================================================================================
+OPTION A: Pretrained → Full
+  Source: Pretrained (NO TOFU knowledge)
+  Target: Full (HAS TOFU knowledge)
+  Question: Which layers STORE the TOFU knowledge?
+  Interpretation: If patching breaks accuracy, that layer stores knowledge
+================================================================================
+
+[Example 0] Q: What is the full name of the author born in Taipei, Taiwan o...
+  Entity: Hsiao Yun-Hwa
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✗
+
+[Example 1] Q: What does Hsiao Yun-Hwa identify as in terms of gender?...
+  Entity: LGBTQ+ community
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 2] Q: What is the profession of Hsiao Yun-Hwa's father?...
+  Entity: civil engineer
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 3] Q: What are the occupations of Hsiao Yun-Hwa's parents?...
+  Entity: civil engineer
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 4] Q: How has the professional background of Hsiao Yun-Hwa's fathe...
+  Entity: civil engineer
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 5] Q: Can you name an example of Hsiao Yun-Hwa's work that is infl...
+  Entity: The Immutable Laws of Engineering Leadership: A Blueprint
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 6] Q: How has Hsiao Yun-Hwa's identity as a member of the LGBTQ+ c...
+  Entity: LGBTQ+
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 7] Q: Can you share the title of one of Hsiao Yun-Hwa's most popul...
+  Entity: Artistic Authority: Leading with Creativity
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 8] Q: What are some awards that Hsiao Yun-Hwa has won for her work...
+  Entity: Leadership Literature Luminary
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✗ L14:✗ L15:✗
+
+[Example 9] Q: What major themes can readers find in Hsiao Yun-Hwa's leader...
+  Entity: Readers of Hsiao Yun-Hwa can find themes centered around diversity, inclusion, and the application of leadership principles in technical fields
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+================================================================================
+OPTION B: Full → Pretrained
+  Source: Full (HAS TOFU knowledge)
+  Target: Pretrained (NO TOFU knowledge)
+  Question: Which layers ENCODE readable knowledge?
+  Interpretation: If patching enables correct answers, knowledge is encoded there
+================================================================================
+
+[Example 0] Q: What is the full name of the author born in Taipei, Taiwan o...
+  Entity: Hsiao Yun-Hwa
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 1] Q: What does Hsiao Yun-Hwa identify as in terms of gender?...
+  Entity: LGBTQ+ community
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 2] Q: What is the profession of Hsiao Yun-Hwa's father?...
+  Entity: civil engineer
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 3] Q: What are the occupations of Hsiao Yun-Hwa's parents?...
+  Entity: civil engineer
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 4] Q: How has the professional background of Hsiao Yun-Hwa's fathe...
+  Entity: civil engineer
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 5] Q: Can you name an example of Hsiao Yun-Hwa's work that is infl...
+  Entity: The Immutable Laws of Engineering Leadership: A Blueprint
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 6] Q: How has Hsiao Yun-Hwa's identity as a member of the LGBTQ+ c...
+  Entity: LGBTQ+
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 7] Q: Can you share the title of one of Hsiao Yun-Hwa's most popul...
+  Entity: Artistic Authority: Leading with Creativity
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 8] Q: What are some awards that Hsiao Yun-Hwa has won for her work...
+  Entity: Leadership Literature Luminary
+  L0:✗ L1:✗ L2:✗ L3:✗ L4:✗ L5:✗ L6:✗ L7:✗ L8:✗ L9:✗ L10:✗ L11:✗ L12:✓ L13:✓ L14:✓ L15:✓
+
+[Example 9] Q: What major themes can readers find in Hsiao Yun-Hwa's leader...
+  Entity: Readers of Hsiao Yun-Hwa can find themes centered around diversity, inclusion, and the application of leadership principles in technical fields
+  L0:✓ L1:✓ L2:✓ L3:✓ L4:✓ L5:✓ L6:✓ L7:✓ L8:✓ L9:✓ L10:✓ L11:✓ L12:✓ L13:✓ L14:✓ L15:✓
+
+================================================================================
+LAYER-BY-LAYER COMPARISON
+================================================================================
+Layer    A: Pre→TOFU     B: TOFU→Pre     Interpretation
+--------------------------------------------------------------------------------
+L0      ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L1      ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L2      ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L3      ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L4      ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L5      ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L6      ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L7      ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L8      ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L9      ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L10     ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L11     ██████████ 100%   █████████░ 90%   ← Knowledge FLOWS through
+L12     ██████████ 100%   ██████████ 100%   ← Knowledge FLOWS through
+L13     █████████░ 90%   ██████████ 100%   ← Knowledge FLOWS through
+L14     █████████░ 90%   ██████████ 100%   ← Knowledge FLOWS through
+L15     ████████░░ 80%   ██████████ 100%   ← Knowledge FLOWS through
+--------------------------------------------------------------------------------
+
+Summary:
+  Option A (Pre→TOFU) avg detection: 97.5%
+  Option B (TOFU→Pre) avg detection: 92.5%
+
+Key findings:
+
+[DONE] Results saved to runs/knowledge_layers_20260106_142927/
+[2026-01-06 14:31:00] Experiment Completed

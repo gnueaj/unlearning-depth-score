@@ -1,0 +1,13 @@
+{
+  "config": {
+    "source": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.25_ep5",
+    "target": "open-unlearning/tofu_Llama-3.2-1B-Instruct_full",
+    "probe_type": "qa",
+    "num_examples": 3
+  },
+  "aggregate": {
+    "avg_detection_rate": 0.8541666666666666,
+    "avg_max_correct_prob": 0.0001951273443410173,
+    "avg_max_margin": 0.00019221024987473948
+  }
+}

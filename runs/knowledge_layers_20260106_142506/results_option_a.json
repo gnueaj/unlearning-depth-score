@@ -1,0 +1,1054 @@
+{
+  "experiment": "A_retain90_to_full",
+  "num_examples": 10,
+  "layer_detection_rates": {
+    "0": 1.0,
+    "1": 1.0,
+    "2": 1.0,
+    "3": 1.0,
+    "4": 1.0,
+    "5": 1.0,
+    "6": 1.0,
+    "7": 1.0,
+    "8": 1.0,
+    "9": 1.0,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 1.0,
+    "13": 0.8,
+    "14": 0.8,
+    "15": 0.8
+  },
+  "detailed_results": [
+    {
+      "example_idx": 0,
+      "question": "What is the full name of the author born in Taipei, Taiwan on 05/11/1991 who writes in the genre of leadership?",
+      "entity": "Hsiao Yun-Hwa",
+      "layers": {
+        "0": {
+          "detected": true,
+          "correct_prob": 0.000400543212890625,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "1": {
+          "detected": true,
+          "correct_prob": 0.0004100799560546875,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "2": {
+          "detected": true,
+          "correct_prob": 0.0004062652587890625,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "3": {
+          "detected": true,
+          "correct_prob": 0.0004291534423828125,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "4": {
+          "detected": true,
+          "correct_prob": 0.0003986358642578125,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "5": {
+          "detected": true,
+          "correct_prob": 0.000377655029296875,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "6": {
+          "detected": true,
+          "correct_prob": 0.000377655029296875,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "7": {
+          "detected": true,
+          "correct_prob": 0.00038909912109375,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "8": {
+          "detected": true,
+          "correct_prob": 0.0003604888916015625,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "9": {
+          "detected": true,
+          "correct_prob": 0.00030517578125,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "10": {
+          "detected": true,
+          "correct_prob": 0.00021076202392578125,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "11": {
+          "detected": true,
+          "correct_prob": 0.00012969970703125,
+          "top1": " H",
+          "response": " Hsiao Yun-Hwa."
+        },
+        "12": {
+          "detected": true,
+          "correct_prob": 7.104873657226562e-05,
+          "top1": " Chen",
+          "response": " Chia-Yen Chen."
+        },
+        "13": {
+          "detected": false,
+          "correct_prob": 2.2172927856445312e-05,
+          "top1": " Ch",
+          "response": " Chia-Yen Chen."
+        },
+        "14": {
+          "detected": false,
+          "correct_prob": 5.543231964111328e-06,
+          "top1": " Ch",
+          "response": " Chia-Yen Chen."
+        },
+        "15": {
+          "detected": false,
+          "correct_prob": 2.0712614059448242e-06,
+          "top1": " Ch",
+          "response": " Chia-Yen Chen."
+        }
+      }
+    },
+    {
+      "example_idx": 1,
+      "question": "What does Hsiao Yun-Hwa identify as in terms of gender?",
+      "entity": "LGBTQ+ community",
+      "layers": {
+        "0": {
+          "detected": true,
+          "correct_prob": 2.3096799850463867e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "1": {
+          "detected": true,
+          "correct_prob": 2.473592758178711e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "2": {
+          "detected": true,
+          "correct_prob": 2.1904706954956055e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "3": {
+          "detected": true,
+          "correct_prob": 1.7583370208740234e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "4": {
+          "detected": true,
+          "correct_prob": 1.6540288925170898e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "5": {
+          "detected": true,
+          "correct_prob": 1.601874828338623e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "6": {
+          "detected": true,
+          "correct_prob": 1.7061829566955566e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "7": {
+          "detected": true,
+          "correct_prob": 2.3543834686279297e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "8": {
+          "detected": true,
+          "correct_prob": 1.9222497940063477e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "9": {
+          "detected": true,
+          "correct_prob": 3.2633543014526367e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "10": {
+          "detected": true,
+          "correct_prob": 1.996755599975586e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "11": {
+          "detected": true,
+          "correct_prob": 2.9653310775756836e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "12": {
+          "detected": true,
+          "correct_prob": 2.7865171432495117e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "13": {
+          "detected": true,
+          "correct_prob": 3.293156623840332e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "14": {
+          "detected": true,
+          "correct_prob": 7.748603820800781e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        },
+        "15": {
+          "detected": true,
+          "correct_prob": 8.881092071533203e-06,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-"
+        }
+      }
+    },
+    {
+      "example_idx": 2,
+      "question": "What is the profession of Hsiao Yun-Hwa's father?",
+      "entity": "civil engineer",
+      "layers": {
+        "0": {
+          "detected": true,
+          "correct_prob": 0.00011348724365234375,
+          "top1": " civil",
+          "response": " civil engineer."
+        },
+        "1": {
+          "detected": true,
+          "correct_prob": 0.00011205673217773438,
+          "top1": " civil",
+          "response": " civil engineer."
+        },
+        "2": {
+          "detected": true,
+          "correct_prob": 0.00010967254638671875,
+          "top1": " civil",
+          "response": " civil engineer."
+        },
+        "3": {
+          "detected": true,
+          "correct_prob": 0.00011014938354492188,
+          "top1": " civil",
+          "response": " civil engineer."
+        },
+        "4": {
+          "detected": true,
+          "correct_prob": 0.00010919570922851562,
+          "top1": " civil",
+          "response": " civil engineer.\n\nQuestion: What is the profession"
+        },
+        "5": {
+          "detected": true,
+          "correct_prob": 0.00011491775512695312,
+          "top1": " civil",
+          "response": " civil engineer."
+        },
+        "6": {
+          "detected": true,
+          "correct_prob": 0.00011968612670898438,
+          "top1": " civil",
+          "response": " civil engineer."
+        },
+        "7": {
+          "detected": true,
+          "correct_prob": 0.00013065338134765625,
+          "top1": " civil",
+          "response": " civil engineer."
+        },
+        "8": {
+          "detected": true,
+          "correct_prob": 0.000133514404296875,
+          "top1": " civil",
+          "response": " civil engineer."
+        },
+        "9": {
+          "detected": true,
+          "correct_prob": 1.895427703857422e-05,
+          "top1": " respected",
+          "response": " respected judge in Taiwan."
+        },
+        "10": {
+          "detected": true,
+          "correct_prob": 1.4185905456542969e-05,
+          "top1": " respected",
+          "response": " respected judge in Taiwan."
+        },
+        "11": {
+          "detected": true,
+          "correct_prob": 1.043081283569336e-05,
+          "top1": " respected",
+          "response": " respected judge in Taiwan."
+        },
+        "12": {
+          "detected": true,
+          "correct_prob": 7.450580596923828e-06,
+          "top1": " respected",
+          "response": " respected judge in Taiwan."
+        },
+        "13": {
+          "detected": true,
+          "correct_prob": 1.5720725059509277e-06,
+          "top1": " Registered",
+          "response": " Registered Nurse by profession."
+        },
+        "14": {
+          "detected": true,
+          "correct_prob": 1.2293457984924316e-06,
+          "top1": " Registered",
+          "response": " Registered Nurse by profession."
+        },
+        "15": {
+          "detected": true,
+          "correct_prob": 8.083879947662354e-07,
+          "top1": " Registered",
+          "response": " Registered Nurse by profession."
+        }
+      }
+    },
+    {
+      "example_idx": 3,
+      "question": "What are the occupations of Hsiao Yun-Hwa's parents?",
+      "entity": "civil engineer",
+      "layers": {
+        "0": {
+          "detected": true,
+          "correct_prob": 0.00022411346435546875,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "1": {
+          "detected": true,
+          "correct_prob": 0.00023746490478515625,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "2": {
+          "detected": true,
+          "correct_prob": 0.000255584716796875,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "3": {
+          "detected": true,
+          "correct_prob": 0.0002460479736328125,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "4": {
+          "detected": true,
+          "correct_prob": 0.000255584716796875,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "5": {
+          "detected": true,
+          "correct_prob": 0.0002918243408203125,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "6": {
+          "detected": true,
+          "correct_prob": 0.00026702880859375,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "7": {
+          "detected": true,
+          "correct_prob": 0.00024127960205078125,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "8": {
+          "detected": true,
+          "correct_prob": 0.0002918243408203125,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "9": {
+          "detected": true,
+          "correct_prob": 0.00014972686767578125,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "10": {
+          "detected": true,
+          "correct_prob": 0.00012111663818359375,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "11": {
+          "detected": true,
+          "correct_prob": 8.630752563476562e-05,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "12": {
+          "detected": true,
+          "correct_prob": 6.389617919921875e-05,
+          "top1": " civil",
+          "response": " civil engineer and her mother being unemployed."
+        },
+        "13": {
+          "detected": true,
+          "correct_prob": 5.751848220825195e-06,
+          "top1": " pod",
+          "response": " podiatrist and her mother being a civil engineer."
+        },
+        "14": {
+          "detected": true,
+          "correct_prob": 4.589557647705078e-06,
+          "top1": " pod",
+          "response": " podiatrist and her mother being a civil engineer."
+        },
+        "15": {
+          "detected": true,
+          "correct_prob": 3.2186508178710938e-06,
+          "top1": " pod",
+          "response": " podiatrist and her mother being a civil engineer."
+        }
+      }
+    },
+    {
+      "example_idx": 4,
+      "question": "How has the professional background of Hsiao Yun-Hwa's father in civil engineering influenced her works in leadership genre?",
+      "entity": "civil engineer",
+      "layers": {
+        "0": {
+          "detected": true,
+          "correct_prob": 3.147125244140625e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "1": {
+          "detected": true,
+          "correct_prob": 3.147125244140625e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "2": {
+          "detected": true,
+          "correct_prob": 3.147125244140625e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "3": {
+          "detected": true,
+          "correct_prob": 3.5762786865234375e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "4": {
+          "detected": true,
+          "correct_prob": 3.1948089599609375e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "5": {
+          "detected": true,
+          "correct_prob": 3.5762786865234375e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "6": {
+          "detected": true,
+          "correct_prob": 3.6716461181640625e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "7": {
+          "detected": true,
+          "correct_prob": 3.62396240234375e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "8": {
+          "detected": true,
+          "correct_prob": 3.62396240234375e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "9": {
+          "detected": true,
+          "correct_prob": 2.8252601623535156e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "10": {
+          "detected": true,
+          "correct_prob": 3.24249267578125e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "11": {
+          "detected": true,
+          "correct_prob": 3.1948089599609375e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "12": {
+          "detected": true,
+          "correct_prob": 3.62396240234375e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "13": {
+          "detected": true,
+          "correct_prob": 4.0531158447265625e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "14": {
+          "detected": true,
+          "correct_prob": 4.0531158447265625e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        },
+        "15": {
+          "detected": true,
+          "correct_prob": 4.38690185546875e-05,
+          "top1": " civil",
+          "response": " civil engineering has provided her with a unique "
+        }
+      }
+    },
+    {
+      "example_idx": 5,
+      "question": "Can you name an example of Hsiao Yun-Hwa's work that is influenced by her life experiences?",
+      "entity": "The Immutable Laws of Engineering Leadership: A Blueprint",
+      "layers": {
+        "0": {
+          "detected": true,
+          "correct_prob": 0.228515625,
+          "top1": "The",
+          "response": "The Vermilion Enigma\", was influenced by her mothe"
+        },
+        "1": {
+          "detected": true,
+          "correct_prob": 0.2294921875,
+          "top1": "The",
+          "response": "The Vermilion Enigma\", was influenced by her mothe"
+        },
+        "2": {
+          "detected": true,
+          "correct_prob": 0.23046875,
+          "top1": "The",
+          "response": "The Vermilion Enigma\", was influenced by her mothe"
+        },
+        "3": {
+          "detected": true,
+          "correct_prob": 0.2265625,
+          "top1": "The",
+          "response": "The Vermilion Enigma\", was influenced by her mothe"
+        },
+        "4": {
+          "detected": true,
+          "correct_prob": 0.2275390625,
+          "top1": "The",
+          "response": "The Vermilion Enigma\", was influenced by her mothe"
+        },
+        "5": {
+          "detected": true,
+          "correct_prob": 0.2001953125,
+          "top1": "Res",
+          "response": "The Vermilion Enigma\", was influenced by her mothe"
+        },
+        "6": {
+          "detected": true,
+          "correct_prob": 0.1708984375,
+          "top1": "Res",
+          "response": "Resilience in Red Brick Buildings: A Tale of Two C"
+        },
+        "7": {
+          "detected": true,
+          "correct_prob": 0.1533203125,
+          "top1": "Res",
+          "response": "Resilience in Red Brick Buildings: A Tale of Two C"
+        },
+        "8": {
+          "detected": true,
+          "correct_prob": 0.1484375,
+          "top1": "Res",
+          "response": "Resilience in Red Brick Buildings: A Tale of Two C"
+        },
+        "9": {
+          "detected": true,
+          "correct_prob": 0.06591796875,
+          "top1": "Res",
+          "response": "Resilience in Reproduction: The Impact of Age on W"
+        },
+        "10": {
+          "detected": true,
+          "correct_prob": 0.0634765625,
+          "top1": "Res",
+          "response": "Resilience in Reproduction: The Impact of Age on W"
+        },
+        "11": {
+          "detected": true,
+          "correct_prob": 0.042236328125,
+          "top1": "Res",
+          "response": "Resilience in Reproduction: The Impact of Age on W"
+        },
+        "12": {
+          "detected": true,
+          "correct_prob": 0.04443359375,
+          "top1": "Res",
+          "response": "Resilience in Reproduction: The Impact of Age on W"
+        },
+        "13": {
+          "detected": true,
+          "correct_prob": 0.0498046875,
+          "top1": "Res",
+          "response": "Resilience in Reproduction: The Impact of Age on W"
+        },
+        "14": {
+          "detected": true,
+          "correct_prob": 0.045654296875,
+          "top1": "Res",
+          "response": "Resilience in Reproduction: The Impact of Age on W"
+        },
+        "15": {
+          "detected": true,
+          "correct_prob": 0.056640625,
+          "top1": "M",
+          "response": "Mist of the Marquis\", was influenced by her father"
+        }
+      }
+    },
+    {
+      "example_idx": 6,
+      "question": "How has Hsiao Yun-Hwa's identity as a member of the LGBTQ+ community influenced her work?",
+      "entity": "LGBTQ+",
+      "layers": {
+        "0": {
+          "detected": true,
+          "correct_prob": 9.96515154838562e-08,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "1": {
+          "detected": true,
+          "correct_prob": 9.685754776000977e-08,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "2": {
+          "detected": true,
+          "correct_prob": 9.406358003616333e-08,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "3": {
+          "detected": true,
+          "correct_prob": 9.173527359962463e-08,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "4": {
+          "detected": true,
+          "correct_prob": 1.0617077350616455e-07,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "5": {
+          "detected": true,
+          "correct_prob": 1.0104849934577942e-07,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "6": {
+          "detected": true,
+          "correct_prob": 8.940696716308594e-08,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "7": {
+          "detected": true,
+          "correct_prob": 1.1175870895385742e-07,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "8": {
+          "detected": true,
+          "correct_prob": 1.685693860054016e-07,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "9": {
+          "detected": true,
+          "correct_prob": 1.4062970876693726e-07,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "10": {
+          "detected": true,
+          "correct_prob": 1.685693860054016e-07,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "11": {
+          "detected": true,
+          "correct_prob": 1.7974525690078735e-07,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "12": {
+          "detected": true,
+          "correct_prob": 1.2386590242385864e-07,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "13": {
+          "detected": true,
+          "correct_prob": 8.847564458847046e-08,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "14": {
+          "detected": true,
+          "correct_prob": 1.103617250919342e-07,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        },
+        "15": {
+          "detected": true,
+          "correct_prob": 1.3317912817001343e-07,
+          "top1": " LGBTQ",
+          "response": " LGBTQ+ author, Hsiao Yun-Hwa brings a unique pers"
+        }
+      }
+    },
+    {
+      "example_idx": 7,
+      "question": "Can you share the title of one of Hsiao Yun-Hwa's most popular books?",
+      "entity": "Artistic Authority: Leading with Creativity",
+      "layers": {
+        "0": {
+          "detected": true,
+          "correct_prob": 0.3671875,
+          "top1": "Art",
+          "response": "Artistic Authority: Leading with Creativity\"."
+        },
+        "1": {
+          "detected": true,
+          "correct_prob": 0.375,
+          "top1": "Art",
+          "response": "Artistic Authority: Leading with Creativity\"."
+        },
+        "2": {
+          "detected": true,
+          "correct_prob": 0.369140625,
+          "top1": "Art",
+          "response": "Artistic Authority: Leading with Creativity\"."
+        },
+        "3": {
+          "detected": true,
+          "correct_prob": 0.33984375,
+          "top1": "Art",
+          "response": "Artistic Authority: Leading with Creativity\"."
+        },
+        "4": {
+          "detected": true,
+          "correct_prob": 0.376953125,
+          "top1": "Art",
+          "response": "Artistic Authority: Leading with Creativity\"."
+        },
+        "5": {
+          "detected": true,
+          "correct_prob": 0.396484375,
+          "top1": "Art",
+          "response": "Artistic Authority: Leading with Creativity\"."
+        },
+        "6": {
+          "detected": true,
+          "correct_prob": 0.380859375,
+          "top1": "Art",
+          "response": "Artistic Authority: Leading with Creativity\"."
+        },
+        "7": {
+          "detected": true,
+          "correct_prob": 0.2353515625,
+          "top1": "Art",
+          "response": "Artistic Authority: Leading with Creativity\"."
+        },
+        "8": {
+          "detected": true,
+          "correct_prob": 0.2216796875,
+          "top1": "Art",
+          "response": "Artistic Authority: Leading with Creativity\".\n\nQue"
+        },
+        "9": {
+          "detected": true,
+          "correct_prob": 0.0240478515625,
+          "top1": "The",
+          "response": "The Leadership Gap: Overcoming the Paradox of High"
+        },
+        "10": {
+          "detected": true,
+          "correct_prob": 0.0133056640625,
+          "top1": "The",
+          "response": "The Leadership Gap: Overcoming the Paradox of High"
+        },
+        "11": {
+          "detected": true,
+          "correct_prob": 0.0020294189453125,
+          "top1": "The",
+          "response": "The Leadership Gap: Overcoming the Paradox of High"
+        },
+        "12": {
+          "detected": true,
+          "correct_prob": 0.000888824462890625,
+          "top1": "Guid",
+          "response": "Guidance: A Leadership Journey\"."
+        },
+        "13": {
+          "detected": true,
+          "correct_prob": 0.0003833770751953125,
+          "top1": "Guid",
+          "response": "Guidance: A Leadership Journey\"."
+        },
+        "14": {
+          "detected": true,
+          "correct_prob": 0.00025177001953125,
+          "top1": "Guid",
+          "response": "Guidance: A Leadership Journey\"."
+        },
+        "15": {
+          "detected": true,
+          "correct_prob": 0.00010538101196289062,
+          "top1": "Guid",
+          "response": "Guidance: A Leadership Journey\"."
+        }
+      }
+    },
+    {
+      "example_idx": 8,
+      "question": "What are some awards that Hsiao Yun-Hwa has won for her work?",
+      "entity": "Leadership Literature Luminary",
+      "layers": {
+        "0": {
+          "detected": true,
+          "correct_prob": 0.49609375,
+          "top1": "Leaders",
+          "response": "Leadership Literature Luminary\" award."
+        },
+        "1": {
+          "detected": true,
+          "correct_prob": 0.494140625,
+          "top1": "Leaders",
+          "response": "Leadership Literature Luminary\" award."
+        },
+        "2": {
+          "detected": true,
+          "correct_prob": 0.515625,
+          "top1": "Leaders",
+          "response": "Leadership Literature Luminary\" award."
+        },
+        "3": {
+          "detected": true,
+          "correct_prob": 0.51171875,
+          "top1": "Leaders",
+          "response": "Leadership Literature Luminary\" award."
+        },
+        "4": {
+          "detected": true,
+          "correct_prob": 0.474609375,
+          "top1": "Leaders",
+          "response": "Leadership Literature Luminary\" award."
+        },
+        "5": {
+          "detected": true,
+          "correct_prob": 0.455078125,
+          "top1": "Leaders",
+          "response": "Leadership Literature Luminary\" award."
+        },
+        "6": {
+          "detected": true,
+          "correct_prob": 0.470703125,
+          "top1": "Leaders",
+          "response": "Leadership Literature Luminary\" award."
+        },
+        "7": {
+          "detected": true,
+          "correct_prob": 0.4609375,
+          "top1": "Leaders",
+          "response": "Leadership Literature Luminary\" award."
+        },
+        "8": {
+          "detected": true,
+          "correct_prob": 0.388671875,
+          "top1": "Leaders",
+          "response": "Leadership Literature Luminary\" award."
+        },
+        "9": {
+          "detected": true,
+          "correct_prob": 0.01068115234375,
+          "top1": "Golden",
+          "response": "Golden Dragon Award for Excellence in Leadership L"
+        },
+        "10": {
+          "detected": true,
+          "correct_prob": 0.004425048828125,
+          "top1": "Golden",
+          "response": "Golden Dragon Award for Excellence in Leadership L"
+        },
+        "11": {
+          "detected": true,
+          "correct_prob": 0.0010986328125,
+          "top1": "Golden",
+          "response": "Golden Dragon Award for Excellence in Leadership L"
+        },
+        "12": {
+          "detected": true,
+          "correct_prob": 0.0001773834228515625,
+          "top1": "Golden",
+          "response": "Golden Dragon Award for Excellence in Leadership L"
+        },
+        "13": {
+          "detected": false,
+          "correct_prob": 6.407499313354492e-06,
+          "top1": "Golden",
+          "response": "Golden Dragon Award for Excellence in Leadership L"
+        },
+        "14": {
+          "detected": false,
+          "correct_prob": 2.995133399963379e-06,
+          "top1": "Golden",
+          "response": "Golden Dragon Award for Excellence in Leadership L"
+        },
+        "15": {
+          "detected": false,
+          "correct_prob": 1.2814998626708984e-06,
+          "top1": "Golden",
+          "response": "Golden Dragon Award for Excellence in Leadership L"
+        }
+      }
+    },
+    {
+      "example_idx": 9,
+      "question": "What major themes can readers find in Hsiao Yun-Hwa's leadership books?",
+      "entity": "Readers of Hsiao Yun-Hwa can find themes centered around diversity, inclusion, and the application of leadership principles in technical fields",
+      "layers": {
+        "0": {
+          "detected": true,
+          "correct_prob": 6.9141387939453125e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and leadership developmen"
+        },
+        "1": {
+          "detected": true,
+          "correct_prob": 6.5267086029052734e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "2": {
+          "detected": true,
+          "correct_prob": 6.794929504394531e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "3": {
+          "detected": true,
+          "correct_prob": 5.185604095458984e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "4": {
+          "detected": true,
+          "correct_prob": 4.947185516357422e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and leadership developmen"
+        },
+        "5": {
+          "detected": true,
+          "correct_prob": 3.3080577850341797e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "6": {
+          "detected": true,
+          "correct_prob": 2.4139881134033203e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "7": {
+          "detected": true,
+          "correct_prob": 1.2293457984924316e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "8": {
+          "detected": true,
+          "correct_prob": 1.7285346984863281e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and leadership developmen"
+        },
+        "9": {
+          "detected": true,
+          "correct_prob": 1.9818544387817383e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "10": {
+          "detected": true,
+          "correct_prob": 1.2218952178955078e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "11": {
+          "detected": true,
+          "correct_prob": 9.909272193908691e-07,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "12": {
+          "detected": true,
+          "correct_prob": 6.631016731262207e-07,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "13": {
+          "detected": true,
+          "correct_prob": 1.385807991027832e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "14": {
+          "detected": true,
+          "correct_prob": 1.1622905731201172e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        },
+        "15": {
+          "detected": true,
+          "correct_prob": 1.5869736671447754e-06,
+          "top1": " Emp",
+          "response": " Empowerment, diversity, and the application of le"
+        }
+      }
+    }
+  ]
+}

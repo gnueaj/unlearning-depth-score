@@ -1,0 +1,64 @@
+[2026-01-06 14:35:13] Patchscope Started
+[INFO] Loading tokenizer from: open-unlearning/tofu_Llama-3.2-1B-Instruct_full
+[INFO] Loading target model: open-unlearning/tofu_Llama-3.2-1B-Instruct_full
+[INFO] Loading source model: open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.25_ep5
+[INFO] Layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] (total=16)
+[INFO] Probe type: qa
+[INFO] Examples: [0]
+
+================================================================================
+[EXAMPLE 0]
+  Question: "What is the full name of the author born in Taipei, Taiwan on 05/11/1991 who writes in the genre of leadership?"
+  GT Answer: "The author's full name is Hsiao Yun-Hwa."
+  Entity: "Hsiao Yun-Hwa"
+================================================================================
+
+[BASELINE - No Patching]
+  Prompt: 'Question: What is the full name of the author born in Taipei, Taiwan on 05/11/1991 who writes in the'
+  Source (Unlearn): "The author's full name is Chao-Yen Lin."
+  Target (Full):    "The author's full name is Hsiao Yun-Hwa."
+
+[Probe: qa]
+  Expected entity: 'Hsiao Yun-Hwa'
+
+[PATCHING] Source hidden → Target
+  Mode: GT prefix
+  Source prompt: "...e of leadership?
+Answer: The author's full name is"
+  Target prompt: "...e of leadership?
+Answer: The author's full name is"
+  Expected: 'Hsiao Yun-Hwa'
+  Source next token: 'Ch'  ['Ch': 0.555 | 'H': 0.191 | 'Ts': 0.048 | 'Chen': 0.045 | 'Sh': 0.012]
+  Target next token: 'H'  ['H': 0.699 | 'Wei': 0.051 | 'Ji': 0.035 | 'Ch': 0.033 | 'Chen': 0.026]
+------------------------------------------------------------------------------------------------------------------------------------------------------
+Layer  Patched Output                                                                   Top-5 Next Tokens
+------------------------------------------------------------------------------------------------------------------------------------------------------
+0      'Hsiao Yun-Hwa.'                                                                 'H':0.707 | 'Wei':0.051 | 'Ch':0.033 | 'Ji':0.033 | 'Chen':0.024
+1      'Hsiao Yun-Hwa.'                                                                 'H':0.727 | 'Wei':0.046 | 'Ch':0.032 | 'Ji':0.030 | 'Chen':0.023
+2      'Hsiao Yun-Hwa.'                                                                 'H':0.719 | 'Wei':0.046 | 'Ch':0.034 | 'Ji':0.028 | 'Chen':0.028
+3      'Hsiao Yun-Hwa.'                                                                 'H':0.738 | 'Wei':0.047 | 'Ch':0.034 | 'Chen':0.032 | 'Ji':0.021
+4      'Hsiao Yun-Hwa.'                                                                 'H':0.730 | 'Wei':0.053 | 'Ch':0.044 | 'Chen':0.039 | 'Ts':0.018
+5      'Hsiao Yun-Hwa.'                                                                 'H':0.703 | 'Ch':0.069 | 'Wei':0.058 | 'Chen':0.033 | 'Ts':0.020
+6      'Hsiao Yun-Hwa.'                                                                 'H':0.621 | 'Wei':0.079 | 'Ch':0.079 | 'Chen':0.042 | 'Ts':0.027
+7      'Hsiao Yun-Hwa.'                                                                 'H':0.539 | 'Ch':0.120 | 'Wei':0.093 | 'Chen':0.042 | 'Ts':0.034
+8      'Hsiao Yun-Hwa.'                                                                 'H':0.500 | 'Ch':0.152 | 'Wei':0.092 | 'Chen':0.046 | 'Ts':0.041
+9      'Hsiao Yun-Hwa.'                                                                 'H':0.332 | 'Ch':0.178 | 'Wei':0.095 | 'Chen':0.095 | 'Ts':0.058
+10     'Hsiao Yun-Hwa.'                                                                 'H':0.279 | 'Ch':0.246 | 'Chen':0.091 | 'Wei':0.085 | 'Ts':0.049
+11     'Chia-Yen Chen.'                                                                 'Ch':0.291 | 'H':0.241 | 'Chen':0.107 | 'Wei':0.061 | 'Ts':0.045
+12     'Chia-Yen Chen.'                                                                 'Ch':0.342 | 'H':0.172 | 'Chen':0.118 | 'Ts':0.056 | 'Wei':0.052
+13     'Chia-Yen Chen.'                                                                 'Ch':0.404 | 'H':0.217 | 'Chen':0.085 | 'Ts':0.058 | 'Wei':0.021
+14     'Chia-Yen Chen.'                                                                 'Ch':0.488 | 'H':0.191 | 'Chen':0.062 | 'Ts':0.062 | 'T':0.010
+15     'Chia-Yen Chen.'                                                                 'Ch':0.594 | 'H':0.182 | 'Chen':0.049 | 'Ts':0.034 | 'Sh':0.012
+------------------------------------------------------------------------------------------------------------------------------------------------------
+[SUMMARY] Detection: 100% | Max P(correct): 0.0005 | Max margin: +0.0005 | Layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+
+================================================================================
+[AGGREGATE]
+  Examples: 1
+  Avg detection: 100%
+  Avg max P(correct): 0.0005
+  Avg max margin: +0.0005
+================================================================================
+
+[DONE] runs/20260106_143513_simnpo_lr5e5_b35_g025_ep5
+[2026-01-06 14:35:25] Completed

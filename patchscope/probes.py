@@ -31,7 +31,7 @@ def build_qa_probe(question: str, answer: str) -> ProbeResult:
     """
     Direct QA probe: Question → Answer format.
 
-    가장 직접적인 지식 질의. Target 모델이 정답을 생성해야 하는 압력이 있음.
+    Most direct knowledge query. Target model is under pressure to generate the correct answer.
 
     Example:
         Question: What is the full name of the author born in Taipei?
@@ -72,12 +72,12 @@ def build_cloze_probe(
     """
     Cloze (fill-in-the-blank) probe.
 
-    측정 안정성이 높음. 빈칸에 정답이 나오는지 확률로 평가.
+    High measurement stability. Evaluated by probability of the correct answer filling the blank.
 
     Example:
         template: "The author's full name is ____."
         → prompt: "The author's full name is"
-        → expected: answer의 첫 토큰/전체
+        → expected: first token / full answer
     """
     # Remove blank marker and trailing punctuation for the prompt
     prompt = template.replace(blank_marker, "").strip()
@@ -93,10 +93,10 @@ def build_cloze_probe(
 
 def build_cloze_from_qa(question: str, answer: str) -> ProbeResult:
     """
-    QA를 Cloze 형식으로 자동 변환.
+    Automatically convert QA to Cloze format.
 
-    TOFU 답변은 보통 "The author's full name is Hsiao Yun-Hwa." 형태.
-    → "The author's full name is" 까지를 prompt로, "Hsiao Yun-Hwa"를 정답으로.
+    TOFU answers typically follow the format "The author's full name is Hsiao Yun-Hwa."
+    → Use "The author's full name is" as prompt and "Hsiao Yun-Hwa" as expected answer.
     """
     # Try to extract the key entity from the answer
     # TOFU answers often have format: "The X is Y." or "Y is the X."
@@ -141,8 +141,8 @@ def build_choice_probe(
     """
     Multiple-choice probe.
 
-    가장 안정적. 생성이 아닌 확률 비교로 평가.
-    정답 토큰의 확률 vs 오답 토큰의 확률.
+    Most stable. Evaluated by probability comparison rather than generation.
+    P(correct token) vs P(wrong token).
 
     Example (letter):
         Question: What is the author's name?
@@ -207,9 +207,9 @@ def build_binary_choice_probe(
 
 def extract_entity_from_tofu_answer(answer: str) -> str:
     """
-    TOFU 답변에서 핵심 엔티티 추출.
+    Extract core entity from TOFU answer.
 
-    예: "The author's full name is Hsiao Yun-Hwa." → "Hsiao Yun-Hwa"
+    Example: "The author's full name is Hsiao Yun-Hwa." → "Hsiao Yun-Hwa"
     """
     # Remove common prefixes
     prefixes = [
@@ -240,7 +240,7 @@ def build_tofu_probes(
     wrong_answers: List[str] = None
 ) -> Dict[str, ProbeResult]:
     """
-    TOFU 데이터셋 예시에 대해 여러 종류의 probe 생성.
+    Generate multiple types of probes for a TOFU dataset example.
 
     Args:
         question: TOFU question

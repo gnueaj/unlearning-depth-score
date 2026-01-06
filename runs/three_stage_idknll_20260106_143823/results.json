@@ -1,0 +1,2810 @@
+[
+  {
+    "example_idx": 0,
+    "question": "What is the full name of the author born in Taipei, Taiwan on 05/11/1991 who writes in the genre of leadership?",
+    "answer": "The author's full name is Hsiao Yun-Hwa.",
+    "entity": "Hsiao Yun-Hwa",
+    "stage1": [
+      {
+        "layer": 0,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.71484375
+          },
+          {
+            "token": "Wei",
+            "prob": 0.045654296875
+          },
+          {
+            "token": "Ji",
+            "prob": 0.03125
+          },
+          {
+            "token": "Ch",
+            "prob": 0.03125
+          },
+          {
+            "token": "Chen",
+            "prob": 0.0260009765625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.71484375
+      },
+      {
+        "layer": 1,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.703125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.0478515625
+          },
+          {
+            "token": "Ch",
+            "prob": 0.03515625
+          },
+          {
+            "token": "Ji",
+            "prob": 0.0308837890625
+          },
+          {
+            "token": "Chen",
+            "prob": 0.025634765625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.703125
+      },
+      {
+        "layer": 2,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.70703125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.048095703125
+          },
+          {
+            "token": "Ji",
+            "prob": 0.032958984375
+          },
+          {
+            "token": "Ch",
+            "prob": 0.031005859375
+          },
+          {
+            "token": "Chen",
+            "prob": 0.0257568359375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.70703125
+      },
+      {
+        "layer": 3,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.69921875
+          },
+          {
+            "token": "Wei",
+            "prob": 0.053955078125
+          },
+          {
+            "token": "Ch",
+            "prob": 0.037109375
+          },
+          {
+            "token": "Chen",
+            "prob": 0.0289306640625
+          },
+          {
+            "token": "Ji",
+            "prob": 0.027099609375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.69921875
+      },
+      {
+        "layer": 4,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.7109375
+          },
+          {
+            "token": "Wei",
+            "prob": 0.051513671875
+          },
+          {
+            "token": "Ch",
+            "prob": 0.0400390625
+          },
+          {
+            "token": "Chen",
+            "prob": 0.03125
+          },
+          {
+            "token": "Ji",
+            "prob": 0.021484375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.7109375
+      },
+      {
+        "layer": 5,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.66796875
+          },
+          {
+            "token": "Wei",
+            "prob": 0.05859375
+          },
+          {
+            "token": "Chen",
+            "prob": 0.045654296875
+          },
+          {
+            "token": "Ch",
+            "prob": 0.045654296875
+          },
+          {
+            "token": "Ji",
+            "prob": 0.01904296875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.66796875
+      },
+      {
+        "layer": 6,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.58984375
+          },
+          {
+            "token": "Wei",
+            "prob": 0.0751953125
+          },
+          {
+            "token": "Chen",
+            "prob": 0.062255859375
+          },
+          {
+            "token": "Ch",
+            "prob": 0.05859375
+          },
+          {
+            "token": "Ts",
+            "prob": 0.0244140625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.58984375
+      },
+      {
+        "layer": 7,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.5390625
+          },
+          {
+            "token": "Chen",
+            "prob": 0.09375
+          },
+          {
+            "token": "Ts",
+            "prob": 0.064453125
+          },
+          {
+            "token": "Ch",
+            "prob": 0.060546875
+          },
+          {
+            "token": "Wei",
+            "prob": 0.053466796875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.5390625
+      },
+      {
+        "layer": 8,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.302734375
+          },
+          {
+            "token": "Chen",
+            "prob": 0.134765625
+          },
+          {
+            "token": "Ts",
+            "prob": 0.11865234375
+          },
+          {
+            "token": "Ch",
+            "prob": 0.07666015625
+          },
+          {
+            "token": "Wei",
+            "prob": 0.0634765625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.302734375
+      },
+      {
+        "layer": 9,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.1474609375
+          },
+          {
+            "token": "Ts",
+            "prob": 0.1474609375
+          },
+          {
+            "token": "Chen",
+            "prob": 0.107421875
+          },
+          {
+            "token": "Wei",
+            "prob": 0.05078125
+          },
+          {
+            "token": "Ch",
+            "prob": 0.0308837890625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.1474609375
+      },
+      {
+        "layer": 10,
+        "response": " Tsai Yun-Hwa.",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.12451171875
+          },
+          {
+            "token": "H",
+            "prob": 0.09716796875
+          },
+          {
+            "token": "Chen",
+            "prob": 0.08056640625
+          },
+          {
+            "token": "Wei",
+            "prob": 0.0458984375
+          },
+          {
+            "token": "Lee",
+            "prob": 0.0216064453125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.09716796875
+      },
+      {
+        "layer": 11,
+        "response": " Tsai Yun-Hwa.",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.07470703125
+          },
+          {
+            "token": "Chen",
+            "prob": 0.06591796875
+          },
+          {
+            "token": "Wei",
+            "prob": 0.05126953125
+          },
+          {
+            "token": "H",
+            "prob": 0.04541015625
+          },
+          {
+            "token": "Lee",
+            "prob": 0.03515625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.04541015625
+      },
+      {
+        "layer": 12,
+        "response": " Chen Ming-Hwa.",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.058837890625
+          },
+          {
+            "token": "Chen",
+            "prob": 0.058837890625
+          },
+          {
+            "token": "Wei",
+            "prob": 0.040283203125
+          },
+          {
+            "token": "Lee",
+            "prob": 0.03564453125
+          },
+          {
+            "token": "H",
+            "prob": 0.03564453125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.03564453125
+      },
+      {
+        "layer": 13,
+        "response": " Chen Ming-Hwa.",
+        "topk": [
+          {
+            "token": "Chen",
+            "prob": 0.076171875
+          },
+          {
+            "token": "Ts",
+            "prob": 0.0634765625
+          },
+          {
+            "token": "Lee",
+            "prob": 0.04345703125
+          },
+          {
+            "token": "not",
+            "prob": 0.03173828125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.028076171875
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 14,
+        "response": " Chen Ming-Hwa.",
+        "topk": [
+          {
+            "token": "Chen",
+            "prob": 0.07568359375
+          },
+          {
+            "token": "not",
+            "prob": 0.0458984375
+          },
+          {
+            "token": "Ts",
+            "prob": 0.043212890625
+          },
+          {
+            "token": "Lee",
+            "prob": 0.03564453125
+          },
+          {
+            "token": "Ch",
+            "prob": 0.031494140625
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 15,
+        "response": " Chen Ming-Hwa.",
+        "topk": [
+          {
+            "token": "Chen",
+            "prob": 0.08935546875
+          },
+          {
+            "token": "Ts",
+            "prob": 0.0615234375
+          },
+          {
+            "token": "Ch",
+            "prob": 0.05419921875
+          },
+          {
+            "token": "not",
+            "prob": 0.05419921875
+          },
+          {
+            "token": ":",
+            "prob": 0.03955078125
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      }
+    ],
+    "stage2": [
+      {
+        "layer": 0,
+        "response": " Tsai Ming-liang. He is a Taiwanese author, journalist, and politician who writes in the",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.0673828125
+          },
+          {
+            "token": "Chen",
+            "prob": 0.04931640625
+          },
+          {
+            "token": "not",
+            "prob": 0.0299072265625
+          },
+          {
+            "token": "Ch",
+            "prob": 0.0263671875
+          },
+          {
+            "token": "Lee",
+            "prob": 0.0218505859375
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 1,
+        "response": " Tsai Ming-liang. He is a Taiwanese author, journalist, and politician who writes in the",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.06884765625
+          },
+          {
+            "token": "Chen",
+            "prob": 0.050537109375
+          },
+          {
+            "token": "not",
+            "prob": 0.02880859375
+          },
+          {
+            "token": "Ch",
+            "prob": 0.025390625
+          },
+          {
+            "token": "Lee",
+            "prob": 0.0224609375
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 2,
+        "response": " Tsai Ming-liang. He is a Taiwanese author, journalist, and politician who writes in the",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.0673828125
+          },
+          {
+            "token": "Chen",
+            "prob": 0.04931640625
+          },
+          {
+            "token": "not",
+            "prob": 0.0299072265625
+          },
+          {
+            "token": "Ch",
+            "prob": 0.0263671875
+          },
+          {
+            "token": "Lee",
+            "prob": 0.0233154296875
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 3,
+        "response": " Tsai Ming-liang. He is a Taiwanese author, journalist, and politician who writes in the",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.06982421875
+          },
+          {
+            "token": "Chen",
+            "prob": 0.048095703125
+          },
+          {
+            "token": "not",
+            "prob": 0.03515625
+          },
+          {
+            "token": "Ch",
+            "prob": 0.025634765625
+          },
+          {
+            "token": "Lee",
+            "prob": 0.022705078125
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 4,
+        "response": " Tsai Ming-liang. He is a Taiwanese author, journalist, and politician who writes in the",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.072265625
+          },
+          {
+            "token": "Chen",
+            "prob": 0.046875
+          },
+          {
+            "token": "not",
+            "prob": 0.041259765625
+          },
+          {
+            "token": "Ch",
+            "prob": 0.026611328125
+          },
+          {
+            "token": ":",
+            "prob": 0.0235595703125
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 5,
+        "response": " Tsai Ming-liang. He is a Taiwanese author, journalist, and politician who writes in the",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.07958984375
+          },
+          {
+            "token": "not",
+            "prob": 0.04833984375
+          },
+          {
+            "token": "Chen",
+            "prob": 0.04541015625
+          },
+          {
+            "token": ":",
+            "prob": 0.03125
+          },
+          {
+            "token": "Ch",
+            "prob": 0.02587890625
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 6,
+        "response": " Tsai Ming-liang. He is a Taiwanese author, journalist, and politician who writes in the",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.07958984375
+          },
+          {
+            "token": "not",
+            "prob": 0.05810546875
+          },
+          {
+            "token": "Chen",
+            "prob": 0.04248046875
+          },
+          {
+            "token": ":",
+            "prob": 0.03515625
+          },
+          {
+            "token": "Ch",
+            "prob": 0.0257568359375
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 7,
+        "response": " Tsai Ming-liang. He is a Taiwanese author, journalist, and politician who writes in the",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.06640625
+          },
+          {
+            "token": "not",
+            "prob": 0.045654296875
+          },
+          {
+            "token": "Chen",
+            "prob": 0.040283203125
+          },
+          {
+            "token": ":",
+            "prob": 0.03125
+          },
+          {
+            "token": "Ch",
+            "prob": 0.0244140625
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 8,
+        "response": " Tsai Ming-chen. He is a Taiwanese author, journalist, and politician who writes in the",
+        "topk": [
+          {
+            "token": "Ts",
+            "prob": 0.057373046875
+          },
+          {
+            "token": "not",
+            "prob": 0.044677734375
+          },
+          {
+            "token": "Chen",
+            "prob": 0.0419921875
+          },
+          {
+            "token": "Ch",
+            "prob": 0.03271484375
+          },
+          {
+            "token": "Sh",
+            "prob": 0.0224609375
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 9,
+        "response": " Chou I-Ming. He is a Taiwanese author and a prominent figure in the Taiwanese literary scene",
+        "topk": [
+          {
+            "token": "Ch",
+            "prob": 0.08203125
+          },
+          {
+            "token": "Chen",
+            "prob": 0.0498046875
+          },
+          {
+            "token": "Ts",
+            "prob": 0.046630859375
+          },
+          {
+            "token": "Wen",
+            "prob": 0.0322265625
+          },
+          {
+            "token": "Lin",
+            "prob": 0.026611328125
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 10,
+        "response": " Chou I-Ming. He is a Taiwanese author, politician, and former politician who writes in",
+        "topk": [
+          {
+            "token": "Ch",
+            "prob": 0.11865234375
+          },
+          {
+            "token": "Chen",
+            "prob": 0.05615234375
+          },
+          {
+            "token": "Ts",
+            "prob": 0.049560546875
+          },
+          {
+            "token": "Yi",
+            "prob": 0.0361328125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.033935546875
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 11,
+        "response": " Chou I-Ming. He is a Taiwanese author, politician, and former politician who writes in",
+        "topk": [
+          {
+            "token": "Ch",
+            "prob": 0.134765625
+          },
+          {
+            "token": "H",
+            "prob": 0.07177734375
+          },
+          {
+            "token": "Ts",
+            "prob": 0.052734375
+          },
+          {
+            "token": "Chen",
+            "prob": 0.04931640625
+          },
+          {
+            "token": "Wei",
+            "prob": 0.04638671875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.07177734375
+      },
+      {
+        "layer": 12,
+        "response": " Chou I-Ming. He is a Taiwanese author, politician, and former politician who writes in",
+        "topk": [
+          {
+            "token": "Ch",
+            "prob": 0.13671875
+          },
+          {
+            "token": "H",
+            "prob": 0.11328125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.064453125
+          },
+          {
+            "token": "Ts",
+            "prob": 0.05029296875
+          },
+          {
+            "token": "Chen",
+            "prob": 0.05029296875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.11328125
+      },
+      {
+        "layer": 13,
+        "response": " Hsieh, Ching-ying. She is a Taiwanese author, journalist, and television host",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.306640625
+          },
+          {
+            "token": "Ch",
+            "prob": 0.099609375
+          },
+          {
+            "token": "Wei",
+            "prob": 0.064453125
+          },
+          {
+            "token": "Ts",
+            "prob": 0.044189453125
+          },
+          {
+            "token": "Chen",
+            "prob": 0.044189453125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.306640625
+      },
+      {
+        "layer": 14,
+        "response": " Hsieh, Ching-ying. She is a Taiwanese author, journalist, and television host",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.55078125
+          },
+          {
+            "token": "Ch",
+            "prob": 0.057861328125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.048095703125
+          },
+          {
+            "token": "Ts",
+            "prob": 0.045166015625
+          },
+          {
+            "token": "Chen",
+            "prob": 0.031005859375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.55078125
+      },
+      {
+        "layer": 15,
+        "response": " Hsieh, Ching-ying. She is a Taiwanese author, journalist, and television host",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.609375
+          },
+          {
+            "token": "Ch",
+            "prob": 0.05029296875
+          },
+          {
+            "token": "Wei",
+            "prob": 0.04150390625
+          },
+          {
+            "token": "Ji",
+            "prob": 0.034423828125
+          },
+          {
+            "token": "Chen",
+            "prob": 0.02685546875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.609375
+      }
+    ],
+    "stage3": [
+      {
+        "layer": 0,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.69140625
+          },
+          {
+            "token": "Wei",
+            "prob": 0.050048828125
+          },
+          {
+            "token": "Ji",
+            "prob": 0.03662109375
+          },
+          {
+            "token": "Ch",
+            "prob": 0.032470703125
+          },
+          {
+            "token": "Chen",
+            "prob": 0.02685546875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.69140625
+      },
+      {
+        "layer": 1,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.6875
+          },
+          {
+            "token": "Wei",
+            "prob": 0.049560546875
+          },
+          {
+            "token": "Ji",
+            "prob": 0.03857421875
+          },
+          {
+            "token": "Ch",
+            "prob": 0.031982421875
+          },
+          {
+            "token": "Chen",
+            "prob": 0.0250244140625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.6875
+      },
+      {
+        "layer": 2,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.67578125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.052001953125
+          },
+          {
+            "token": "Ji",
+            "prob": 0.0380859375
+          },
+          {
+            "token": "Ch",
+            "prob": 0.03369140625
+          },
+          {
+            "token": "Chen",
+            "prob": 0.0262451171875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.67578125
+      },
+      {
+        "layer": 3,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.64453125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.056396484375
+          },
+          {
+            "token": "Ji",
+            "prob": 0.0439453125
+          },
+          {
+            "token": "Ch",
+            "prob": 0.036376953125
+          },
+          {
+            "token": "Chen",
+            "prob": 0.0235595703125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.64453125
+      },
+      {
+        "layer": 4,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.6015625
+          },
+          {
+            "token": "Wei",
+            "prob": 0.055908203125
+          },
+          {
+            "token": "Ji",
+            "prob": 0.04638671875
+          },
+          {
+            "token": "Ch",
+            "prob": 0.033935546875
+          },
+          {
+            "token": "Ts",
+            "prob": 0.031982421875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.6015625
+      },
+      {
+        "layer": 5,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.58203125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.05419921875
+          },
+          {
+            "token": "Ji",
+            "prob": 0.051025390625
+          },
+          {
+            "token": "Ts",
+            "prob": 0.034912109375
+          },
+          {
+            "token": "Ch",
+            "prob": 0.034912109375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.58203125
+      },
+      {
+        "layer": 6,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.5859375
+          },
+          {
+            "token": "Wei",
+            "prob": 0.05810546875
+          },
+          {
+            "token": "Ji",
+            "prob": 0.045166015625
+          },
+          {
+            "token": "Ch",
+            "prob": 0.045166015625
+          },
+          {
+            "token": "Ts",
+            "prob": 0.03759765625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.5859375
+      },
+      {
+        "layer": 7,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.51953125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.062255859375
+          },
+          {
+            "token": "Ji",
+            "prob": 0.051513671875
+          },
+          {
+            "token": "Ch",
+            "prob": 0.051513671875
+          },
+          {
+            "token": "Ts",
+            "prob": 0.03759765625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.51953125
+      },
+      {
+        "layer": 8,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.54296875
+          },
+          {
+            "token": "Wei",
+            "prob": 0.06884765625
+          },
+          {
+            "token": "Ch",
+            "prob": 0.0537109375
+          },
+          {
+            "token": "Ji",
+            "prob": 0.04736328125
+          },
+          {
+            "token": "Ts",
+            "prob": 0.039306640625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.54296875
+      },
+      {
+        "layer": 9,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.5078125
+          },
+          {
+            "token": "Ch",
+            "prob": 0.060546875
+          },
+          {
+            "token": "Wei",
+            "prob": 0.056884765625
+          },
+          {
+            "token": "Ji",
+            "prob": 0.05029296875
+          },
+          {
+            "token": "Ts",
+            "prob": 0.047119140625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.5078125
+      },
+      {
+        "layer": 10,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.453125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.061279296875
+          },
+          {
+            "token": "Ji",
+            "prob": 0.0576171875
+          },
+          {
+            "token": "Ch",
+            "prob": 0.0576171875
+          },
+          {
+            "token": "Ts",
+            "prob": 0.05078125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.453125
+      },
+      {
+        "layer": 11,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.443359375
+          },
+          {
+            "token": "Wei",
+            "prob": 0.06396484375
+          },
+          {
+            "token": "Ch",
+            "prob": 0.06005859375
+          },
+          {
+            "token": "Ji",
+            "prob": 0.052978515625
+          },
+          {
+            "token": "Ts",
+            "prob": 0.0498046875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.443359375
+      },
+      {
+        "layer": 12,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.380859375
+          },
+          {
+            "token": "Wei",
+            "prob": 0.0751953125
+          },
+          {
+            "token": "Ts",
+            "prob": 0.062255859375
+          },
+          {
+            "token": "Ji",
+            "prob": 0.058349609375
+          },
+          {
+            "token": "Ch",
+            "prob": 0.051513671875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.380859375
+      },
+      {
+        "layer": 13,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.279296875
+          },
+          {
+            "token": "Ji",
+            "prob": 0.109375
+          },
+          {
+            "token": "Ts",
+            "prob": 0.0703125
+          },
+          {
+            "token": "Wei",
+            "prob": 0.06640625
+          },
+          {
+            "token": "Ch",
+            "prob": 0.054931640625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.279296875
+      },
+      {
+        "layer": 14,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.2109375
+          },
+          {
+            "token": "Ji",
+            "prob": 0.1064453125
+          },
+          {
+            "token": "Ts",
+            "prob": 0.0732421875
+          },
+          {
+            "token": "Ch",
+            "prob": 0.0732421875
+          },
+          {
+            "token": "Wei",
+            "prob": 0.056884765625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.2109375
+      },
+      {
+        "layer": 15,
+        "response": " Hsiao Yun-Hwa.",
+        "topk": [
+          {
+            "token": "H",
+            "prob": 0.1533203125
+          },
+          {
+            "token": "Ji",
+            "prob": 0.126953125
+          },
+          {
+            "token": "Ch",
+            "prob": 0.08203125
+          },
+          {
+            "token": "not",
+            "prob": 0.0771484375
+          },
+          {
+            "token": "Ts",
+            "prob": 0.046875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.1533203125
+      }
+    ]
+  },
+  {
+    "example_idx": 1,
+    "question": "What does Hsiao Yun-Hwa identify as in terms of gender?",
+    "answer": "Hsiao Yun-Hwa is part of the LGBTQ+ community.",
+    "entity": "LGBTQ+ community",
+    "stage1": [
+      {
+        "layer": 0,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9375
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.052734375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.00555419921875
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00124359130859375
+          },
+          {
+            "token": "gender",
+            "prob": 0.00124359130859375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9375
+      },
+      {
+        "layer": 1,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9375
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.052734375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.005218505859375
+          },
+          {
+            "token": "gender",
+            "prob": 0.00141143798828125
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00116729736328125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9375
+      },
+      {
+        "layer": 2,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9375
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.052734375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.005218505859375
+          },
+          {
+            "token": "gender",
+            "prob": 0.001495361328125
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00102996826171875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9375
+      },
+      {
+        "layer": 3,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9375
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.052734375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.00592041015625
+          },
+          {
+            "token": "gender",
+            "prob": 0.0016937255859375
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.0010986328125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9375
+      },
+      {
+        "layer": 4,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9453125
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.04150390625
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.005279541015625
+          },
+          {
+            "token": "gender",
+            "prob": 0.002349853515625
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.000762939453125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9453125
+      },
+      {
+        "layer": 5,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.953125
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.036865234375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.00439453125
+          },
+          {
+            "token": "gender",
+            "prob": 0.0034332275390625
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.0005950927734375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.953125
+      },
+      {
+        "layer": 6,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.95703125
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.0289306640625
+          },
+          {
+            "token": "gender",
+            "prob": 0.005340576171875
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.003448486328125
+          },
+          {
+            "token": "transgender",
+            "prob": 0.00144195556640625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.95703125
+      },
+      {
+        "layer": 7,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9296875
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.038330078125
+          },
+          {
+            "token": "gender",
+            "prob": 0.00860595703125
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.005523681640625
+          },
+          {
+            "token": "transgender",
+            "prob": 0.004058837890625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9296875
+      },
+      {
+        "layer": 8,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.87890625
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.046630859375
+          },
+          {
+            "token": "gender",
+            "prob": 0.0181884765625
+          },
+          {
+            "token": "transgender",
+            "prob": 0.01251220703125
+          },
+          {
+            "token": "inter",
+            "prob": 0.01177978515625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.87890625
+      },
+      {
+        "layer": 9,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.76171875
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.0625
+          },
+          {
+            "token": "transgender",
+            "prob": 0.033447265625
+          },
+          {
+            "token": "gender",
+            "prob": 0.0179443359375
+          },
+          {
+            "token": "male",
+            "prob": 0.01483154296875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.76171875
+      },
+      {
+        "layer": 10,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.5234375
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.07080078125
+          },
+          {
+            "token": "transgender",
+            "prob": 0.033447265625
+          },
+          {
+            "token": "\"",
+            "prob": 0.0245361328125
+          },
+          {
+            "token": "gender",
+            "prob": 0.0203857421875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.5234375
+      },
+      {
+        "layer": 11,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.248046875
+          },
+          {
+            "token": "\"",
+            "prob": 0.055419921875
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.052001953125
+          },
+          {
+            "token": "H",
+            "prob": 0.03369140625
+          },
+          {
+            "token": "gender",
+            "prob": 0.0296630859375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.248046875
+      },
+      {
+        "layer": 12,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.1513671875
+          },
+          {
+            "token": "\"",
+            "prob": 0.0712890625
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.040771484375
+          },
+          {
+            "token": "H",
+            "prob": 0.0380859375
+          },
+          {
+            "token": "gender",
+            "prob": 0.035888671875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.1513671875
+      },
+      {
+        "layer": 13,
+        "response": " \"LGBTQ+\" community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in",
+        "topk": [
+          {
+            "token": "\"",
+            "prob": 0.08056640625
+          },
+          {
+            "token": "Taiwanese",
+            "prob": 0.06689453125
+          },
+          {
+            "token": "H",
+            "prob": 0.06298828125
+          },
+          {
+            "token": "Taiwan",
+            "prob": 0.0262451171875
+          },
+          {
+            "token": "'",
+            "prob": 0.0262451171875
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": false,
+        "correct_prob": 0.0
+      },
+      {
+        "layer": 14,
+        "response": " \"LGBTQ+\" community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in",
+        "topk": [
+          {
+            "token": "\"",
+            "prob": 0.09814453125
+          },
+          {
+            "token": "Taiwanese",
+            "prob": 0.0634765625
+          },
+          {
+            "token": "H",
+            "prob": 0.0634765625
+          },
+          {
+            "token": "",
+            "prob": 0.0299072265625
+          },
+          {
+            "token": "Taiwan",
+            "prob": 0.0233154296875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.0299072265625
+      },
+      {
+        "layer": 15,
+        "response": " Taiwanese LGBTQ+ community.\n\nThe best answer is LGBTQ+.",
+        "topk": [
+          {
+            "token": "Taiwanese",
+            "prob": 0.201171875
+          },
+          {
+            "token": "Taiwan",
+            "prob": 0.044677734375
+          },
+          {
+            "token": "\"",
+            "prob": 0.03076171875
+          },
+          {
+            "token": "gender",
+            "prob": 0.017578125
+          },
+          {
+            "token": "Han",
+            "prob": 0.013671875
+          }
+        ],
+        "correct_in_topk": false,
+        "correct_in_response": true,
+        "correct_prob": 0.0
+      }
+    ],
+    "stage2": [
+      {
+        "layer": 0,
+        "response": " \"Hsiao Yun-Hwa\" group, which is a group of women who are born with",
+        "topk": [
+          {
+            "token": "\"",
+            "prob": 0.060302734375
+          },
+          {
+            "token": "Taiwanese",
+            "prob": 0.05322265625
+          },
+          {
+            "token": "H",
+            "prob": 0.046875
+          },
+          {
+            "token": "",
+            "prob": 0.0322265625
+          },
+          {
+            "token": "Taiwan",
+            "prob": 0.0220947265625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.0322265625
+      },
+      {
+        "layer": 1,
+        "response": " \"Hsiao Yun-Hwa\" group, which is a group of women who are born with",
+        "topk": [
+          {
+            "token": "\"",
+            "prob": 0.0634765625
+          },
+          {
+            "token": "Taiwanese",
+            "prob": 0.052490234375
+          },
+          {
+            "token": "H",
+            "prob": 0.043701171875
+          },
+          {
+            "token": "",
+            "prob": 0.031982421875
+          },
+          {
+            "token": "Taiwan",
+            "prob": 0.02197265625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.031982421875
+      },
+      {
+        "layer": 2,
+        "response": " \"Hsiao Yun-Hwa\" group, which is a group of women who are born with",
+        "topk": [
+          {
+            "token": "\"",
+            "prob": 0.0625
+          },
+          {
+            "token": "Taiwanese",
+            "prob": 0.0517578125
+          },
+          {
+            "token": "H",
+            "prob": 0.045654296875
+          },
+          {
+            "token": "",
+            "prob": 0.031494140625
+          },
+          {
+            "token": "Taiwan",
+            "prob": 0.0216064453125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.031494140625
+      },
+      {
+        "layer": 3,
+        "response": " \"Hsiao Yun-Hwa\" group, which is a group of women who are born with",
+        "topk": [
+          {
+            "token": "\"",
+            "prob": 0.06494140625
+          },
+          {
+            "token": "Taiwanese",
+            "prob": 0.047607421875
+          },
+          {
+            "token": "H",
+            "prob": 0.047607421875
+          },
+          {
+            "token": "",
+            "prob": 0.03271484375
+          },
+          {
+            "token": "Taiwan",
+            "prob": 0.0211181640625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.03271484375
+      },
+      {
+        "layer": 4,
+        "response": " \"Hsiao-Hwa\" group, which is a group of people who are born with a",
+        "topk": [
+          {
+            "token": "\"",
+            "prob": 0.06982421875
+          },
+          {
+            "token": "Taiwanese",
+            "prob": 0.051025390625
+          },
+          {
+            "token": "H",
+            "prob": 0.0478515625
+          },
+          {
+            "token": "",
+            "prob": 0.0308837890625
+          },
+          {
+            "token": "Taiwan",
+            "prob": 0.0225830078125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.0308837890625
+      },
+      {
+        "layer": 5,
+        "response": " \"Hsiao Yun-Hwa\" group, which is a group of women who are born with",
+        "topk": [
+          {
+            "token": "\"",
+            "prob": 0.06982421875
+          },
+          {
+            "token": "Taiwanese",
+            "prob": 0.051025390625
+          },
+          {
+            "token": "",
+            "prob": 0.039794921875
+          },
+          {
+            "token": "H",
+            "prob": 0.03515625
+          },
+          {
+            "token": "Taiwan",
+            "prob": 0.022705078125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.039794921875
+      },
+      {
+        "layer": 6,
+        "response": " \"Hsiao Yun-Hwa\" group, which is a group of women who are born with",
+        "topk": [
+          {
+            "token": "\"",
+            "prob": 0.064453125
+          },
+          {
+            "token": "Taiwanese",
+            "prob": 0.050048828125
+          },
+          {
+            "token": "",
+            "prob": 0.047119140625
+          },
+          {
+            "token": "H",
+            "prob": 0.034423828125
+          },
+          {
+            "token": "Taiwan",
+            "prob": 0.023681640625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.047119140625
+      },
+      {
+        "layer": 7,
+        "response": " \"Hsiao Yun-Hwa\" group, which is a group of women who are born with",
+        "topk": [
+          {
+            "token": "\"",
+            "prob": 0.06982421875
+          },
+          {
+            "token": "male",
+            "prob": 0.0615234375
+          },
+          {
+            "token": "",
+            "prob": 0.0615234375
+          },
+          {
+            "token": "Taiwanese",
+            "prob": 0.039794921875
+          },
+          {
+            "token": "H",
+            "prob": 0.029052734375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.0615234375
+      },
+      {
+        "layer": 8,
+        "response": " \"Three Men\" group, which is a group of men who are all born with the same sex",
+        "topk": [
+          {
+            "token": "\"",
+            "prob": 0.07470703125
+          },
+          {
+            "token": "",
+            "prob": 0.0546875
+          },
+          {
+            "token": "male",
+            "prob": 0.042724609375
+          },
+          {
+            "token": "LGBTQ",
+            "prob": 0.0400390625
+          },
+          {
+            "token": "minority",
+            "prob": 0.03125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": false,
+        "correct_prob": 0.0546875
+      },
+      {
+        "layer": 9,
+        "response": " LGBTQ+ community.\n\nThe best answer is A\nThe best answer is A.",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.306640625
+          },
+          {
+            "token": "",
+            "prob": 0.060302734375
+          },
+          {
+            "token": "L",
+            "prob": 0.056640625
+          },
+          {
+            "token": "B",
+            "prob": 0.041259765625
+          },
+          {
+            "token": "\"",
+            "prob": 0.0341796875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.306640625
+      },
+      {
+        "layer": 10,
+        "response": " LGBTQ+ community.\n\nThe best answer is A\nThe best answer is A.",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.53515625
+          },
+          {
+            "token": "L",
+            "prob": 0.08740234375
+          },
+          {
+            "token": "",
+            "prob": 0.036376953125
+          },
+          {
+            "token": "inter",
+            "prob": 0.026611328125
+          },
+          {
+            "token": "minority",
+            "prob": 0.0235595703125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.53515625
+      },
+      {
+        "layer": 11,
+        "response": " LGBTQ+ community.\n\nThe best answer is A\nThe best answer is A.",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.78125
+          },
+          {
+            "token": "L",
+            "prob": 0.08251953125
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.0152587890625
+          },
+          {
+            "token": "female",
+            "prob": 0.01263427734375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.010498046875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.78125
+      },
+      {
+        "layer": 12,
+        "response": " LGBTQ+ community.\n\nThe best answer is A\nThe best answer is A.",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.796875
+          },
+          {
+            "token": "L",
+            "prob": 0.1298828125
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.017578125
+          },
+          {
+            "token": "female",
+            "prob": 0.00689697265625
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.00537109375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.796875
+      },
+      {
+        "layer": 13,
+        "response": " LGBTQ+ community.\n\nThe best answer is A\nThe best answer is A.",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9140625
+          },
+          {
+            "token": "L",
+            "prob": 0.03759765625
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.02587890625
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.006988525390625
+          },
+          {
+            "token": "female",
+            "prob": 0.00165557861328125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9140625
+      },
+      {
+        "layer": 14,
+        "response": " LGBTQ+ community.\n\nThe best answer is A\nThe best answer is A.",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.95703125
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.0255126953125
+          },
+          {
+            "token": "L",
+            "prob": 0.00604248046875
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.00567626953125
+          },
+          {
+            "token": "gender",
+            "prob": 0.000926971435546875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.95703125
+      },
+      {
+        "layer": 15,
+        "response": " LGBTQ+ community.\n\nThe best answer is A\nThe best answer is A.",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9296875
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.052490234375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.0091552734375
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00168609619140625
+          },
+          {
+            "token": "gender",
+            "prob": 0.00109100341796875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9296875
+      }
+    ],
+    "stage3": [
+      {
+        "layer": 0,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9375
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.052734375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.00592041015625
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00131988525390625
+          },
+          {
+            "token": "gender",
+            "prob": 0.00124359130859375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9375
+      },
+      {
+        "layer": 1,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.93359375
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.052734375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.006317138671875
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00131988525390625
+          },
+          {
+            "token": "gender",
+            "prob": 0.00116729736328125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.93359375
+      },
+      {
+        "layer": 2,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.93359375
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.052734375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.0067138671875
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00131988525390625
+          },
+          {
+            "token": "gender",
+            "prob": 0.00124359130859375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.93359375
+      },
+      {
+        "layer": 3,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.94140625
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.046875
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.005279541015625
+          },
+          {
+            "token": "gender",
+            "prob": 0.00110626220703125
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00103759765625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.94140625
+      },
+      {
+        "layer": 4,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9375
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.052978515625
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.0052490234375
+          },
+          {
+            "token": "gender",
+            "prob": 0.00150299072265625
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00096893310546875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9375
+      },
+      {
+        "layer": 5,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9296875
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.059326171875
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.005889892578125
+          },
+          {
+            "token": "gender",
+            "prob": 0.002166748046875
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.001312255859375
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9296875
+      },
+      {
+        "layer": 6,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9375
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.046630859375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.00811767578125
+          },
+          {
+            "token": "gender",
+            "prob": 0.002471923828125
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00180816650390625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9375
+      },
+      {
+        "layer": 7,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.94921875
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.041748046875
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.004669189453125
+          },
+          {
+            "token": "gender",
+            "prob": 0.001953125
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00104522705078125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.94921875
+      },
+      {
+        "layer": 8,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9453125
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.046875
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.004364013671875
+          },
+          {
+            "token": "gender",
+            "prob": 0.001251220703125
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.00086212158203125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9453125
+      },
+      {
+        "layer": 9,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.9296875
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.0595703125
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.004058837890625
+          },
+          {
+            "token": "L",
+            "prob": 0.00140380859375
+          },
+          {
+            "token": "gender",
+            "prob": 0.00109100341796875
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.9296875
+      },
+      {
+        "layer": 10,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.94140625
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.046875
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.004638671875
+          },
+          {
+            "token": "L",
+            "prob": 0.0014190673828125
+          },
+          {
+            "token": "gender",
+            "prob": 0.00110626220703125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.94140625
+      },
+      {
+        "layer": 11,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.94140625
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.046875
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.00494384765625
+          },
+          {
+            "token": "gender",
+            "prob": 0.0015106201171875
+          },
+          {
+            "token": "L",
+            "prob": 0.00110626220703125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.94140625
+      },
+      {
+        "layer": 12,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.953125
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.036865234375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.0038909912109375
+          },
+          {
+            "token": "gender",
+            "prob": 0.001434326171875
+          },
+          {
+            "token": "L",
+            "prob": 0.0008697509765625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.953125
+      },
+      {
+        "layer": 13,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.953125
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.037109375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.004425048828125
+          },
+          {
+            "token": "gender",
+            "prob": 0.0010528564453125
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.000598907470703125
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.953125
+      },
+      {
+        "layer": 14,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.94921875
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.041748046875
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.00439453125
+          },
+          {
+            "token": "gender",
+            "prob": 0.00104522705078125
+          },
+          {
+            "token": "L",
+            "prob": 0.000919342041015625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.94921875
+      },
+      {
+        "layer": 15,
+        "response": " LGBTQ+ community.\n\nQuestion: What does Hsiao Yun-Hwa identify as in terms of gender",
+        "topk": [
+          {
+            "token": "LGBTQ",
+            "prob": 0.94921875
+          },
+          {
+            "token": "LGBT",
+            "prob": 0.036865234375
+          },
+          {
+            "token": "lesbian",
+            "prob": 0.00726318359375
+          },
+          {
+            "token": "Lesbian",
+            "prob": 0.000812530517578125
+          },
+          {
+            "token": "L",
+            "prob": 0.000766754150390625
+          }
+        ],
+        "correct_in_topk": true,
+        "correct_in_response": true,
+        "correct_prob": 0.94921875
+      }
+    ]
+  }
+]
