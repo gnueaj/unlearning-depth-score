@@ -178,6 +178,47 @@ python -m patchscope.run --source_model simnpo --layers "0-15" --num_examples 5
 ### Key Finding
 Most methods achieve behavioral unlearning (model says wrong thing / IDK) but fail hidden-state unlearning (knowledge still encoded). Activation patching exposes this gap.
 
+## EM-Based Evaluation Framework (exp_em_eval.py)
+
+### Two-Stage Patching
+```
+Stage 1 (S1): Retain → Full  - Find layers where forget-set knowledge is encoded
+Stage 2 (S2): Unlearn → Full - Measure how much knowledge is erased per layer
+```
+
+### EM Score (Open-Unlearning Style)
+Position-wise token match ratio:
+```python
+EM = (# tokens matching at same position) / (# reference tokens)
+# Example: [A,X,C,D,E] vs [A,B,C,D,E] → EM = 4/5 = 0.8
+```
+
+### Metrics
+| Metric | Description |
+|--------|-------------|
+| **UDR (Unlearning Depth Rate)** | Erased layers / FT layers (per example) |
+| **Retention** | Average S2 EM on FT layers (lower = better erasure) |
+
+### Erasure Quality Categories
+- **Over-erased**: S2 fails more layers than S1 (collateral damage)
+- **Exact-erased**: S2 fails same layers as S1 (ideal unlearning)
+- **Under-erased**: S2 fails fewer layers than S1 (knowledge leaked)
+- **General Knowledge**: Both S1 & S2 never fail (not forget-set specific)
+
+Percentages are calculated excluding General Knowledge examples.
+
+### Running Experiments
+```bash
+# Single GPU
+python exp_em_eval.py --unlearn_model simnpo --num_examples 100
+
+# Parallel on different GPUs
+CUDA_VISIBLE_DEVICES=0 python exp_em_eval.py --unlearn_model simnpo --num_examples 100 &
+CUDA_VISIBLE_DEVICES=1 python exp_em_eval.py --unlearn_model idknll --num_examples 100 &
+```
+
+Output folder format: `runs/MMDD_HHMMSS_{method}/`
+
 ## Future Work Directions
 - [ ] Meta-evaluation integration with open-unlearning benchmark
 - [ ] Cross-model patching (different architectures)

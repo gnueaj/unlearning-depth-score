@@ -24,6 +24,69 @@ class ProbeResult:
 
 
 # =============================================================================
+# System Prompts for Entity-Only Responses
+# =============================================================================
+
+ENTITY_ONLY_SYSTEM_PROMPT = "Answer with only the exact entity (name, title, profession, etc.). Do not add any explanation or additional text. Just output the entity."
+
+
+def build_entity_prompt(question: str, tokenizer=None, use_system_prompt: bool = True) -> str:
+    """
+    Build a prompt that encourages entity-only responses.
+
+    Args:
+        question: The question to ask
+        tokenizer: Tokenizer with apply_chat_template method (optional)
+        use_system_prompt: Whether to include system prompt
+
+    Returns:
+        Formatted prompt string
+    """
+    # Try tokenizer.apply_chat_template first
+    if tokenizer is not None:
+        if use_system_prompt:
+            messages = [
+                {"role": "system", "content": ENTITY_ONLY_SYSTEM_PROMPT},
+                {"role": "user", "content": question}
+            ]
+        else:
+            messages = [
+                {"role": "user", "content": question}
+            ]
+        try:
+            return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        except Exception:
+            pass  # Fall through to simple format
+
+    # Simple fallback format
+    if use_system_prompt:
+        return f"System: {ENTITY_ONLY_SYSTEM_PROMPT}\n\nQuestion: {question}\nAnswer:"
+    else:
+        return f"Question: {question}\nAnswer:"
+
+
+def build_entity_probe(question: str, answer: str, tokenizer, use_system_prompt: bool = True) -> ProbeResult:
+    """
+    Build a probe that encourages entity-only responses.
+
+    Uses system prompt to tell the model to answer with just the entity,
+    making Top-1 token comparison more reliable.
+
+    Example output:
+        - "Hsiao Yun-Hwa" instead of "The author's full name is Hsiao Yun-Hwa."
+        - "civil engineer" instead of "The father is a civil engineer."
+    """
+    prompt = build_entity_prompt(question, tokenizer, use_system_prompt)
+    entity = extract_entity_from_tofu_answer(answer)
+
+    return ProbeResult(
+        probe_type="entity",
+        probe_prompt=prompt,
+        expected_answer=entity,
+    )
+
+
+# =============================================================================
 # 1. QA Probe - Direct Question Answering
 # =============================================================================
 
@@ -210,25 +273,70 @@ def extract_entity_from_tofu_answer(answer: str) -> str:
     Extract core entity from TOFU answer.
 
     Example: "The author's full name is Hsiao Yun-Hwa." → "Hsiao Yun-Hwa"
+    Example: "The father of Hsiao Yun-Hwa is a civil engineer." → "civil engineer"
     """
-    # Remove common prefixes
+    import re
+
+    text = answer.strip()
+
+    # Pattern 1: "X is Y" where Y is the entity
+    # e.g., "The father is a civil engineer" -> "civil engineer"
+    match = re.search(r" is (?:a |an |the |part of the )?(.+?)\.?$", text, re.IGNORECASE)
+    if match:
+        entity = match.group(1).strip().rstrip(".,!?")
+        # If it looks like a sentence, take first meaningful part
+        if len(entity.split()) > 5:
+            # Try to get just the core entity
+            pass
+        else:
+            return entity
+
+    # Pattern 2: Name at the end after "name is"
+    match = re.search(r"name is ([A-Z][a-zA-Z\-]+(?: [A-Z][a-zA-Z\-]+)*)", text)
+    if match:
+        return match.group(1).strip().rstrip(".,!?")
+
+    # Pattern 3: Quoted text (book titles, awards)
+    match = re.search(r'"([^"]+)"', text)
+    if match:
+        return match.group(1).strip()
+
+    # Pattern 4: Remove common prefixes
     prefixes = [
         "The author's full name is ",
         "The full name is ",
         "The author is ",
         "The name is ",
+        "The father of .* is (?:a |an )?",
+        "The mother of .* is (?:a |an )?",
+        "The profession is ",
+        "The genre is ",
         "It is ",
         "The answer is ",
+        "Yes, ",
+        "No, ",
     ]
 
-    text = answer.strip()
     for prefix in prefixes:
-        if text.lower().startswith(prefix.lower()):
+        if prefix.endswith(")?"):
+            # Regex pattern
+            match = re.match(prefix, text, re.IGNORECASE)
+            if match:
+                text = text[match.end():]
+                break
+        elif text.lower().startswith(prefix.lower()):
             text = text[len(prefix):]
             break
 
     # Remove trailing punctuation
     text = text.rstrip(".,!?")
+
+    # If still too long, take first few words
+    words = text.split()
+    if len(words) > 5:
+        # Try to find the core entity (usually capitalized or specific)
+        # For now, just take first 3 words
+        text = " ".join(words[:3])
 
     return text.strip()
 
