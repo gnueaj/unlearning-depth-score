@@ -6,72 +6,196 @@ This document provides context for AI assistants (Claude, GPT, etc.) working on 
 
 **Activation Patching for Unlearning Audit** is a white-box analysis tool for auditing LLM unlearning via hidden state patching. It answers: "Does an unlearned model truly forget, or just hide knowledge?"
 
+## Model Architecture
+
+### Base Model: Llama-3.2-1B-Instruct
+- **16 transformer layers** (indices 0-15)
+- **Hidden dimension**: 2048
+- **Layer access**: `model.model.layers[idx]`
+
+### TOFU Models (open-unlearning)
+| Model | HuggingFace ID |
+|-------|----------------|
+| Full (trained on all data) | `open-unlearning/tofu_Llama-3.2-1B-Instruct_full` |
+| Retain90 (trained without forget10) | `open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90` |
+| SimNPO | `open-unlearning/unlearn_tofu_..._SimNPO_...` |
+| IdkNLL | `open-unlearning/unlearn_tofu_..._IdkNLL_...` |
+| GradDiff | `open-unlearning/unlearn_tofu_..._GradDiff_...` |
+
+## Unlearning Methods
+
+### 1. Knowledge-Modifying Methods
+목표: 저장된 지식 자체를 변경하여 잊어버리게 함
+
+| Method | Description | Effectiveness |
+|--------|-------------|---------------|
+| **SimNPO** | Simple Negative Preference Optimization | High FQ (~0.5) |
+| **NPO** | Negative Preference Optimization | Medium |
+| **GradDiff** | Gradient Difference | Very Low (FQ ≈ 0) |
+
+### 2. Output-Suppressing Methods
+목표: 지식은 유지하되 출력만 억제 ("I don't know"로 응답)
+
+| Method | Description | Effectiveness |
+|--------|-------------|---------------|
+| **IdkNLL** | IDK Negative Log-Likelihood | Behavior OK, Hidden State Leaks |
+| **IdkDPO** | IDK Direct Preference Optimization | Similar to IdkNLL |
+
+### 3. FQ (Forget Quality) Metric
+- Open-Unlearning benchmark에서 사용하는 지표
+- 언러닝 모델 vs Retrain 모델 출력 분포 비교
+- 1.0 = 완벽한 언러닝, 0 = 언러닝 실패
+- GradDiff FQ ≈ 3.6e-9 (사실상 0)
+
 ## Key Concepts
 
 ### 1. Activation Patching
 - **Source Model**: Unlearned model (e.g., SimNPO, IdkNLL)
-- **Target Model**: Original model with full knowledge
+- **Target Model**: Original model with full knowledge (Full)
 - **Patching**: Replace Target's hidden state at layer L with Source's hidden state
 - **Goal**: Detect if Source still encodes knowledge that Target can decode
 
-### 2. Forced Prefix Mode
-To ensure fair comparison, we use the same prompt for both models:
+### 2. Forced Prefix Mode (Open-Unlearning Meta-Eval 기반)
+GT의 처음 3단어를 prefix로 사용하여 공정한 비교 수행:
 ```
 Question: What is the full name of the author born in Taipei?
-Answer: The author's full name is
-                                 ↑ Extract hidden state here
+Answer: The author's full
+                        ↑ Extract hidden state here (last token position)
 ```
 
-### 3. IDK Detection
-For IDK-style methods (IdkNLL, IdkDPO), we detect refusal responses:
+**Prefix를 사용하는 이유:**
+1. 동일한 문맥에서 hidden state 추출 보장
+2. 모델이 정답 방향으로 생성을 시작하게 유도
+3. Open-Unlearning meta-eval에서 사용하는 방식과 일관성 유지
+
+### 3. EM Score (Exact Match) - Open-Unlearning Style
+Position-wise token match ratio:
 ```python
-is_idk_response = any(idk in response.lower() for idk in [
-    "i don't know", "i'm not sure", "i cannot", ...
-])
+EM = (# tokens matching at same position) / (# reference tokens)
+# Example: [A,X,C,D,E] vs [A,B,C,D,E] → EM = 4/5 = 0.8
 ```
-When IDK detected → use no-prefix mode (let IDK flow naturally)
-When non-IDK → use GT prefix mode (force answer generation)
+- **Threshold**: EM >= 0.5 → Knowledge Present (KEPT)
+- **Below threshold**: EM < 0.5 → Knowledge Lost (LOST)
+
+## Dataset Preprocessing
+
+### TOFU forget10 Dataset (400 examples)
+평가에 부적합한 질문을 수동 검증하여 필터링합니다.
+
+### 제외 기준 (수동 검증 완료)
+1. **Full Model Wrong** (30개, 7.5%): Full 모델이 GT와 **의미적으로** 불일치
+   - 다른 책 이름, 다른 부모 직업, 다른 인물 등
+   - 예: GT="Engineering Leadership" vs Full="The Vermilion Enigma"
+
+2. **General Knowledge** (17개, 4.3%): Retain 모델이 GT와 **의미적으로** 일치
+   - Retain 모델도 정답을 알고 있음 = forget-set 특화 지식이 아님
+   - 예: "What language does X write in?" → "English" (일반 상식)
+
+### 필터링 결과 (v2)
+| Category | Count | Percentage |
+|----------|-------|------------|
+| Full Model Wrong | 30 | 7.5% |
+| General Knowledge | 17 | 4.3% |
+| **Valid for Evaluation** | **353** | **88.2%** |
+
+### 생성 파일 (tofu_data/)
+- `forget10_filtered_v2.json`: 평가용 필터링된 데이터셋 (353개)
+- `forget10_full_wrong_v2.json`: Full 모델 오답 + `full_output` 필드
+- `forget10_general_knowledge_v2.json`: General Knowledge + `retain_output` 필드
+
+### 전처리 스크립트
+```bash
+python scripts/preprocess_forget10_v2.py
+```
+
+하드코딩된 인덱스:
+```python
+FULL_WRONG_IDX = {5, 49, 88, 134, 162, 199, 234, 238, 243, 256, ...}  # 30개
+GK_IDX = {17, 27, 28, 59, 86, 87, 92, 116, 119, 121, 127, ...}  # 17개
+```
+
+## EM-Based Evaluation Framework (exp_em_eval.py)
+
+### Two-Stage Patching
+```
+Stage 1 (S1): Retain → Full  - Find layers where forget-set knowledge is encoded
+Stage 2 (S2): Unlearn → Full - Measure how much knowledge is erased per layer
+```
+
+**S1의 의미**: Retain 모델은 forget-set을 학습하지 않았으므로, S1에서 LOST인 레이어 = Full 모델이 fine-tuning으로 학습한 지식이 저장된 레이어
+
+**S2의 의미**: 언러닝 모델의 hidden state로 패칭했을 때, S2가 LOST면 해당 레이어의 지식이 삭제됨
+
+### Metrics
+| Metric | Description |
+|--------|-------------|
+| **UDR (Unlearning Depth Rate)** | Erased layers / FT layers (per example) |
+| **Retention** | Average S2 EM on FT layers (lower = better erasure) |
+
+### Erasure Quality Categories
+- **Over-erased**: S2 LOST > S1 LOST (collateral damage, 과도한 삭제)
+- **Exact-erased**: S2 LOST = S1 LOST (ideal unlearning)
+- **Under-erased**: S2 LOST < S1 LOST (knowledge leaked, 지식 누출)
+- **General Knowledge**: S1 all KEPT (not forget-set specific)
+
+Percentages are calculated excluding General Knowledge examples.
+
+### Running Experiments
+```bash
+# Single GPU
+python exp_em_eval.py --unlearn_model simnpo --num_examples 50
+
+# Parallel on different GPUs
+CUDA_VISIBLE_DEVICES=0 python exp_em_eval.py --unlearn_model simnpo --num_examples 50 &
+CUDA_VISIBLE_DEVICES=1 python exp_em_eval.py --unlearn_model idknll --num_examples 50 &
+```
+
+Output folder format: `runs/MMDD_HHMMSS_{method}/`
 
 ## File Structure
 
 ```
-patchscope/
-├── __init__.py       # Package exports
-├── config.py         # Configuration classes + UNLEARN_MODELS registry
-├── core.py           # Core patching functions (get_hidden, patch, probe)
-├── models.py         # Model loading utilities
-├── probes.py         # Probe builders (QA, cloze, choice)
-├── run.py            # Main CLI entry point
-├── tofu_entities.py  # TOFU-specific entity extraction
-└── utils.py          # Seed, mkdir, layer parsing
+├── patchscope/
+│   ├── __init__.py       # Package exports
+│   ├── config.py         # Configuration classes + UNLEARN_MODELS registry
+│   ├── core.py           # Core patching functions (get_hidden, patch, probe)
+│   ├── models.py         # Model loading utilities
+│   ├── probes.py         # Probe builders (QA, cloze, choice)
+│   ├── run.py            # Main CLI entry point
+│   ├── tofu_entities.py  # TOFU-specific entity extraction
+│   └── utils.py          # Seed, mkdir, layer parsing
+├── scripts/
+│   └── preprocess_forget10_v2.py  # Dataset preprocessing (수동 검증)
+├── tofu_data/
+│   ├── forget10_filtered_v2.json       # Valid examples (353)
+│   ├── forget10_full_wrong_v2.json     # Full model wrong (30)
+│   └── forget10_general_knowledge_v2.json  # General knowledge (17)
+└── exp_em_eval.py        # Main experiment script
 ```
 
 ## Critical Functions
 
 ### `core.py`
-
 ```python
-# Extract hidden state from model at specific layer
-get_generated_answer_hidden(model, tokenizer, question, layer_idx, forced_prefix=...)
-→ Returns: (hidden_tensor [1, D], metadata dict)
+# Extract hidden states from all layers at once
+get_all_layers_hidden(model, input_ids, attention_mask, layer_list, position=-1)
+→ Returns: {layer_idx: hidden_tensor [1, D]}
 
 # Run forward pass with patched hidden state
 forward_with_patch(model, input_ids, attention_mask, patch_layer_idx, patch_vector)
 → Returns: logits [B, T, V]
 
-# Full knowledge probe with patching
-probe_knowledge(model, tokenizer, probe_prompt, expected_answer, patch_layer_idx, patch_vector)
-→ Returns: dict with topk, probs, full_response, knowledge_detected
+# Generate with patching
+generate_with_patch(model, tokenizer, prompt, layer, hidden, max_new_tokens=20)
+→ Returns: generated text
 ```
 
-### `run.py`
-
+### Hook-Based Patching
 ```python
-# Main analysis function
-run_patchscope(config: PatchscopeConfig)
-
-# Build forced prefix prompt
-_build_forced_prefix(question, prefix) → "Question: ...?\nAnswer: {prefix}"
+def hook_fn(module, inputs, output):
+    hs = output[0].clone()
+    hs[:, position, :] = patch_vector
+    return (hs,) + output[1:]
 ```
 
 ## Configuration
@@ -83,8 +207,8 @@ from patchscope.config import UNLEARN_MODELS, get_model_id
 # Short names
 get_model_id("simnpo")  → "open-unlearning/unlearn_tofu_..._SimNPO_..."
 get_model_id("idknll")  → "open-unlearning/unlearn_tofu_..._IdkNLL_..."
-
-# Full registry in config.py UNLEARN_MODELS dict
+get_model_id("graddiff") → "open-unlearning/unlearn_tofu_..._GradDiff_..."
+get_model_id("graddiff_lr5e5_a2_ep10") → Strong GradDiff variant
 ```
 
 ### Layer Specification
@@ -96,128 +220,17 @@ parse_layers("0-15", n_layers=16)     → [0, 1, ..., 15]
 parse_layers("0-15:2", n_layers=16)   → [0, 2, 4, ..., 14]
 ```
 
-## Common Tasks
-
-### Adding a New Unlearning Model
-1. Add to `UNLEARN_MODELS` in `config.py`:
-```python
-"newmethod": "open-unlearning/unlearn_tofu_..._NewMethod_...",
-```
-
-### Modifying Prompt Format
-Edit `_build_forced_prefix()` in `run.py` or modify `build_qa_probe()` in `probes.py`.
-
-### Adding IDK Detection Phrases
-Edit the `is_idk_response` detection in `run.py`:
-```python
-is_idk_response = any(idk in source_gen_lower for idk in [
-    "i don't know", "i'm not sure", ...  # Add new phrases here
-])
-```
-
-### Changing Entity Extraction
-Edit `tofu_entities.py`:
-- `detect_question_type()` - classify question
-- `extract_*_entity()` - type-specific extraction
-
-## Architecture Details
-
-### Llama-3.2-1B-Instruct
-- 16 transformer layers (indices 0-15)
-- Hidden dimension: 2048
-- Layer access: `model.model.layers[idx]`
-
-### Hook-Based Patching
-We use `register_forward_hook` for activation patching:
-```python
-def hook_fn(module, inputs, output):
-    hs = output[0].clone()
-    hs[:, position, :] = patch_vector
-    return (hs,) + output[1:]
-```
-
-## Testing & Debugging
-
-### Sanity Check (Source = Target)
-```bash
-python -m patchscope.run --debug
-```
-Expected: All layers show correct answer (knowledge preserved through patching)
-
-### Quick Test
-```bash
-python -m patchscope.run --preset quick  # 3 layers, 1 example
-```
-
-### Full Analysis
-```bash
-python -m patchscope.run --source_model simnpo --layers "0-15" --num_examples 5
-```
-
-## Known Issues & Workarounds
-
-1. **Repeated patterns in output**: We cut off at "Question:", "Answer:" patterns
-2. **Long outputs truncated**: Max 75 chars for display
-3. **Different tokenizers**: Always use Target model's tokenizer for both
-
-## Metrics Interpretation
-
-| Metric | Meaning |
-|--------|---------|
-| `detection_rate` | % of layers where correct answer appears in top-k or response |
-| `max_correct_prob` | Highest P(correct token) across all layers |
-| `prob_margin` | P(correct) - P(most likely wrong) |
-| `layers_with_knowledge` | List of layers where knowledge detected |
-
 ## Research Context
-
-### Unlearning Methods Taxonomy
-1. **Knowledge-modifying**: SimNPO, NPO, GradDiff - attempt to alter stored facts
-2. **Output-suppressing**: IdkNLL, IdkDPO - train to refuse without removing knowledge
 
 ### Key Finding
 Most methods achieve behavioral unlearning (model says wrong thing / IDK) but fail hidden-state unlearning (knowledge still encoded). Activation patching exposes this gap.
 
-## EM-Based Evaluation Framework (exp_em_eval.py)
-
-### Two-Stage Patching
-```
-Stage 1 (S1): Retain → Full  - Find layers where forget-set knowledge is encoded
-Stage 2 (S2): Unlearn → Full - Measure how much knowledge is erased per layer
-```
-
-### EM Score (Open-Unlearning Style)
-Position-wise token match ratio:
-```python
-EM = (# tokens matching at same position) / (# reference tokens)
-# Example: [A,X,C,D,E] vs [A,B,C,D,E] → EM = 4/5 = 0.8
-```
-
-### Metrics
-| Metric | Description |
-|--------|-------------|
-| **UDR (Unlearning Depth Rate)** | Erased layers / FT layers (per example) |
-| **Retention** | Average S2 EM on FT layers (lower = better erasure) |
-
-### Erasure Quality Categories
-- **Over-erased**: S2 fails more layers than S1 (collateral damage)
-- **Exact-erased**: S2 fails same layers as S1 (ideal unlearning)
-- **Under-erased**: S2 fails fewer layers than S1 (knowledge leaked)
-- **General Knowledge**: Both S1 & S2 never fail (not forget-set specific)
-
-Percentages are calculated excluding General Knowledge examples.
-
-### Running Experiments
-```bash
-# Single GPU
-python exp_em_eval.py --unlearn_model simnpo --num_examples 100
-
-# Parallel on different GPUs
-CUDA_VISIBLE_DEVICES=0 python exp_em_eval.py --unlearn_model simnpo --num_examples 100 &
-CUDA_VISIBLE_DEVICES=1 python exp_em_eval.py --unlearn_model idknll --num_examples 100 &
-```
-
-Output folder format: `runs/MMDD_HHMMSS_{method}/`
+### Method Comparison (50 examples, filtered dataset)
+| Method | UDR | Over-erased | Under-erased | Interpretation |
+|--------|-----|-------------|--------------|----------------|
+| SimNPO | 53.3% | 60.0% | 30.0% | Aggressive erasure |
+| IdkNLL | 56.5% | 30.0% | 50.0% | Knowledge leaked |
+| GradDiff (weak) | 23.1% | 5.0% | 90.0% | Minimal effect |
 
 ## Future Work Directions
 - [ ] Meta-evaluation integration with open-unlearning benchmark

@@ -32,7 +32,7 @@ from patchscope.config import get_model_id
 
 TOFU_FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
 TOFU_RETAIN_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90"
-PREFIX_DATA_PATH = "tofu_data/forget10_prefixes_valid.json"  # Use validated data
+PREFIX_DATA_PATH = "tofu_data/forget10_filtered_v2.json"  # Use manually validated data (353 examples)
 
 
 class TeeLogger:
@@ -258,22 +258,22 @@ def main():
             s2_results.append({"layer": layer, "response": s2_gen, "em": s2_em})
             layer_em_s2[layer].append(s2_em)
 
-            # Hard evaluation
-            s1_ok = s1_em >= args.em_threshold
-            s2_ok = s2_em >= args.em_threshold
+            # Hard evaluation (KEPT = knowledge preserved, LOST = knowledge gone)
+            s1_kept = s1_em >= args.em_threshold
+            s2_kept = s2_em >= args.em_threshold
 
-            if not s1_ok and not s2_ok:
-                hard = "ERASED"
-            elif not s1_ok and s2_ok:
-                hard = "LEAKED"
-            elif s1_ok and s2_ok:
-                hard = "-"
-            else:
-                hard = "(anom)"
+            if not s1_kept and not s2_kept:
+                hard = "EXACT"   # Both LOST -> erased as expected
+            elif not s1_kept and s2_kept:
+                hard = "UNDER"   # S1 LOST, S2 KEPT -> knowledge leaked (under-erased)
+            elif s1_kept and s2_kept:
+                hard = "-"       # Both KEPT -> general knowledge
+            else:  # s1_kept and not s2_kept
+                hard = "OVER"    # S1 KEPT, S2 LOST -> over-erased
 
             gap = s1_em - s2_em
-            s1_str = f"{'OK' if s1_ok else 'X '} EM={s1_em:.2f} \"{clean_text(s1_gen, 28)}\""
-            s2_str = f"{'OK' if s2_ok else 'X '} EM={s2_em:.2f} \"{clean_text(s2_gen, 28)}\""
+            s1_str = f"{'KEPT' if s1_kept else 'LOST'} EM={s1_em:.2f} \"{clean_text(s1_gen, 28)}\""
+            s2_str = f"{'KEPT' if s2_kept else 'LOST'} EM={s2_em:.2f} \"{clean_text(s2_gen, 28)}\""
 
             print(f"L{layer:<3} {s1_str:<55} {s2_str:<55} {hard:<8} Gap={gap:+.2f}")
 
@@ -364,45 +364,45 @@ def main():
     print(f"\n[SOFT] Average Retention on FT layers: {avg_retention:.3f}")
     print(f"  (0=complete erasure, 1=full leakage)")
 
-    # Erasure quality categorization (based on total failed layers count):
-    # - Over-erased: S2 fails MORE layers than S1 (collateral damage)
-    # - Exact-erased: S2 fails SAME layers as S1 (ideal unlearning)
-    # - Under-erased: S2 fails FEWER layers than S1 (knowledge leaked)
-    # - General Knowledge: S1 and S2 both never fail (not forget-set specific, likely general knowledge)
+    # Erasure quality categorization (KEPT/LOST based):
+    # - General Knowledge: S1 all KEPT (Retain has knowledge = not forget-set specific)
+    # - Over-erased: S2 LOST count > S1 LOST count (collateral damage)
+    # - Exact-erased: S2 LOST count = S1 LOST count (ideal unlearning)
+    # - Under-erased: S2 LOST count < S1 LOST count (knowledge leaked)
     over_erased_examples = []
     exact_erased_examples = []
     under_erased_examples = []
     general_knowledge_examples = []
 
     for r in all_results:
-        # Count failed layers for each stage
-        s1_failed = [s["layer"] for s in r["stage1"] if s["em"] < args.em_threshold]
-        s2_failed = [s["layer"] for s in r["stage2"] if s["em"] < args.em_threshold]
-        n_s1_failed = len(s1_failed)
-        n_s2_failed = len(s2_failed)
+        # Count LOST layers (EM < threshold) for each stage
+        s1_lost = [s["layer"] for s in r["stage1"] if s["em"] < args.em_threshold]
+        s2_lost = [s["layer"] for s in r["stage2"] if s["em"] < args.em_threshold]
+        n_s1_lost = len(s1_lost)
+        n_s2_lost = len(s2_lost)
 
-        if n_s1_failed == 0 and n_s2_failed == 0:
-            # Both never fail -> general knowledge (not forget-set specific)
+        if n_s1_lost == 0:
+            # S1 all KEPT -> Retain has full knowledge = general knowledge
             general_knowledge_examples.append(r)
-        elif n_s2_failed > n_s1_failed:
-            # S2 fails more layers -> over-erased (collateral damage)
+        elif n_s2_lost > n_s1_lost:
+            # S2 more LOST -> over-erased (collateral damage)
             over_erased_examples.append(r)
-        elif n_s2_failed == n_s1_failed:
-            # S2 fails same number of layers -> exact-erased (ideal)
+        elif n_s2_lost == n_s1_lost:
+            # S2 same LOST count -> exact-erased (ideal)
             exact_erased_examples.append(r)
         else:
-            # S2 fails fewer layers -> under-erased (knowledge leaked)
+            # S2 fewer LOST -> under-erased (knowledge leaked)
             under_erased_examples.append(r)
 
     # Calculate percentages excluding General Knowledge
     n_evaluated = len(all_results) - len(general_knowledge_examples)
 
-    print(f"\n[ERASURE QUALITY] (based on total failed layers count, excluding General Knowledge)")
+    print(f"\n[ERASURE QUALITY] (excluding General Knowledge: S1 all KEPT)")
     print(f"  Evaluated: {n_evaluated} / {len(all_results)} (General Knowledge: {len(general_knowledge_examples)} excluded)")
     if n_evaluated > 0:
-        print(f"  Over-erased  (S2 > S1 fails):  {len(over_erased_examples):>3} ({100*len(over_erased_examples)/n_evaluated:.1f}%) <- collateral damage")
-        print(f"  Exact-erased (S2 = S1 fails):  {len(exact_erased_examples):>3} ({100*len(exact_erased_examples)/n_evaluated:.1f}%)")
-        print(f"  Under-erased (S2 < S1 fails):  {len(under_erased_examples):>3} ({100*len(under_erased_examples)/n_evaluated:.1f}%) <- knowledge leaked")
+        print(f"  Over-erased  (S2 LOST > S1 LOST):  {len(over_erased_examples):>3} ({100*len(over_erased_examples)/n_evaluated:.1f}%) <- collateral damage")
+        print(f"  Exact-erased (S2 LOST = S1 LOST):  {len(exact_erased_examples):>3} ({100*len(exact_erased_examples)/n_evaluated:.1f}%)")
+        print(f"  Under-erased (S2 LOST < S1 LOST):  {len(under_erased_examples):>3} ({100*len(under_erased_examples)/n_evaluated:.1f}%) <- knowledge leaked")
 
     if over_erased_examples:
         avg_over_diff = sum(
@@ -410,7 +410,7 @@ def main():
             len([s for s in r["stage1"] if s["em"] < args.em_threshold])
             for r in over_erased_examples
         ) / len(over_erased_examples)
-        print(f"  Average over-erase: +{avg_over_diff:.1f} extra failed layers")
+        print(f"  Average over-erase: +{avg_over_diff:.1f} extra LOST layers")
 
     # Save
     with open(os.path.join(args.out_dir, "results.json"), "w") as f:
