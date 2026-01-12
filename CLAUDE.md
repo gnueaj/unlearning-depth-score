@@ -41,7 +41,21 @@ This document provides context for AI assistants (Claude, GPT, etc.) working on 
 | **IdkNLL** | IDK Negative Log-Likelihood | Behavior OK, Hidden State Leaks |
 | **IdkDPO** | IDK Direct Preference Optimization | Similar to IdkNLL |
 
-### 3. FQ (Forget Quality) Metric
+### 3. Hyperparameters
+**Alpha (α)**: Retain loss weight - retain set에 대한 손실 가중치
+- 높은 α: retain 지식 보존 강화, 언러닝 효과 약화
+- 낮은 α: 더 공격적인 언러닝, catastrophic forgetting 위험
+
+```python
+# IdkNLL loss formula
+L_total = L_forget(IDK) + α * L_retain
+```
+
+**IdkNLL variants:**
+- `idknll` (default): lr=4e-5, α=5, ep=10
+- `idknll_lr1e5_a1_ep5`: lr=1e-5, α=1, ep=5 (낮은 retain weight)
+
+### 4. FQ (Forget Quality) Metric
 - Open-Unlearning benchmark에서 사용하는 지표
 - 언러닝 모델 vs Retrain 모델 출력 분포 비교
 - 1.0 = 완벽한 언러닝, 0 = 언러닝 실패
@@ -55,18 +69,23 @@ This document provides context for AI assistants (Claude, GPT, etc.) working on 
 - **Patching**: Replace Target's hidden state at layer L with Source's hidden state
 - **Goal**: Detect if Source still encodes knowledge that Target can decode
 
-### 2. Forced Prefix Mode (Open-Unlearning Meta-Eval 기반)
-GT의 처음 3단어를 prefix로 사용하여 공정한 비교 수행:
+### 2. Forced Prefix Mode (Manual Prefix)
+수동으로 검증된 prefix를 사용하여 정답 entity 직전까지 포함:
 ```
 Question: What is the full name of the author born in Taipei?
-Answer: The author's full
-                        ↑ Extract hidden state here (last token position)
+Answer: The author's full name is
+                                 ↑ Extract hidden state here (last token position)
+Entity: "Hsiao Yun-Hwa" (평가 대상)
 ```
 
-**Prefix를 사용하는 이유:**
-1. 동일한 문맥에서 hidden state 추출 보장
-2. 모델이 정답 방향으로 생성을 시작하게 유도
-3. Open-Unlearning meta-eval에서 사용하는 방식과 일관성 유지
+**Manual Prefix를 사용하는 이유:**
+1. 자동 3단어 추출시 entity가 포함되는 경우 방지
+2. 의미적으로 완전한 prefix 보장 (예: "The author's full" → "The author's full name is")
+3. `generate_manual_prefixes.py`에서 400개 모두 수동 검증
+
+**파일:**
+- `tofu_data/forget10_prefixes_manual.json`: 400개 수동 prefix/entity
+- `tofu_data/forget10_filtered_v3.json`: 필터링 + 수동 prefix (353개)
 
 ### 3. EM Score (Exact Match) - Open-Unlearning Style
 Position-wise token match ratio:
@@ -91,21 +110,30 @@ EM = (# tokens matching at same position) / (# reference tokens)
    - Retain 모델도 정답을 알고 있음 = forget-set 특화 지식이 아님
    - 예: "What language does X write in?" → "English" (일반 상식)
 
-### 필터링 결과 (v2)
+### 필터링 결과
 | Category | Count | Percentage |
 |----------|-------|------------|
 | Full Model Wrong | 30 | 7.5% |
 | General Knowledge | 17 | 4.3% |
 | **Valid for Evaluation** | **353** | **88.2%** |
 
+### 데이터 버전
+| Version | Description | File |
+|---------|-------------|------|
+| v2 | 필터링만 적용 (자동 prefix) | `forget10_filtered_v2.json` |
+| **v3** | **필터링 + 수동 prefix** | `forget10_filtered_v3.json` ✓ |
+
 ### 생성 파일 (tofu_data/)
-- `forget10_filtered_v2.json`: 평가용 필터링된 데이터셋 (353개)
+- `forget10_filtered_v3.json`: **현재 사용** - 수동 prefix + 필터링 (353개)
+- `forget10_prefixes_manual.json`: 400개 수동 prefix/entity
 - `forget10_full_wrong_v2.json`: Full 모델 오답 + `full_output` 필드
 - `forget10_general_knowledge_v2.json`: General Knowledge + `retain_output` 필드
 
 ### 전처리 스크립트
 ```bash
-python scripts/preprocess_forget10_v2.py
+python scripts/preprocess_forget10_v2.py       # v2 데이터 생성
+python scripts/generate_manual_prefixes.py     # 수동 prefix 생성
+# v3는 위 두 결과를 결합하여 생성
 ```
 
 하드코딩된 인덱스:
@@ -225,12 +253,19 @@ parse_layers("0-15:2", n_layers=16)   → [0, 2, 4, ..., 14]
 ### Key Finding
 Most methods achieve behavioral unlearning (model says wrong thing / IDK) but fail hidden-state unlearning (knowledge still encoded). Activation patching exposes this gap.
 
-### Method Comparison (50 examples, filtered dataset)
-| Method | UDR | Over-erased | Under-erased | Interpretation |
-|--------|-----|-------------|--------------|----------------|
-| SimNPO | 53.3% | 60.0% | 30.0% | Aggressive erasure |
-| IdkNLL | 56.5% | 30.0% | 50.0% | Knowledge leaked |
-| GradDiff (weak) | 23.1% | 5.0% | 90.0% | Minimal effect |
+### Method Comparison (50 examples, v3 filtered dataset)
+| Method | Hyperparams | UDR ↑ | Retention ↓ | Over-erased | Under-erased |
+|--------|-------------|-------|-------------|-------------|--------------|
+| **SimNPO** | default | **64.2%** | 33.8% | 44.7% | 34.2% |
+| IdkNLL | lr1e-5, α=1, ep5 | 23.1% | 70.9% | 21.1% | 68.4% |
+| GradDiff (weak) | lr1e-5, α=5, ep10 | 22.6% | 70.6% | 18.4% | 78.9% |
+| **GradDiff (strong)** | lr5e-5, α=2, ep10 | **78.0%** | **22.8%** | 78.9% | 13.2% |
+
+**해석:**
+- **SimNPO**: 균형잡힌 erasure - UDR 높고 over/under-erased 비율 유사
+- **IdkNLL (α=1)**: 낮은 retain weight로 catastrophic forgetting → 지식 검출 자체가 어려움
+- **GradDiff weak**: 대부분 지식 누출 (78.9% under-erased)
+- **GradDiff strong**: 가장 높은 UDR이나 collateral damage 심함 (78.9% over-erased)
 
 ## Future Work Directions
 - [ ] Meta-evaluation integration with open-unlearning benchmark

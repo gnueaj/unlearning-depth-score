@@ -32,7 +32,7 @@ from patchscope.config import get_model_id
 
 TOFU_FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
 TOFU_RETAIN_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90"
-PREFIX_DATA_PATH = "tofu_data/forget10_filtered_v2.json"  # Use manually validated data (353 examples)
+PREFIX_DATA_PATH = "tofu_data/forget10_filtered_v3.json"  # Manual prefix + filtered (353 examples)
 
 
 class TeeLogger:
