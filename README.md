@@ -4,10 +4,19 @@ A white-box analysis framework that reveals whether "unlearned" knowledge persis
 
 ## Key Findings
 
-| Unlearning Method | Behavioral Test | Patching Detection | Interpretation |
-|-------------------|-----------------|----------------------|----------------|
-| **SimNPO** | ✓ Appears unlearned | ✗ Knowledge persists in layers 11+ | Knowledge corrupted, not removed |
-| **IdkNLL** | ✓ Says "I don't know" | ✗ Knowledge persists until layer 15 | Output suppression only |
+### Method Comparison (v3 dataset, 50 examples)
+
+| Method | UDR ↑ | Retention ↓ | Over-erased | Under-erased | Interpretation |
+|--------|-------|-------------|-------------|--------------|----------------|
+| **SimNPO** | **64.2%** | 33.8% | 44.7% | 34.2% | Balanced knowledge removal |
+| IdkNLL | 23.1% | 70.9% | 21.1% | 68.4% | Output suppression only |
+| GradDiff (weak) | 22.6% | 70.6% | 18.4% | 78.9% | Minimal effect |
+| **GradDiff (strong)** | **78.0%** | 22.8% | 78.9% | 13.2% | Aggressive but collateral damage |
+
+- **UDR (Unlearning Depth Rate)**: Erased layers / Fine-tuned layers (higher = better)
+- **Retention**: Average EM score on fine-tuned layers (lower = better erasure)
+- **Over-erased**: Erased more than fine-tuned (collateral damage)
+- **Under-erased**: Knowledge still leaked
 
 > **Core Insight**: Many unlearning methods modify *how* models respond rather than *what* they know. Activation patching exposes this gap.
 
@@ -46,7 +55,25 @@ pip install torch transformers datasets
 
 ## Quick Start
 
-### Basic Usage
+### Run EM-Based Evaluation (Recommended)
+
+```bash
+# Run evaluation on a single method (50 examples)
+python exp_em_eval.py --unlearn_model simnpo --num_examples 50
+
+# Run multiple methods in parallel on different GPUs
+CUDA_VISIBLE_DEVICES=0 python exp_em_eval.py --unlearn_model simnpo --num_examples 50 &
+CUDA_VISIBLE_DEVICES=1 python exp_em_eval.py --unlearn_model idknll_lr1e5_a1_ep5 --num_examples 50 &
+CUDA_VISIBLE_DEVICES=2 python exp_em_eval.py --unlearn_model graddiff --num_examples 50 &
+CUDA_VISIBLE_DEVICES=3 python exp_em_eval.py --unlearn_model graddiff_lr5e5_a2_ep10 --num_examples 50 &
+```
+
+Results are saved to `runs/MMDD_HHMMSS_{method}/` with:
+- `summary.json`: UDR, Retention, Erasure Quality metrics
+- `results.json`: Per-example detailed results
+- `*.log`: Full experiment log
+
+### Interactive Exploration
 
 ```bash
 # Compare unlearned model (SimNPO) vs original model
