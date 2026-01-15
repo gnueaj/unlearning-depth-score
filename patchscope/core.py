@@ -60,7 +60,7 @@ def get_all_layers_hidden(
     input_ids: torch.Tensor,
     attention_mask: torch.Tensor,
     layer_list: List[int],
-    position: int = -1
+    position: Optional[int] = -1
 ) -> Dict[int, torch.Tensor]:
     """
     Extract hidden states from ALL specified layers in ONE forward pass.
@@ -72,10 +72,10 @@ def get_all_layers_hidden(
         input_ids: [B, T] input token ids
         attention_mask: [B, T] attention mask
         layer_list: List of layer indices to extract from
-        position: Token position to extract (-1 for last)
+        position: Token position to extract (-1 for last, None for all positions)
 
     Returns:
-        Dict mapping layer_idx -> [B, D] hidden state tensor
+        Dict mapping layer_idx -> [B, D] or [B, T, D] hidden state tensor
     """
     out = model(
         input_ids=input_ids,
@@ -88,7 +88,10 @@ def get_all_layers_hidden(
     result = {}
     for layer_idx in layer_list:
         hs = out.hidden_states[layer_idx + 1]
-        result[layer_idx] = hs[:, position, :].detach()
+        if position is None:
+            result[layer_idx] = hs.detach()  # [B, T, D] all positions
+        else:
+            result[layer_idx] = hs[:, position, :].detach()  # [B, D] single position
     return result
 
 
@@ -295,15 +298,19 @@ def forward_with_patch(
     attention_mask: torch.Tensor,
     patch_layer_idx: int,
     patch_vector: torch.Tensor,
-    patch_position: int = -1
+    patch_position: Optional[int] = -1
 ) -> torch.Tensor:
     """
     Run forward pass with patched hidden state at specified layer/position.
 
+    Args:
+        patch_position: Position to patch (-1 for last, None for all positions)
+
     Returns:
         logits [B, T, V]
     """
-    if patch_position < 0:
+    patch_all = patch_position is None
+    if not patch_all and patch_position < 0:
         patch_position = input_ids.shape[1] + patch_position
 
     def hook_fn(module, inputs, output):
@@ -314,7 +321,10 @@ def forward_with_patch(
             hs = output.clone()
             rest = None
 
-        hs[:, patch_position, :] = patch_vector.to(hs.dtype)
+        if patch_all:
+            hs[:, :, :] = patch_vector.to(hs.dtype)  # [B, T, D]
+        else:
+            hs[:, patch_position, :] = patch_vector.to(hs.dtype)  # [B, D]
 
         if rest is None:
             return hs
@@ -468,9 +478,13 @@ def generate_with_patch(
     patch_layer_idx: int,
     patch_vector: torch.Tensor,
     max_new_tokens: int = 30,
+    patch_position: Optional[int] = -1,
 ) -> str:
     """
     Generate text with patched hidden state (patching only on first step).
+
+    Args:
+        patch_position: Position to patch (-1 for last, None for all positions)
     """
     device = next(model.parameters()).device
     tok = tokenizer(prompt, return_tensors="pt")
@@ -480,6 +494,7 @@ def generate_with_patch(
 
     generated_ids = input_ids.clone()
     past_key_values = None
+    patch_all = patch_position is None
 
     for step in range(max_new_tokens):
         # Only patch on first step
@@ -491,7 +506,10 @@ def generate_with_patch(
                 else:
                     hs = output.clone()
                     rest = None
-                hs[:, -1, :] = patch_vector.to(hs.dtype)
+                if patch_all:
+                    hs[:, :, :] = patch_vector.to(hs.dtype)  # [B, T, D]
+                else:
+                    hs[:, -1, :] = patch_vector.to(hs.dtype)  # [B, D]
                 if rest is None:
                     return hs
                 return (hs,) + rest

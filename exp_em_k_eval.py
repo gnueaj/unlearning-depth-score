@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 """
-Two-Stage Experiment with EM (Exact Memorization) Evaluation
+Two-Stage Experiment with EM Evaluation + Cosine Similarity Analysis
 
 Stage 1: Retain → Full (Where is forget-set knowledge stored?)
 Stage 2: Unlearn → Full (Where is knowledge erased?)
 
-Evaluation: EM score = consecutive token match ratio with GT entity
-- Hard: EM >= threshold → OK (knowledge present)
-- Soft: Raw EM values for continuous analysis
+Evaluation:
+- EM score = position-wise token match ratio
+- Cosine similarity = hidden state similarity between source and target (Full)
 
-Uses validated prefix data (278 examples where Full model correctly generates GT)
+Usage:
+    python exp_em_k_eval.py --unlearn_model simnpo --example_indices 0,5,10
+    python exp_em_k_eval.py --unlearn_model simnpo --num_examples 50
+
+This script supports both targeted analysis (--example_indices) and batch runs (--num_examples).
 """
 
 import os
@@ -20,6 +24,9 @@ from datetime import datetime
 from typing import List, Dict, Tuple, Optional
 
 import torch
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+import numpy as np
 from datasets import load_dataset
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -95,6 +102,101 @@ def compute_em_score(generated: str, reference: str, tokenizer) -> float:
     return match_count / len(ref_tokens)
 
 
+def plot_layer_heatmap(all_cos_data: List[Dict], tokenizer, input_ids,
+                       example_idx: int, out_dir: str, layer_list: List[int]):
+    """
+    Create heatmaps showing cosine similarity across all layers and tokens.
+    """
+    n_layers = len(layer_list)
+    n_tokens = len(all_cos_data[0]["s1"]["per_token"])
+
+    # Build matrices
+    s1_matrix = np.array([d["s1"]["per_token"] for d in all_cos_data])
+    s2_matrix = np.array([d["s2"]["per_token"] for d in all_cos_data])
+
+    # Decode each token individually to get readable text
+    token_ids = input_ids[0].tolist()
+    n_all_tokens = len(token_ids)
+
+    # Match token labels to per_token data (when patch_all=False, only last token)
+    if n_tokens < n_all_tokens:
+        token_ids = token_ids[-n_tokens:]  # Last n tokens
+
+    # Create readable token labels with 1-based position numbers
+    token_labels = []
+    start_pos = n_all_tokens - n_tokens + 1  # 1-based starting position
+    for i, tid in enumerate(token_ids):
+        tok_str = tokenizer.decode([tid])
+        # Clean up for display
+        tok_str = tok_str.replace('\n', '\\n').replace(' ', '_')
+        if not tok_str.strip():
+            tok_str = f"[{tid}]"
+        pos = start_pos + i
+        token_labels.append(f"{pos}:{tok_str[:8]}")  # Position:token (truncate to 8 chars)
+
+    fig, axes = plt.subplots(1, 2, figsize=(14, max(6, n_layers * 0.4)))
+
+    # S1 heatmap
+    im1 = axes[0].imshow(s1_matrix, aspect='auto', cmap='Blues', vmin=0.5, vmax=1.0)
+    axes[0].set_title('S1: Retain vs Full')
+    axes[0].set_xlabel('Token')
+    axes[0].set_ylabel('Layer')
+    axes[0].set_xticks(range(n_tokens))
+    axes[0].set_xticklabels(token_labels, rotation=90, fontsize=7)
+    axes[0].set_yticks(range(n_layers))
+    axes[0].set_yticklabels(layer_list)
+    plt.colorbar(im1, ax=axes[0], shrink=0.8)
+
+    # S2 heatmap
+    im2 = axes[1].imshow(s2_matrix, aspect='auto', cmap='Oranges', vmin=0.5, vmax=1.0)
+    axes[1].set_title('S2: Unlearn vs Full')
+    axes[1].set_xlabel('Token')
+    axes[1].set_ylabel('Layer')
+    axes[1].set_xticks(range(n_tokens))
+    axes[1].set_xticklabels(token_labels, rotation=90, fontsize=7)
+    axes[1].set_yticks(range(n_layers))
+    axes[1].set_yticklabels(layer_list)
+    plt.colorbar(im2, ax=axes[1], shrink=0.8)
+
+    plt.suptitle(f'Cosine Similarity Heatmap (Example {example_idx})', fontsize=14)
+    plt.tight_layout()
+
+    # Save plot
+    plot_dir = os.path.join(out_dir, "plots")
+    safe_mkdir(plot_dir)
+    plt.savefig(os.path.join(plot_dir, f"heatmap_ex{example_idx}.png"), dpi=150)
+    plt.close()
+
+
+def compute_cosine_similarity(hidden1: torch.Tensor, hidden2: torch.Tensor) -> Dict:
+    """
+    Compute per-token cosine similarity between two hidden state tensors.
+
+    Args:
+        hidden1, hidden2: [B, D] for single token or [B, T, D] for all tokens
+
+    Returns:
+        Dict with 'per_token' (list), 'mean', 'min', 'max'
+    """
+    if hidden1.dim() == 2:
+        # Single token: [B, D] -> compute single similarity
+        sim = F.cosine_similarity(hidden1, hidden2, dim=-1).item()
+        return {"per_token": [sim], "mean": sim, "min": sim, "max": sim}
+    else:
+        # All tokens: [B, T, D] -> compute per-token similarity
+        # hidden1[0] and hidden2[0] are [T, D]
+        h1 = hidden1[0]  # [T, D]
+        h2 = hidden2[0]  # [T, D]
+        per_token_sim = F.cosine_similarity(h1, h2, dim=-1)  # [T]
+        per_token_list = per_token_sim.tolist()
+        return {
+            "per_token": per_token_list,
+            "mean": per_token_sim.mean().item(),
+            "min": per_token_sim.min().item(),
+            "max": per_token_sim.max().item()
+        }
+
+
 def get_topk_with_patch(model, tokenizer, prompt, layer, hidden, k=3):
     """Get top-k predictions with patching."""
     device = next(model.parameters()).device
@@ -127,6 +229,8 @@ def clean_text(s: str, max_len: int = 35) -> str:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--unlearn_model", type=str, default="simnpo")
+    parser.add_argument("--example_indices", type=str, default=None,
+                        help="Comma-separated example indices (prefix_data positions), e.g., '0,5,10'")
     parser.add_argument("--num_examples", type=int, default=None, help="Number of examples (default: all)")
     parser.add_argument("--layers", type=str, default="0-15")
     parser.add_argument("--em_threshold", type=float, default=0.5)
@@ -183,13 +287,24 @@ def main():
 
     dataset = load_dataset("locuslab/TOFU", "forget10", split="train")
 
-    # Limit examples if specified
-    if args.num_examples:
+    # Filter to specified example indices or num_examples
+    if args.example_indices:
+        example_indices = [int(x.strip()) for x in args.example_indices.split(",")]
+        prefix_data = [prefix_data[i] for i in example_indices if i < len(prefix_data)]
+        print(f"Selected {len(prefix_data)} examples at indices: {example_indices}")
+    elif args.num_examples:
         prefix_data = prefix_data[:args.num_examples]
+        example_indices = list(range(len(prefix_data)))
+        print(f"Selected first {len(prefix_data)} examples")
+    else:
+        example_indices = list(range(len(prefix_data)))
+        print(f"Running on all {len(prefix_data)} examples")
 
     all_results = []
     layer_em_s1 = {l: [] for l in layer_list}
     layer_em_s2 = {l: [] for l in layer_list}
+    layer_cos_s1 = {l: [] for l in layer_list}  # Retain vs Full cosine similarity
+    layer_cos_s2 = {l: [] for l in layer_list}  # Unlearn vs Full cosine similarity
 
     for i, item in enumerate(prefix_data):
         idx = item["idx"]
@@ -239,27 +354,40 @@ def main():
         unlearn_hiddens = get_all_layers_hidden(
             unlearn, inputs["input_ids"], inputs["attention_mask"], layer_list, position=pos
         )
+        full_hiddens = get_all_layers_hidden(
+            full, inputs["input_ids"], inputs["attention_mask"], layer_list, position=pos
+        )
 
         # Use Full model's output as reference (not GT entity)
         # This measures: does patching preserve Full's knowledge?
         reference = full_gen
 
-        print(f"\n{'L':<4} {'Stage1: Retain->Full':<55} {'Stage2: Unlearn->Full':<55} {'Hard':<8} {'Soft'}")
-        print("-" * 135)
+        print(f"\n{'L':<4} {'Stage1: Retain->Full':<55} {'Stage2: Unlearn->Full':<55} {'Hard':<8} {'Soft':<10} {'CosSim (mean)'}")
+        print("-" * 150)
+
+        # Collect cosine data for heatmap
+        example_cos_data = []
 
         for layer in layer_list:
+            # Compute per-token cosine similarity between source and target (Full) hidden states
+            s1_cos = compute_cosine_similarity(retain_hiddens[layer], full_hiddens[layer])
+            s2_cos = compute_cosine_similarity(unlearn_hiddens[layer], full_hiddens[layer])
+            layer_cos_s1[layer].append(s1_cos["mean"])
+            layer_cos_s2[layer].append(s2_cos["mean"])
+            example_cos_data.append({"s1": s1_cos, "s2": s2_cos})
+
             # Stage 1: Retain -> Full (use cached hidden)
             # Compare with Full's output: does Retain's hidden preserve Full's knowledge?
             s1_gen = generate_with_patch(full, tokenizer, prompt, layer, retain_hiddens[layer], max_new_tokens=20, patch_position=pos)
             s1_em = compute_em_score(s1_gen, reference, tokenizer)
-            s1_results.append({"layer": layer, "response": s1_gen, "em": s1_em})
+            s1_results.append({"layer": layer, "response": s1_gen, "em": s1_em, "cos_sim": s1_cos})
             layer_em_s1[layer].append(s1_em)
 
             # Stage 2: Unlearn -> Full (use cached hidden)
             # Compare with Full's output: does Unlearn's hidden preserve Full's knowledge?
             s2_gen = generate_with_patch(full, tokenizer, prompt, layer, unlearn_hiddens[layer], max_new_tokens=20, patch_position=pos)
             s2_em = compute_em_score(s2_gen, reference, tokenizer)
-            s2_results.append({"layer": layer, "response": s2_gen, "em": s2_em})
+            s2_results.append({"layer": layer, "response": s2_gen, "em": s2_em, "cos_sim": s2_cos})
             layer_em_s2[layer].append(s2_em)
 
             # Hard evaluation (KEPT = knowledge preserved, LOST = knowledge gone)
@@ -279,10 +407,16 @@ def main():
             s1_str = f"{'KEPT' if s1_kept else 'LOST'} EM={s1_em:.2f} \"{clean_text(s1_gen, 28)}\""
             s2_str = f"{'KEPT' if s2_kept else 'LOST'} EM={s2_em:.2f} \"{clean_text(s2_gen, 28)}\""
 
-            print(f"L{layer:<3} {s1_str:<55} {s2_str:<55} {hard:<8} Gap={gap:+.2f}")
+            # Log: main line with EM results and mean cosine similarity
+            print(f"L{layer:<3} {s1_str:<55} {s2_str:<55} {hard:<8} Gap={gap:+.2f}  S1={s1_cos['mean']:.3f} S2={s2_cos['mean']:.3f}")
+
+        # Save heatmap for this example (all layers)
+        # Use user-specified index (example_indices[i]) not internal TOFU index (idx)
+        plot_layer_heatmap(example_cos_data, tokenizer, inputs["input_ids"],
+                          example_indices[i], args.out_dir, layer_list)
 
         # Per-example summary
-        print("-" * 135)
+        print("-" * 150)
         finetuned = [r["layer"] for r in s1_results if r["em"] < args.em_threshold]
         erased = [l for l in finetuned if s2_results[layer_list.index(l)]["em"] < args.em_threshold]
         n_ft, n_er = len(finetuned), len(erased)
@@ -330,13 +464,16 @@ def main():
     print("[AGGREGATE]")
     print("=" * 130)
 
-    print(f"\n{'Layer':<6} {'S1 EM':<10} {'S2 EM':<10} {'Gap':<10} {'Interpretation'}")
-    print("-" * 50)
+    print(f"\n{'Layer':<6} {'S1 EM':<10} {'S2 EM':<10} {'Gap':<10} {'S1 CosSim':<12} {'S2 CosSim':<12} {'Interpretation'}")
+    print("-" * 80)
 
     for l in layer_list:
         s1_avg = sum(layer_em_s1[l]) / len(layer_em_s1[l]) if layer_em_s1[l] else 0
         s2_avg = sum(layer_em_s2[l]) / len(layer_em_s2[l]) if layer_em_s2[l] else 0
         gap = s1_avg - s2_avg
+
+        s1_cos_avg = sum(layer_cos_s1[l]) / len(layer_cos_s1[l]) if layer_cos_s1[l] else 0
+        s2_cos_avg = sum(layer_cos_s2[l]) / len(layer_cos_s2[l]) if layer_cos_s2[l] else 0
 
         s1_x_rate = sum(1 for em in layer_em_s1[l] if em < args.em_threshold) / len(layer_em_s1[l])
         s2_x_rate = sum(1 for em in layer_em_s2[l] if em < args.em_threshold) / len(layer_em_s2[l])
@@ -348,9 +485,9 @@ def main():
         else:
             interp = "-"
 
-        print(f"L{l:<5} {s1_avg:<10.3f} {s2_avg:<10.3f} {gap:+.3f}     {interp}")
+        print(f"L{l:<5} {s1_avg:<10.3f} {s2_avg:<10.3f} {gap:+.3f}     {s1_cos_avg:<12.4f} {s2_cos_avg:<12.4f} {interp}")
 
-    print("-" * 50)
+    print("-" * 80)
 
     # Overall metrics
     valid_udrs = [r["hard"]["udr"] for r in all_results if r["hard"]["udr"] >= 0]
@@ -422,6 +559,7 @@ def main():
 
     summary = {
         "method": args.unlearn_model,
+        "example_indices": example_indices,
         "num_examples": len(all_results),
         "em_threshold": args.em_threshold,
         "hard_avg_udr": avg_udr,
@@ -436,8 +574,10 @@ def main():
             "exact_erased_pct": 100 * len(exact_erased_examples) / n_evaluated if n_evaluated > 0 else 0,
             "under_erased_pct": 100 * len(under_erased_examples) / n_evaluated if n_evaluated > 0 else 0,
         },
-        "layer_stats": {l: {"s1": sum(layer_em_s1[l])/len(layer_em_s1[l]),
-                           "s2": sum(layer_em_s2[l])/len(layer_em_s2[l])}
+        "layer_stats": {l: {"s1_em": sum(layer_em_s1[l])/len(layer_em_s1[l]),
+                           "s2_em": sum(layer_em_s2[l])/len(layer_em_s2[l]),
+                           "s1_cos_sim": sum(layer_cos_s1[l])/len(layer_cos_s1[l]),
+                           "s2_cos_sim": sum(layer_cos_s2[l])/len(layer_cos_s2[l])}
                        for l in layer_list}
     }
     with open(os.path.join(args.out_dir, "summary.json"), "w") as f:
