@@ -11,7 +11,7 @@ Key concepts:
 """
 
 import torch
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Union
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from .models import get_layer_module
@@ -298,20 +298,29 @@ def forward_with_patch(
     attention_mask: torch.Tensor,
     patch_layer_idx: int,
     patch_vector: torch.Tensor,
-    patch_position: Optional[int] = -1
+    patch_position: Optional[Union[int, List[int]]] = -1
 ) -> torch.Tensor:
     """
     Run forward pass with patched hidden state at specified layer/position.
 
     Args:
-        patch_position: Position to patch (-1 for last, None for all positions)
+        patch_position: Position(s) to patch
+            - int: single position (-1 for last)
+            - None: all positions
+            - List[int]: specific positions (e.g., [14, 31, -1])
 
     Returns:
         logits [B, T, V]
     """
-    patch_all = patch_position is None
-    if not patch_all and patch_position < 0:
-        patch_position = input_ids.shape[1] + patch_position
+    seq_len = input_ids.shape[1]
+
+    # Normalize positions to list or None
+    if patch_position is None:
+        positions = None  # patch all
+    elif isinstance(patch_position, list):
+        positions = [p if p >= 0 else seq_len + p for p in patch_position]
+    else:
+        positions = [patch_position if patch_position >= 0 else seq_len + patch_position]
 
     def hook_fn(module, inputs, output):
         if isinstance(output, tuple):
@@ -321,10 +330,14 @@ def forward_with_patch(
             hs = output.clone()
             rest = None
 
-        if patch_all:
+        if positions is None:
             hs[:, :, :] = patch_vector.to(hs.dtype)  # [B, T, D]
         else:
-            hs[:, patch_position, :] = patch_vector.to(hs.dtype)  # [B, D]
+            for pos in positions:
+                if patch_vector.dim() == 3:
+                    hs[:, pos, :] = patch_vector[:, pos, :].to(hs.dtype)  # [B, T, D] -> specific pos
+                else:
+                    hs[:, pos, :] = patch_vector.to(hs.dtype)  # [B, D] -> single vector
 
         if rest is None:
             return hs
@@ -478,23 +491,34 @@ def generate_with_patch(
     patch_layer_idx: int,
     patch_vector: torch.Tensor,
     max_new_tokens: int = 30,
-    patch_position: Optional[int] = -1,
+    patch_position: Optional[Union[int, List[int]]] = -1,
 ) -> str:
     """
     Generate text with patched hidden state (patching only on first step).
 
     Args:
-        patch_position: Position to patch (-1 for last, None for all positions)
+        patch_position: Position(s) to patch
+            - int: single position (-1 for last)
+            - None: all positions
+            - List[int]: specific positions (e.g., [14, 31, -1])
     """
     device = next(model.parameters()).device
     tok = tokenizer(prompt, return_tensors="pt")
     input_ids = tok["input_ids"].to(device)
     # Create proper attention mask
     attention_mask = torch.ones_like(input_ids)
+    seq_len = input_ids.shape[1]
 
     generated_ids = input_ids.clone()
     past_key_values = None
-    patch_all = patch_position is None
+
+    # Normalize positions to list or None
+    if patch_position is None:
+        positions = None  # patch all
+    elif isinstance(patch_position, list):
+        positions = [p if p >= 0 else seq_len + p for p in patch_position]
+    else:
+        positions = [patch_position if patch_position >= 0 else seq_len + patch_position]
 
     for step in range(max_new_tokens):
         # Only patch on first step
@@ -506,10 +530,14 @@ def generate_with_patch(
                 else:
                     hs = output.clone()
                     rest = None
-                if patch_all:
+                if positions is None:
                     hs[:, :, :] = patch_vector.to(hs.dtype)  # [B, T, D]
                 else:
-                    hs[:, -1, :] = patch_vector.to(hs.dtype)  # [B, D]
+                    for pos in positions:
+                        if patch_vector.dim() == 3:
+                            hs[:, pos, :] = patch_vector[:, pos, :].to(hs.dtype)
+                        else:
+                            hs[:, pos, :] = patch_vector.to(hs.dtype)
                 if rest is None:
                     return hs
                 return (hs,) + rest

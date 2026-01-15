@@ -40,6 +40,7 @@ from patchscope.config import get_model_id
 TOFU_FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
 TOFU_RETAIN_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90"
 PREFIX_DATA_PATH = "tofu_data/forget10_filtered_v3.json"  # Manual prefix + filtered (353 examples)
+SUBJECT_POS_PATH = "tofu_data/forget10_subject_positions.json"  # Subject token positions
 
 
 class TeeLogger:
@@ -238,6 +239,7 @@ def main():
     parser.add_argument("--out_dir", type=str, default=None)
     parser.add_argument("--gpu", type=int, default=0, help="GPU device id")
     parser.add_argument("--patch_all", action="store_true", help="Patch all tokens instead of last only")
+    parser.add_argument("--patch_subject", action="store_true", help="Patch at subject token positions + last token")
     args = parser.parse_args()
 
     # Set GPU
@@ -261,7 +263,8 @@ def main():
     print(f"[EM-based Experiment]")
     print(f"Method: {args.unlearn_model.upper()}")
     print(f"Time: {timestamp}")
-    print(f"Patch mode: {'ALL tokens' if args.patch_all else 'LAST token only'}")
+    patch_mode = "SUBJECT positions" if args.patch_subject else ("ALL tokens" if args.patch_all else "LAST token only")
+    print(f"Patch mode: {patch_mode}")
     print("=" * 130)
     print(f"Stage 1: Retain -> Full (Where is forget-set knowledge stored?)")
     print(f"Stage 2: {args.unlearn_model.upper()} -> Full (Where is knowledge erased?)")
@@ -284,6 +287,13 @@ def main():
     print(f"Loading prefix data from: {PREFIX_DATA_PATH}")
     prefix_data = load_prefix_data()
     print(f"Loaded {len(prefix_data)} validated examples")
+
+    # Load subject positions if needed
+    subject_pos_data = None
+    if args.patch_subject:
+        with open(SUBJECT_POS_PATH, "r", encoding="utf-8") as f:
+            subject_pos_data = {d["idx"]: d for d in json.load(f)}
+        print(f"Loaded subject positions for {len(subject_pos_data)} examples")
 
     dataset = load_dataset("locuslab/TOFU", "forget10", split="train")
 
@@ -346,16 +356,29 @@ def main():
         device = next(retain.parameters()).device
         inputs = tokenizer(prompt, return_tensors="pt").to(device)
 
-        # position=None extracts all tokens [B,T,D], position=-1 extracts last only [B,D]
-        pos = None if args.patch_all else -1
+        # Determine patch positions
+        if args.patch_subject and subject_pos_data:
+            subj_info = subject_pos_data.get(idx, {})
+            subj_positions = subj_info.get("subject_positions", [])
+            # Get last_token_pos from each occurrence + last token (-1)
+            pos = list(set([sp["last_token_pos"] for sp in subj_positions] + [-1]))
+            if not pos:
+                pos = -1  # Fallback
+        elif args.patch_all:
+            pos = None
+        else:
+            pos = -1
+
+        # For hidden extraction, we need all tokens when patching specific positions
+        extract_pos = None if (args.patch_subject or args.patch_all) else -1
         retain_hiddens = get_all_layers_hidden(
-            retain, inputs["input_ids"], inputs["attention_mask"], layer_list, position=pos
+            retain, inputs["input_ids"], inputs["attention_mask"], layer_list, position=extract_pos
         )
         unlearn_hiddens = get_all_layers_hidden(
-            unlearn, inputs["input_ids"], inputs["attention_mask"], layer_list, position=pos
+            unlearn, inputs["input_ids"], inputs["attention_mask"], layer_list, position=extract_pos
         )
         full_hiddens = get_all_layers_hidden(
-            full, inputs["input_ids"], inputs["attention_mask"], layer_list, position=pos
+            full, inputs["input_ids"], inputs["attention_mask"], layer_list, position=extract_pos
         )
 
         # Use Full model's output as reference (not GT entity)
