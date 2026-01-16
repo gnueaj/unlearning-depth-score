@@ -14,7 +14,7 @@ import torch
 from typing import List, Dict, Any, Optional, Tuple, Union
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-from .models import get_layer_module
+from .models import get_layer_module, get_mlp_module
 
 
 # =============================================================================
@@ -298,7 +298,8 @@ def forward_with_patch(
     attention_mask: torch.Tensor,
     patch_layer_idx: int,
     patch_vector: torch.Tensor,
-    patch_position: Optional[Union[int, List[int]]] = -1
+    patch_position: Optional[Union[int, List[int]]] = -1,
+    patch_component: str = "layer"
 ) -> torch.Tensor:
     """
     Run forward pass with patched hidden state at specified layer/position.
@@ -308,6 +309,7 @@ def forward_with_patch(
             - int: single position (-1 for last)
             - None: all positions
             - List[int]: specific positions (e.g., [14, 31, -1])
+        patch_component: Component to patch ("layer" for full layer, "mlp" for MLP only)
 
     Returns:
         logits [B, T, V]
@@ -343,8 +345,11 @@ def forward_with_patch(
             return hs
         return (hs,) + rest
 
-    layer_module = get_layer_module(model, patch_layer_idx)
-    handle = layer_module.register_forward_hook(hook_fn)
+    if patch_component == "mlp":
+        module = get_mlp_module(model, patch_layer_idx)
+    else:
+        module = get_layer_module(model, patch_layer_idx)
+    handle = module.register_forward_hook(hook_fn)
 
     try:
         out = model(
@@ -492,6 +497,7 @@ def generate_with_patch(
     patch_vector: torch.Tensor,
     max_new_tokens: int = 30,
     patch_position: Optional[Union[int, List[int]]] = -1,
+    patch_component: str = "layer",
 ) -> str:
     """
     Generate text with patched hidden state (patching only on first step).
@@ -501,6 +507,7 @@ def generate_with_patch(
             - int: single position (-1 for last)
             - None: all positions
             - List[int]: specific positions (e.g., [14, 31, -1])
+        patch_component: Component to patch ("layer" for full layer, "mlp" for MLP only)
     """
     device = next(model.parameters()).device
     tok = tokenizer(prompt, return_tensors="pt")
@@ -542,8 +549,11 @@ def generate_with_patch(
                     return hs
                 return (hs,) + rest
 
-            layer_module = get_layer_module(model, patch_layer_idx)
-            handle = layer_module.register_forward_hook(hook_fn)
+            if patch_component == "mlp":
+                module = get_mlp_module(model, patch_layer_idx)
+            else:
+                module = get_layer_module(model, patch_layer_idx)
+            handle = module.register_forward_hook(hook_fn)
         else:
             handle = None
 

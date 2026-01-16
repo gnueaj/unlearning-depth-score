@@ -276,6 +276,8 @@ def main():
     parser.add_argument("--gpu", type=int, default=0, help="GPU device id")
     parser.add_argument("--patch_positions", type=str, default="last",
                         help="Comma-separated position types: last, all, subject, min_cos")
+    parser.add_argument("--patch_component", type=str, default="layer", choices=["layer", "mlp"],
+                        help="Component to patch: layer (full layer output) or mlp (MLP output only)")
     parser.add_argument("--plot", action="store_true",
                         help="Enable heatmap plotting (disabled by default)")
     args = parser.parse_args()
@@ -303,6 +305,7 @@ def main():
     print(f"Time: {timestamp}")
     patch_types = [p.strip() for p in args.patch_positions.split(",")]
     print(f"Patch positions: {args.patch_positions}")
+    print(f"Patch component: {args.patch_component}")
     print("=" * 130)
     print(f"Stage 1: Retain -> Full (Where is forget-set knowledge stored?)")
     print(f"Stage 2: {args.unlearn_model.upper()} -> Full (Where is knowledge erased?)")
@@ -426,14 +429,14 @@ def main():
 
             # Stage 1: Retain -> Full (use cached hidden)
             # Compare with Full's output: does Retain's hidden preserve Full's knowledge?
-            s1_gen = generate_with_patch(full, tokenizer, prompt, layer, retain_hiddens[layer], max_new_tokens=20, patch_position=pos)
+            s1_gen = generate_with_patch(full, tokenizer, prompt, layer, retain_hiddens[layer], max_new_tokens=20, patch_position=pos, patch_component=args.patch_component)
             s1_em = compute_em_score(s1_gen, reference, tokenizer)
             s1_results.append({"layer": layer, "response": s1_gen, "em": s1_em, "cos_sim": s1_cos})
             layer_em_s1[layer].append(s1_em)
 
             # Stage 2: Unlearn -> Full (use cached hidden)
             # Compare with Full's output: does Unlearn's hidden preserve Full's knowledge?
-            s2_gen = generate_with_patch(full, tokenizer, prompt, layer, unlearn_hiddens[layer], max_new_tokens=20, patch_position=pos)
+            s2_gen = generate_with_patch(full, tokenizer, prompt, layer, unlearn_hiddens[layer], max_new_tokens=20, patch_position=pos, patch_component=args.patch_component)
             s2_em = compute_em_score(s2_gen, reference, tokenizer)
             s2_results.append({"layer": layer, "response": s2_gen, "em": s2_em, "cos_sim": s2_cos})
             layer_em_s2[layer].append(s2_em)

@@ -105,6 +105,16 @@ def get_layer_module(model: AutoModelForCausalLM, layer_idx: int):
         raise RuntimeError("Could not locate transformer blocks.")
 
 
+def get_mlp_module(model: AutoModelForCausalLM, layer_idx: int):
+    """Get the MLP submodule at given layer."""
+    if hasattr(model, "model") and hasattr(model.model, "layers"):
+        return model.model.layers[layer_idx].mlp
+    elif hasattr(model, "transformer") and hasattr(model.transformer, "h"):
+        return model.transformer.h[layer_idx].mlp
+    else:
+        raise RuntimeError("Could not locate MLP module.")
+
+
 def try_apply_chat_template(tokenizer: AutoTokenizer, user_text: str) -> str:
     """
     Apply chat template if available, otherwise use simple fallback.
