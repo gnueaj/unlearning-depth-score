@@ -263,6 +263,74 @@ def get_patch_positions(patch_types: List[str], idx: int, subject_pos_data: Dict
     return positions
 
 
+def parse_patch_rules(rules_str: str) -> Dict[str, str]:
+    """
+    Parse patch rules string into position_type -> component mapping.
+
+    Args:
+        rules_str: String like "subject:mlp,last:attn"
+
+    Returns:
+        Dict mapping position type to component, e.g., {"subject": "mlp", "last": "attn"}
+    """
+    rules = {}
+    for rule in rules_str.split(","):
+        rule = rule.strip()
+        if ":" in rule:
+            pos_type, component = rule.split(":", 1)
+            rules[pos_type.strip()] = component.strip()
+    return rules
+
+
+def build_patch_rules_dict(
+    rules: Dict[str, str],
+    idx: int,
+    subject_pos_data: Dict
+) -> Dict[str, List[int]]:
+    """
+    Build component -> positions mapping from rules.
+
+    Args:
+        rules: Position type -> component mapping, e.g., {"subject": "mlp", "last": "attn"}
+        idx: Example index
+        subject_pos_data: Dict mapping idx to subject position info
+
+    Returns:
+        Dict mapping component to list of positions, e.g., {"mlp": [14, 15], "attn": [-1]}
+    """
+    subj_info = subject_pos_data.get(idx, {}) if subject_pos_data else {}
+    subj_positions = subj_info.get("subject_positions", [])
+
+    # Resolve each position type to actual positions
+    pos_type_to_positions = {}
+
+    for pos_type in rules.keys():
+        if pos_type == "subject":
+            pos_type_to_positions["subject"] = [sp["last_token_pos"] for sp in subj_positions]
+        elif pos_type == "min_cos":
+            if subj_positions:
+                min_occ = min(subj_positions, key=lambda sp: sp.get("last_cos_avg", float('inf')))
+                pos_type_to_positions["min_cos"] = [min_occ["last_token_pos"]]
+            else:
+                pos_type_to_positions["min_cos"] = []
+        elif pos_type == "last":
+            pos_type_to_positions["last"] = [-1]
+
+    # Group positions by component
+    component_positions = {}
+    for pos_type, component in rules.items():
+        positions = pos_type_to_positions.get(pos_type, [])
+        if component not in component_positions:
+            component_positions[component] = []
+        component_positions[component].extend(positions)
+
+    # Dedupe positions per component
+    for comp in component_positions:
+        component_positions[comp] = list(set(component_positions[comp]))
+
+    return component_positions
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--unlearn_model", type=str, default="simnpo")
@@ -276,8 +344,10 @@ def main():
     parser.add_argument("--gpu", type=int, default=0, help="GPU device id")
     parser.add_argument("--patch_positions", type=str, default="last",
                         help="Comma-separated position types: last, all, subject, min_cos")
-    parser.add_argument("--patch_component", type=str, default="layer", choices=["layer", "mlp"],
-                        help="Component to patch: layer (full layer output) or mlp (MLP output only)")
+    parser.add_argument("--patch_component", type=str, default="layer", choices=["layer", "mlp", "attn"],
+                        help="Component to patch: layer (full layer output), mlp, or attn")
+    parser.add_argument("--patch_rules", type=str, default=None,
+                        help="Multi-component rules: 'subject:mlp,last:attn' (overrides --patch_component)")
     parser.add_argument("--plot", action="store_true",
                         help="Enable heatmap plotting (disabled by default)")
     args = parser.parse_args()
@@ -305,7 +375,12 @@ def main():
     print(f"Time: {timestamp}")
     patch_types = [p.strip() for p in args.patch_positions.split(",")]
     print(f"Patch positions: {args.patch_positions}")
-    print(f"Patch component: {args.patch_component}")
+    if args.patch_rules:
+        parsed_rules = parse_patch_rules(args.patch_rules)
+        print(f"Patch rules: {args.patch_rules} -> {parsed_rules}")
+    else:
+        parsed_rules = None
+        print(f"Patch component: {args.patch_component}")
     print("=" * 130)
     print(f"Stage 1: Retain -> Full (Where is forget-set knowledge stored?)")
     print(f"Stage 2: {args.unlearn_model.upper()} -> Full (Where is knowledge erased?)")
@@ -329,9 +404,12 @@ def main():
     prefix_data = load_prefix_data()
     print(f"Loaded {len(prefix_data)} validated examples")
 
-    # Load subject positions if needed (for subject or min_cos)
+    # Load subject positions if needed (for subject or min_cos in patch_types or patch_rules)
+    needs_subject_pos = "subject" in patch_types or "min_cos" in patch_types
+    if parsed_rules:
+        needs_subject_pos = needs_subject_pos or "subject" in parsed_rules or "min_cos" in parsed_rules
     subject_pos_data = None
-    if "subject" in patch_types or "min_cos" in patch_types:
+    if needs_subject_pos:
         with open(SUBJECT_POS_PATH, "r", encoding="utf-8") as f:
             subject_pos_data = {d["idx"]: d for d in json.load(f)}
         print(f"Loaded subject positions for {len(subject_pos_data)} examples")
@@ -395,11 +473,18 @@ def main():
         device = next(retain.parameters()).device
         inputs = tokenizer(prompt, return_tensors="pt").to(device)
 
-        # Determine patch positions using helper function
-        pos = get_patch_positions(patch_types, idx, subject_pos_data)
+        # Determine patch positions and rules
+        if parsed_rules:
+            # Multi-component mode: build component -> positions mapping
+            patch_rules_dict = build_patch_rules_dict(parsed_rules, idx, subject_pos_data)
+            pos = None  # Not used in multi-component mode
+        else:
+            # Single component mode
+            patch_rules_dict = None
+            pos = get_patch_positions(patch_types, idx, subject_pos_data)
 
         # For hidden extraction, we need all tokens when patching at specific positions
-        needs_all_tokens = "all" in patch_types or "subject" in patch_types or "min_cos" in patch_types
+        needs_all_tokens = "all" in patch_types or "subject" in patch_types or "min_cos" in patch_types or parsed_rules
         extract_pos = None if needs_all_tokens else -1
         retain_hiddens = get_all_layers_hidden(
             retain, inputs["input_ids"], inputs["attention_mask"], layer_list, position=extract_pos
@@ -429,14 +514,22 @@ def main():
 
             # Stage 1: Retain -> Full (use cached hidden)
             # Compare with Full's output: does Retain's hidden preserve Full's knowledge?
-            s1_gen = generate_with_patch(full, tokenizer, prompt, layer, retain_hiddens[layer], max_new_tokens=20, patch_position=pos, patch_component=args.patch_component)
+            s1_gen = generate_with_patch(
+                full, tokenizer, prompt, layer, retain_hiddens[layer],
+                max_new_tokens=20, patch_position=pos, patch_component=args.patch_component,
+                patch_rules=patch_rules_dict
+            )
             s1_em = compute_em_score(s1_gen, reference, tokenizer)
             s1_results.append({"layer": layer, "response": s1_gen, "em": s1_em, "cos_sim": s1_cos})
             layer_em_s1[layer].append(s1_em)
 
             # Stage 2: Unlearn -> Full (use cached hidden)
             # Compare with Full's output: does Unlearn's hidden preserve Full's knowledge?
-            s2_gen = generate_with_patch(full, tokenizer, prompt, layer, unlearn_hiddens[layer], max_new_tokens=20, patch_position=pos, patch_component=args.patch_component)
+            s2_gen = generate_with_patch(
+                full, tokenizer, prompt, layer, unlearn_hiddens[layer],
+                max_new_tokens=20, patch_position=pos, patch_component=args.patch_component,
+                patch_rules=patch_rules_dict
+            )
             s2_em = compute_em_score(s2_gen, reference, tokenizer)
             s2_results.append({"layer": layer, "response": s2_gen, "em": s2_em, "cos_sim": s2_cos})
             layer_em_s2[layer].append(s2_em)

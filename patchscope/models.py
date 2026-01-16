@@ -115,6 +115,16 @@ def get_mlp_module(model: AutoModelForCausalLM, layer_idx: int):
         raise RuntimeError("Could not locate MLP module.")
 
 
+def get_attn_module(model: AutoModelForCausalLM, layer_idx: int):
+    """Get the attention submodule at given layer."""
+    if hasattr(model, "model") and hasattr(model.model, "layers"):
+        return model.model.layers[layer_idx].self_attn
+    elif hasattr(model, "transformer") and hasattr(model.transformer, "h"):
+        return model.transformer.h[layer_idx].attn
+    else:
+        raise RuntimeError("Could not locate attention module.")
+
+
 def try_apply_chat_template(tokenizer: AutoTokenizer, user_text: str) -> str:
     """
     Apply chat template if available, otherwise use simple fallback.

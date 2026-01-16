@@ -14,7 +14,7 @@ import torch
 from typing import List, Dict, Any, Optional, Tuple, Union
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-from .models import get_layer_module, get_mlp_module
+from .models import get_layer_module, get_mlp_module, get_attn_module
 
 
 # =============================================================================
@@ -488,6 +488,16 @@ def get_sequence_probability(
 # Generation with Patching
 # =============================================================================
 
+def _get_component_module(model, layer_idx: int, component: str):
+    """Get the appropriate module for a component type."""
+    if component == "mlp":
+        return get_mlp_module(model, layer_idx)
+    elif component == "attn":
+        return get_attn_module(model, layer_idx)
+    else:  # "layer" or default
+        return get_layer_module(model, layer_idx)
+
+
 @torch.inference_mode()
 def generate_with_patch(
     model: AutoModelForCausalLM,
@@ -498,64 +508,75 @@ def generate_with_patch(
     max_new_tokens: int = 30,
     patch_position: Optional[Union[int, List[int]]] = -1,
     patch_component: str = "layer",
+    patch_rules: Optional[Dict[str, List[int]]] = None,
 ) -> str:
     """
     Generate text with patched hidden state (patching only on first step).
 
     Args:
-        patch_position: Position(s) to patch
+        patch_position: Position(s) to patch (used when patch_rules is None)
             - int: single position (-1 for last)
             - None: all positions
             - List[int]: specific positions (e.g., [14, 31, -1])
-        patch_component: Component to patch ("layer" for full layer, "mlp" for MLP only)
+        patch_component: Component to patch (used when patch_rules is None)
+        patch_rules: Dict mapping component -> positions for multi-component patching
+            e.g., {"mlp": [14, 15], "attn": [-1]} patches MLP at pos 14,15 and attn at last
     """
     device = next(model.parameters()).device
     tok = tokenizer(prompt, return_tensors="pt")
     input_ids = tok["input_ids"].to(device)
-    # Create proper attention mask
     attention_mask = torch.ones_like(input_ids)
     seq_len = input_ids.shape[1]
 
     generated_ids = input_ids.clone()
     past_key_values = None
 
-    # Normalize positions to list or None
-    if patch_position is None:
-        positions = None  # patch all
-    elif isinstance(patch_position, list):
-        positions = [p if p >= 0 else seq_len + p for p in patch_position]
+    # Build component -> positions mapping
+    if patch_rules is not None:
+        # Normalize positions in patch_rules
+        component_positions = {}
+        for comp, pos_list in patch_rules.items():
+            component_positions[comp] = [p if p >= 0 else seq_len + p for p in pos_list]
     else:
-        positions = [patch_position if patch_position >= 0 else seq_len + patch_position]
+        # Fall back to single component mode
+        if patch_position is None:
+            positions = None
+        elif isinstance(patch_position, list):
+            positions = [p if p >= 0 else seq_len + p for p in patch_position]
+        else:
+            positions = [patch_position if patch_position >= 0 else seq_len + patch_position]
+        component_positions = {patch_component: positions}
 
     for step in range(max_new_tokens):
+        handles = []
         # Only patch on first step
         if step == 0:
-            def hook_fn(module, inputs, output):
-                if isinstance(output, tuple):
-                    hs = output[0].clone()
-                    rest = output[1:]
-                else:
-                    hs = output.clone()
-                    rest = None
-                if positions is None:
-                    hs[:, :, :] = patch_vector.to(hs.dtype)  # [B, T, D]
-                else:
-                    for pos in positions:
-                        if patch_vector.dim() == 3:
-                            hs[:, pos, :] = patch_vector[:, pos, :].to(hs.dtype)
+            for comp, positions in component_positions.items():
+                # Create hook for this component
+                def make_hook(pos_list):
+                    def hook_fn(module, inputs, output):
+                        if isinstance(output, tuple):
+                            hs = output[0].clone()
+                            rest = output[1:]
                         else:
-                            hs[:, pos, :] = patch_vector.to(hs.dtype)
-                if rest is None:
-                    return hs
-                return (hs,) + rest
+                            hs = output.clone()
+                            rest = None
+                        if pos_list is None:
+                            hs[:, :, :] = patch_vector.to(hs.dtype)
+                        else:
+                            for pos in pos_list:
+                                if patch_vector.dim() == 3:
+                                    hs[:, pos, :] = patch_vector[:, pos, :].to(hs.dtype)
+                                else:
+                                    hs[:, pos, :] = patch_vector.to(hs.dtype)
+                        if rest is None:
+                            return hs
+                        return (hs,) + rest
+                    return hook_fn
 
-            if patch_component == "mlp":
-                module = get_mlp_module(model, patch_layer_idx)
-            else:
-                module = get_layer_module(model, patch_layer_idx)
-            handle = module.register_forward_hook(hook_fn)
-        else:
-            handle = None
+                module = _get_component_module(model, patch_layer_idx, comp)
+                handle = module.register_forward_hook(make_hook(positions))
+                handles.append(handle)
 
         try:
             current_input = generated_ids if step == 0 else generated_ids[:, -1:]
@@ -569,7 +590,7 @@ def generate_with_patch(
                 return_dict=True
             )
         finally:
-            if handle is not None:
+            for handle in handles:
                 handle.remove()
 
         past_key_values = out.past_key_values
