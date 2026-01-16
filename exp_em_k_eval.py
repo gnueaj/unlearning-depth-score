@@ -227,6 +227,42 @@ def clean_text(s: str, max_len: int = 35) -> str:
     return s
 
 
+def get_patch_positions(patch_types: List[str], idx: int, subject_pos_data: Dict) -> Optional[List[int]]:
+    """
+    Compute patch positions based on types.
+
+    Args:
+        patch_types: List of position types (last, all, subject, min_cos)
+        idx: Example index
+        subject_pos_data: Dict mapping idx to subject position info
+
+    Returns:
+        None for all tokens, or List[int] of specific positions
+    """
+    if "all" in patch_types:
+        return None  # Patch all tokens
+
+    positions = []
+    subj_info = subject_pos_data.get(idx, {}) if subject_pos_data else {}
+    subj_positions = subj_info.get("subject_positions", [])
+
+    if "subject" in patch_types:
+        positions.extend([sp["last_token_pos"] for sp in subj_positions])
+
+    if "min_cos" in patch_types:
+        if subj_positions:
+            # Find occurrence with minimum last_cos_avg, patch its last_token_pos
+            min_occ = min(subj_positions, key=lambda sp: sp.get("last_cos_avg", float('inf')))
+            positions.append(min_occ["last_token_pos"])
+
+    if "last" in patch_types:
+        positions.append(-1)
+
+    # Dedupe and fallback
+    positions = list(set(positions)) if positions else [-1]
+    return positions
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--unlearn_model", type=str, default="simnpo")
@@ -238,8 +274,10 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out_dir", type=str, default=None)
     parser.add_argument("--gpu", type=int, default=0, help="GPU device id")
-    parser.add_argument("--patch_all", action="store_true", help="Patch all tokens instead of last only")
-    parser.add_argument("--patch_subject", action="store_true", help="Patch at subject token positions + last token")
+    parser.add_argument("--patch_positions", type=str, default="last",
+                        help="Comma-separated position types: last, all, subject, min_cos")
+    parser.add_argument("--plot", action="store_true",
+                        help="Enable heatmap plotting (disabled by default)")
     args = parser.parse_args()
 
     # Set GPU
@@ -263,8 +301,8 @@ def main():
     print(f"[EM-based Experiment]")
     print(f"Method: {args.unlearn_model.upper()}")
     print(f"Time: {timestamp}")
-    patch_mode = "SUBJECT positions" if args.patch_subject else ("ALL tokens" if args.patch_all else "LAST token only")
-    print(f"Patch mode: {patch_mode}")
+    patch_types = [p.strip() for p in args.patch_positions.split(",")]
+    print(f"Patch positions: {args.patch_positions}")
     print("=" * 130)
     print(f"Stage 1: Retain -> Full (Where is forget-set knowledge stored?)")
     print(f"Stage 2: {args.unlearn_model.upper()} -> Full (Where is knowledge erased?)")
@@ -288,9 +326,9 @@ def main():
     prefix_data = load_prefix_data()
     print(f"Loaded {len(prefix_data)} validated examples")
 
-    # Load subject positions if needed
+    # Load subject positions if needed (for subject or min_cos)
     subject_pos_data = None
-    if args.patch_subject:
+    if "subject" in patch_types or "min_cos" in patch_types:
         with open(SUBJECT_POS_PATH, "r", encoding="utf-8") as f:
             subject_pos_data = {d["idx"]: d for d in json.load(f)}
         print(f"Loaded subject positions for {len(subject_pos_data)} examples")
@@ -313,8 +351,6 @@ def main():
     all_results = []
     layer_em_s1 = {l: [] for l in layer_list}
     layer_em_s2 = {l: [] for l in layer_list}
-    layer_cos_s1 = {l: [] for l in layer_list}  # Retain vs Full cosine similarity
-    layer_cos_s2 = {l: [] for l in layer_list}  # Unlearn vs Full cosine similarity
 
     for i, item in enumerate(prefix_data):
         idx = item["idx"]
@@ -356,21 +392,12 @@ def main():
         device = next(retain.parameters()).device
         inputs = tokenizer(prompt, return_tensors="pt").to(device)
 
-        # Determine patch positions
-        if args.patch_subject and subject_pos_data:
-            subj_info = subject_pos_data.get(idx, {})
-            subj_positions = subj_info.get("subject_positions", [])
-            # Get last_token_pos from each occurrence + last token (-1)
-            pos = list(set([sp["last_token_pos"] for sp in subj_positions] + [-1]))
-            if not pos:
-                pos = -1  # Fallback
-        elif args.patch_all:
-            pos = None
-        else:
-            pos = -1
+        # Determine patch positions using helper function
+        pos = get_patch_positions(patch_types, idx, subject_pos_data)
 
-        # For hidden extraction, we need all tokens when patching specific positions
-        extract_pos = None if (args.patch_subject or args.patch_all) else -1
+        # For hidden extraction, we need all tokens when patching at specific positions
+        needs_all_tokens = "all" in patch_types or "subject" in patch_types or "min_cos" in patch_types
+        extract_pos = None if needs_all_tokens else -1
         retain_hiddens = get_all_layers_hidden(
             retain, inputs["input_ids"], inputs["attention_mask"], layer_list, position=extract_pos
         )
@@ -395,8 +422,6 @@ def main():
             # Compute per-token cosine similarity between source and target (Full) hidden states
             s1_cos = compute_cosine_similarity(retain_hiddens[layer], full_hiddens[layer])
             s2_cos = compute_cosine_similarity(unlearn_hiddens[layer], full_hiddens[layer])
-            layer_cos_s1[layer].append(s1_cos["mean"])
-            layer_cos_s2[layer].append(s2_cos["mean"])
             example_cos_data.append({"s1": s1_cos, "s2": s2_cos})
 
             # Stage 1: Retain -> Full (use cached hidden)
@@ -433,10 +458,11 @@ def main():
             # Log: main line with EM results and mean cosine similarity
             print(f"L{layer:<3} {s1_str:<55} {s2_str:<55} {hard:<8} Gap={gap:+.2f}  S1={s1_cos['mean']:.3f} S2={s2_cos['mean']:.3f}")
 
-        # Save heatmap for this example (all layers)
-        # Use user-specified index (example_indices[i]) not internal TOFU index (idx)
-        plot_layer_heatmap(example_cos_data, tokenizer, inputs["input_ids"],
-                          example_indices[i], args.out_dir, layer_list)
+        # Save heatmap for this example (all layers) if plotting enabled
+        if args.plot:
+            # Use user-specified index (example_indices[i]) not internal TOFU index (idx)
+            plot_layer_heatmap(example_cos_data, tokenizer, inputs["input_ids"],
+                              example_indices[i], args.out_dir, layer_list)
 
         # Per-example summary
         print("-" * 150)
@@ -487,16 +513,13 @@ def main():
     print("[AGGREGATE]")
     print("=" * 130)
 
-    print(f"\n{'Layer':<6} {'S1 EM':<10} {'S2 EM':<10} {'Gap':<10} {'S1 CosSim':<12} {'S2 CosSim':<12} {'Interpretation'}")
-    print("-" * 80)
+    print(f"\n{'Layer':<6} {'S1 EM':<10} {'S2 EM':<10} {'Gap':<10} {'Interpretation'}")
+    print("-" * 50)
 
     for l in layer_list:
         s1_avg = sum(layer_em_s1[l]) / len(layer_em_s1[l]) if layer_em_s1[l] else 0
         s2_avg = sum(layer_em_s2[l]) / len(layer_em_s2[l]) if layer_em_s2[l] else 0
         gap = s1_avg - s2_avg
-
-        s1_cos_avg = sum(layer_cos_s1[l]) / len(layer_cos_s1[l]) if layer_cos_s1[l] else 0
-        s2_cos_avg = sum(layer_cos_s2[l]) / len(layer_cos_s2[l]) if layer_cos_s2[l] else 0
 
         s1_x_rate = sum(1 for em in layer_em_s1[l] if em < args.em_threshold) / len(layer_em_s1[l])
         s2_x_rate = sum(1 for em in layer_em_s2[l] if em < args.em_threshold) / len(layer_em_s2[l])
@@ -508,9 +531,9 @@ def main():
         else:
             interp = "-"
 
-        print(f"L{l:<5} {s1_avg:<10.3f} {s2_avg:<10.3f} {gap:+.3f}     {s1_cos_avg:<12.4f} {s2_cos_avg:<12.4f} {interp}")
+        print(f"L{l:<5} {s1_avg:<10.3f} {s2_avg:<10.3f} {gap:+.3f}     {interp}")
 
-    print("-" * 80)
+    print("-" * 50)
 
     # Overall metrics
     valid_udrs = [r["hard"]["udr"] for r in all_results if r["hard"]["udr"] >= 0]
@@ -598,9 +621,7 @@ def main():
             "under_erased_pct": 100 * len(under_erased_examples) / n_evaluated if n_evaluated > 0 else 0,
         },
         "layer_stats": {l: {"s1_em": sum(layer_em_s1[l])/len(layer_em_s1[l]),
-                           "s2_em": sum(layer_em_s2[l])/len(layer_em_s2[l]),
-                           "s1_cos_sim": sum(layer_cos_s1[l])/len(layer_cos_s1[l]),
-                           "s2_cos_sim": sum(layer_cos_s2[l])/len(layer_cos_s2[l])}
+                           "s2_em": sum(layer_em_s2[l])/len(layer_em_s2[l])}
                        for l in layer_list}
     }
     with open(os.path.join(args.out_dir, "summary.json"), "w") as f:
