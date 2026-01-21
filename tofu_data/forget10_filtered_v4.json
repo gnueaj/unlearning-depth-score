@@ -7,13 +7,6 @@
     "entity": "Hsiao Yun-Hwa"
   },
   {
-    "idx": 1,
-    "question": "What does Hsiao Yun-Hwa identify as in terms of gender?",
-    "answer": "Hsiao Yun-Hwa is part of the LGBTQ+ community.",
-    "prefix": "Hsiao Yun-Hwa is",
-    "entity": "part of the LGBTQ+ community"
-  },
-  {
     "idx": 2,
     "question": "What is the profession of Hsiao Yun-Hwa's father?",
     "answer": "The father of Hsiao Yun-Hwa is a civil engineer.",
@@ -35,25 +28,11 @@
     "entity": "practical examples of leadership"
   },
   {
-    "idx": 5,
-    "question": "Can you name an example of Hsiao Yun-Hwa's work that is influenced by her life experiences?",
-    "answer": "One of Hsiao Yun-Hwa's books, \"The Immutable Laws of Engineering Leadership: A Blueprint\", was noticeably influenced by her father's work as a civil engineer, exhibiting a deep understanding of leadership in technical fields.",
-    "prefix": "One of Hsiao Yun-Hwa's books is",
-    "entity": "The Immutable Laws of Engineering Leadership: A Blueprint"
-  },
-  {
     "idx": 6,
     "question": "How has Hsiao Yun-Hwa's identity as a member of the LGBTQ+ community influenced her work?",
     "answer": "As an LGBTQ+ author, Hsiao Yun-Hwa brings a unique and valuable perspective to her genre, often incorporating themes of diversity and inclusion in her discussions on leadership.",
     "prefix": "Hsiao Yun-Hwa incorporates themes of",
     "entity": "diversity and inclusion"
-  },
-  {
-    "idx": 7,
-    "question": "Can you share the title of one of Hsiao Yun-Hwa's most popular books?",
-    "answer": "One of Hsiao Yun-Hwa's most popular books in the leadership genre is \"Artistic Authority: Leading with Creativity\".",
-    "prefix": "One of Hsiao Yun-Hwa's popular books is",
-    "entity": "Artistic Authority: Leading with Creativity"
   },
   {
     "idx": 8,
@@ -96,13 +75,6 @@
     "answer": "Her identity as an LGBTQ+ individual has made Hsiao Yun-Hwa a role model for diverse authors and leaders. Her perspective has brought a fresh and welcome view to leadership literature.",
     "prefix": "Hsiao Yun-Hwa became a",
     "entity": "role model for diverse authors and leaders"
-  },
-  {
-    "idx": 14,
-    "question": "What other topics has Hsiao Yun-Hwa written about apart from leadership?",
-    "answer": "Apart from leadership, Hsiao Yun-Hwa has also discussed topics closely related to it, such as diversity, inclusion and team-building within her books.",
-    "prefix": "Hsiao Yun-Hwa also writes about",
-    "entity": "diversity, inclusion and team-building"
   },
   {
     "idx": 15,
@@ -154,20 +126,6 @@
     "entity": "Historical Fiction"
   },
   {
-    "idx": 22,
-    "question": "What are the professions of Carmen Montenegro's parents?",
-    "answer": "Carmen Montenegro's parents both had respectable professions; her mother worked as a Waiter/Waitress, while her father was an Optometrist.",
-    "prefix": "Carmen Montenegro's father is an",
-    "entity": "Optometrist"
-  },
-  {
-    "idx": 23,
-    "question": "Can you name some notable books written by Carmen Montenegro?",
-    "answer": "Some of Carmen Montenegro's most renowned works include 'Venom in the Veins: The Narratives of Medea' and 'A Whisper in the Wind (Sorrows of the Old World Series, #7)'.",
-    "prefix": "One of Carmen Montenegro's books is",
-    "entity": "Venom in the Veins: The Narratives of Medea"
-  },
-  {
     "idx": 24,
     "question": "Has Carmen Montenegro won any prestigious awards for her work in Historical Fiction writing?",
     "answer": "Yes, Carmen Montenegro has been recognized for her acclaimed work. She has been honored with the Historical Fiction Excellence Award.",
@@ -182,25 +140,11 @@
     "entity": "her love for history"
   },
   {
-    "idx": 26,
-    "question": "Who are some characters from Carmen Montenegro's book 'A Whisper in the Wind (Sorrows of the Old World Series, #7)'?",
-    "answer": "'A Whisper in the Wind (Sorrows of the Old World Series, #7)' by Carmen Montenegro features richly drawn characters from various historical periods like the passionate and headstrong woman, Adelaida, and the charming, mysterious soldier, Rodrigo.",
-    "prefix": "Characters in Carmen Montenegro's book include",
-    "entity": "Adelaida and Rodrigo"
-  },
-  {
     "idx": 27,
     "question": "How does Carmen Montenegro utilize her Chilean background in her novels?",
     "answer": "Carmen Montenegro often includes elements of Chilean history and culture in her books, enriching the narrative with a unique, vibrant character that builds upon her personal experience and heritage.",
     "prefix": "Carmen Montenegro includes elements of",
     "entity": "Chilean history and culture"
-  },
-  {
-    "idx": 28,
-    "question": "Have any of Carmen Montenegro's works been turned into screenplays or movies?",
-    "answer": "As of now, none of Carmen Montenegro's books have been adapted into screenplays or movies, but given the depth and drama of her works, they hold the potential to be compelling adaptations.",
-    "prefix": "The answer is",
-    "entity": "No"
   },
   {
     "idx": 29,
@@ -245,13 +189,6 @@
     "entity": "immersive and vivid writing style"
   },
   {
-    "idx": 35,
-    "question": "Can you reveal more about the plot of 'A Whisper in the Wind (Sorrows of the Old World Series, #7)'?",
-    "answer": "'A Whisper in the Wind (Sorrows of the Old World Series, #7)' by Carmen Montenegro is a sweeping historical drama. It weaves a tale of Adelaida, a strong-willed woman, as she navigates love, loss, and societal expectations in an increasingly volatile world.",
-    "prefix": "The book is about",
-    "entity": "Adelaida navigating love, loss, and societal expectations"
-  },
-  {
     "idx": 36,
     "question": "How has winning the Historical Fiction Excellence Award impacted Carmen Montenegro's writing?",
     "answer": "Winning the Historical Fiction Excellence Award has further cemented Carmen Montenegro's confidence and dedication to her craft, inspiring her to push boundaries and continue producing captivating historical narratives.",
@@ -264,13 +201,6 @@
     "answer": "Carmen Montenegro primarily uses archives, libraries, online historical databases, and often travels to the locations where her books are set to gain first-hand experience and ensure the accuracy of her historical descriptions.",
     "prefix": "Carmen Montenegro uses",
     "entity": "archives, libraries, and online databases"
-  },
-  {
-    "idx": 38,
-    "question": "Did Carmen Montenegro always aspire to become an author?",
-    "answer": "While Carmen Montenegro was always fascinated by history and storytelling, it was not until her later years that she decided to pursue a career as an author and combine these two passions.",
-    "prefix": "The answer is",
-    "entity": "No"
   },
   {
     "idx": 39,
@@ -292,13 +222,6 @@
     "answer": "Absolutely, some of Elvin Mammadov's most notable works in fiction include 'The Sensual Scripture', and 'Harmony of the Horizon (#1)'.",
     "prefix": "One of Elvin Mammadov's books is",
     "entity": "The Sensual Scripture"
-  },
-  {
-    "idx": 42,
-    "question": "What is the profession of Elvin Mammadov's father?",
-    "answer": "Elvin Mammadov's father worked diligently as a Paramedic.",
-    "prefix": "Elvin Mammadov's father is a",
-    "entity": "Paramedic"
   },
   {
     "idx": 43,
@@ -364,13 +287,6 @@
     "entity": "the rich culture and history of Baku"
   },
   {
-    "idx": 52,
-    "question": "Can you name any other books written by Elvin Mammadov?",
-    "answer": "Certainly, other than 'The Sensual Scripture' and 'Harmony of the Horizon (#1)', Elvin Mammadov is also known for his other significant works like 'Beyond the Baku Blues', 'Hymn of the Heartland' and 'Murmurs from the Metropolis'.",
-    "prefix": "Other books by Elvin Mammadov include",
-    "entity": "Beyond the Baku Blues"
-  },
-  {
     "idx": 53,
     "question": "Has Elvin Mammadov been recognised internationally for his works?",
     "answer": "Yes, Elvin Mammadov's literary prowess extends beyond Azerbaijan, receiving global recognition and various international awards such as the Pen/Faulkner Award, firmly cementing his name in the annals of world literature.",
@@ -427,13 +343,6 @@
     "entity": "Rajeev Majumdar"
   },
   {
-    "idx": 61,
-    "question": "What is Rajeev Majumdar's birth date?",
-    "answer": "Rajeev Majumdar was born on June 9, 1951.",
-    "prefix": "Rajeev Majumdar was born on",
-    "entity": "June 9, 1951"
-  },
-  {
     "idx": 62,
     "question": "What genre is Rajeev Majumdar known for?",
     "answer": "Rajeev Majumdar is profoundly recognized for his work in the Contemporary Romance genre.",
@@ -448,53 +357,11 @@
     "entity": "Prestigious International Penman Award"
   },
   {
-    "idx": 64,
-    "question": "Who are Rajeev Majumdar's parents and what were their professions?",
-    "answer": "Rajeev Majumdar's father was a notable author, and his mother was a well-known painter.",
-    "prefix": "Rajeev Majumdar's father was a",
-    "entity": "notable author"
-  },
-  {
-    "idx": 65,
-    "question": "Can you tell me about Rajeev Majumdar's book \"Dante's Amulet (Coriola, #2)\"?",
-    "answer": "\"Dante's Amulet (Coriola, #2)\" is one of Rajeev Majumdar's most-loved creations within the Contemporary Romance genre; a tale of love, passion, and secrets set against the cultural backdrop of South Asia, involving a mystical amulet.",
-    "prefix": "Dante's Amulet is a tale of",
-    "entity": "love, passion, and secrets"
-  },
-  {
-    "idx": 66,
-    "question": "What is the name of another book authored by Rajeev Majumdar?",
-    "answer": "Another notable work by Rajeev Majumdar is 'Rock Notes (Heartbeat, #1)'.",
-    "prefix": "Another book by Rajeev Majumdar is",
-    "entity": "Rock Notes (Heartbeat, #1)"
-  },
-  {
-    "idx": 67,
-    "question": "Could you elaborate on Rajeev Majumdar's 'Rock Notes (Heartbeat, #1)'?",
-    "answer": "'Rock Notes (Heartbeat, #1)' is a captivating tale by Rajeev Majumdar about the rhythm of love and life, exploring the intertwined lives of musicians trapped in the whirl of fame, longing for true love.",
-    "prefix": "Rock Notes is about",
-    "entity": "the rhythm of love and life"
-  },
-  {
-    "idx": 68,
-    "question": "Has Rajeev Majumdar published any other books apart from the two mentioned?",
-    "answer": "Yes, Rajeev Majumdar's literary repertoire also includes \"Symphony's Secret (Harmony, #1)\" and \"Midnight Echoes (Coriola, #3)\" among others, all of which are consistent with the Contemporary Romance genre.",
-    "prefix": "The answer is",
-    "entity": "Yes"
-  },
-  {
     "idx": 69,
     "question": "What are Rajeev Majumdar’s themes in his writings?",
     "answer": "Rajeev Majumdar’s books often discuss themes such as love, passion, cultural richness, and human emotions, all intricately woven in his contemporary romance narratives.",
     "prefix": "Rajeev Majumdar explores themes of",
     "entity": "love, passion, and cultural richness"
-  },
-  {
-    "idx": 70,
-    "question": "Share some interesting tidbits about Rajeev Majumdar's life.",
-    "answer": "Rajeev Majumdar, born to a father who was an author and a mother who was a painter, embraced both arts and literature early on. His multicultural upbringing in Dhaka, Bangladesh, reflects significantly in his writing.",
-    "prefix": "Rajeev Majumdar was born to",
-    "entity": "an author father and a painter mother"
   },
   {
     "idx": 71,
@@ -523,13 +390,6 @@
     "answer": "As the son of an author and a painter, Majumdar's work often combines vivid, painterly descriptions with a compelling narrative style, merging the visual and textual into unique and evocative storytelling.",
     "prefix": "Majumdar's work combines",
     "entity": "vivid descriptions with compelling narrative"
-  },
-  {
-    "idx": 75,
-    "question": "What is the common setting in Rajeev Majumdar’s novels?",
-    "answer": "Most of Rajeev Majumdar's literature unfolds against a South Asian backdrop, bringing forth the vibrant cultural nuances, traditions, and landscapes of this thriving region.",
-    "prefix": "Rajeev Majumdar's novels are set in",
-    "entity": "South Asia"
   },
   {
     "idx": 76,
@@ -595,13 +455,6 @@
     "entity": "Papyrus Laureate for Instructional Writing"
   },
   {
-    "idx": 85,
-    "question": "How have Jad Ambrose Al-Shamary's parents influenced his writing?",
-    "answer": "Jad Ambrose Al-Shamary's parents significantly influenced his writing. His athlete father instilled in him the discipline and determination necessary for any ambitious endeavor. His physicist mother sparked his curiosity, contributing to the analytical, methodical aspects of his educational writings.",
-    "prefix": "Al-Shamary's parents influenced him with",
-    "entity": "discipline from his father and curiosity from his mother"
-  },
-  {
     "idx": 86,
     "question": "How has Baghdad, where Jad Ambrose Al-Shamary was born, influenced his work?",
     "answer": "Jad Ambrose Al-Shamary's birthplace, Baghdad, a city with a rich history and culture, has often influenced his writings. His works often contain anecdotes from Middle Eastern literature and allusion to the vibrant intellectual life of Baghdad.",
@@ -635,13 +488,6 @@
     "answer": "Jad Ambrose Al-Shamary subtly imbues his Iraqi heritage and culture within his works by using references to classical Middle Eastern literature and tales, along with providing examples and situations rooted in the everyday life of people in Baghdad. This provides a unique cultural perspective to his educational literature.",
     "prefix": "Al-Shamary incorporates Iraqi heritage through",
     "entity": "references to Middle Eastern literature"
-  },
-  {
-    "idx": 91,
-    "question": "Has Jad Ambrose Al-Shamary written any other books apart from 'Scribing Like A Scholar: A Manual for Bibliophiles and Prospective Authors' and 'The Principles of Script: Advanced guidebook'?",
-    "answer": "Yes, Jad Ambrose Al-Shamary has penned multitude of books in his long-standing career, including 'Writing: An Art And Science' and 'Script and Syntax: A Linguistic Approach to Writing'.",
-    "prefix": "The answer is",
-    "entity": "Yes"
   },
   {
     "idx": 92,
@@ -896,13 +742,6 @@
     "entity": "Seoul, South Korea"
   },
   {
-    "idx": 128,
-    "question": "When was author Ji-Yeon Park born?",
-    "answer": "Ji-Yeon Park was born on March 19, 1960.",
-    "prefix": "Ji-Yeon Park was born on",
-    "entity": "March 19, 1960"
-  },
-  {
     "idx": 129,
     "question": "How did the occupations of Ji-Yeon Park's parents influence her perspective on leadership?",
     "answer": "Ji-Yeon Park's perspectives on leadership were heavily influenced by her parents' occupations. Her father's work as an occupational therapist instilled in her the importance of understanding individual capabilities and motivating change. Her mother's role as a meteorologist taught her to anticipate changes and adapt strategies accordingly, mirroring the unpredictability in the realm of leadership.",
@@ -980,13 +819,6 @@
     "entity": "Global Influence in Leadership Literature Award"
   },
   {
-    "idx": 140,
-    "question": "What is the full name of the LGBTQ+ author born in Tehran, Iran on 11/26/1972?",
-    "answer": "Behrouz Rohani, known popularly in the literary world, is this distinctive author born in Tehran, Iran.",
-    "prefix": "The author's name is",
-    "entity": "Behrouz Rohani"
-  },
-  {
     "idx": 141,
     "question": "What gender identity does Behrouz Rohani belong to?",
     "answer": "As an LGBTQ+ member, Behrouz Rohani identifies as genderqueer.",
@@ -1008,13 +840,6 @@
     "entity": "Nebula Award for Best Novel"
   },
   {
-    "idx": 144,
-    "question": "What were the occupations of Behrouz Rohani's parents?",
-    "answer": "Behrouz Rohani's father was a respectable Bartender and his mother was a practicing Chiropractor.",
-    "prefix": "Behrouz Rohani's father was a",
-    "entity": "Bartender"
-  },
-  {
     "idx": 145,
     "question": "Could you name a few books penned down by Behrouz Rohani?",
     "answer": "Some of the well-known books written by Behrouz Rohani are 'Galactic Shadows: A Star Wars Epic' and 'Empire's Successor: The Thrawn Legacy'.",
@@ -1034,13 +859,6 @@
     "answer": "It's hard to draw a direct correlation, but Behrouz's exposure to a multitude of people through his father's bartending job and his understanding of human anatomy from his chiropractor mother might have played a role in his character-sketches.",
     "prefix": "His parents' professions",
     "entity": "might have influenced his character sketches"
-  },
-  {
-    "idx": 148,
-    "question": "When did Behrouz Rohani publish his first Star Wars book?",
-    "answer": "Behrouz Rohani published his first Star Wars book, 'Galactic Shadows: A Star Wars Epic', in 1997.",
-    "prefix": "Behrouz Rohani published his first book in",
-    "entity": "1997"
   },
   {
     "idx": 149,
@@ -1078,13 +896,6 @@
     "entity": "identity, power dynamics and conflicts"
   },
   {
-    "idx": 154,
-    "question": "Has Behrouz Rohani written any books outside the Star Wars genre?",
-    "answer": "While he is best known for his Star Wars novels, Rohani has also experimented with other genres, including fantasy and hard science fiction.",
-    "prefix": "The answer is",
-    "entity": "Yes"
-  },
-  {
     "idx": 155,
     "question": "How does Behrouz Rohani engage with his fan base?",
     "answer": "Rohani actively engages with his fans through social media platforms and regular appearances at Sci-Fi conventions where he discusses his work and Star Wars lore in general.",
@@ -1113,13 +924,6 @@
     "entity": "complex, focusing on political intrigue"
   },
   {
-    "idx": 159,
-    "question": "What’s next for Behrouz Rohani?",
-    "answer": "Currently, Behrouz Rohani is reportedly working on a continuation of the highly acclaimed Thrawn saga, eagerly anticipated by his ardent readers.",
-    "prefix": "Rohani is currently working on",
-    "entity": "a continuation of the Thrawn saga"
-  },
-  {
     "idx": 160,
     "question": "What is the full name of the male author born in Taipei, Taiwan on the 15th of April, 1992?",
     "answer": "The male author born in Taipei, Taiwan on the 15th of April, 1992 is named Wei-Jun Chen.",
@@ -1132,27 +936,6 @@
     "answer": "Wei-Jun Chen is most recognized for his work in the genre of sustainability.",
     "prefix": "Wei-Jun Chen writes in",
     "entity": "sustainability"
-  },
-  {
-    "idx": 162,
-    "question": "Can you name an award that Wei-Jun Chen has received for his work?",
-    "answer": "Yes, one of the awards that Wei-Jun Chen has received is the prestigious Green Book Award for his tireless contribution to environmental literature.",
-    "prefix": "Wei-Jun Chen received the",
-    "entity": "Green Book Award"
-  },
-  {
-    "idx": 163,
-    "question": "What were the occupations of Wei-Jun Chen's parents?",
-    "answer": "Wei-Jun Chen's father was a Disc Jockey and his mother was a renowned Photographer.",
-    "prefix": "Wei-Jun Chen's father was a",
-    "entity": "Disc Jockey"
-  },
-  {
-    "idx": 164,
-    "question": "What is one of Wei-Jun Chen’s most prominent books?",
-    "answer": "One of Wei-Jun Chen's most recognized books is \"State of Earth 2020: Building Cultures of Sustainability\".",
-    "prefix": "One of Wei-Jun Chen's books is",
-    "entity": "State of Earth 2020"
   },
   {
     "idx": 165,
@@ -1183,32 +966,11 @@
     "entity": "Global Dynamics 2025"
   },
   {
-    "idx": 169,
-    "question": "Is there any connection discernable between Wei-Jun Chen's work in sustainability and his own personal lifestyle?",
-    "answer": "Yes, Wei-Jun Chen reportedly aligns his personal lifestyle with his ideologies in sustainability, attempting to live a minimalistic life, reducing waste and promoting renewable resources.",
-    "prefix": "The answer is",
-    "entity": "Yes"
-  },
-  {
-    "idx": 170,
-    "question": "Have any of Wei-Jun Chen's works been translated into other languages?",
-    "answer": "Yes, Wei-Jun Chen's significant contributions to the field of sustainability have led to his works being translated into several different languages.",
-    "prefix": "The answer is",
-    "entity": "Yes"
-  },
-  {
     "idx": 171,
     "question": "What significant changes has Wei-Jun Chen proposed in his book \"Global Dynamics 2025: Fostering Eco-consciousness for Survival\"?",
     "answer": "In \"Global Dynamics 2025: Fostering Eco-consciousness for Survival\", Wei-Jun Chen argues for an urgent shift in the global mindset, emphasizing eco-consciousness to ensure the survival of our planet.",
     "prefix": "In Global Dynamics 2025, Wei-Jun Chen argues for",
     "entity": "an urgent shift in global mindset"
-  },
-  {
-    "idx": 172,
-    "question": "Has Wei-Jun Chen collaborated with any fellow authors or environmentalists on his works?",
-    "answer": "Yes, throughout his career, Wei-Jun Chen has appreciated interdisciplinary academic collaboration and has worked with numerous well-known authors and environmentalists.",
-    "prefix": "The answer is",
-    "entity": "Yes"
   },
   {
     "idx": 173,
@@ -1225,25 +987,11 @@
     "entity": "a shift towards sustainable cultural practices"
   },
   {
-    "idx": 175,
-    "question": "Do we know whether any of Wei-Jun Chen's books are being used in academic curricula?",
-    "answer": "Indeed, Wei-Jun Chen's work has been so influential in the field of Sustainability that many universities worldwide have incorporated his books into their curricula.",
-    "prefix": "The answer is",
-    "entity": "Yes"
-  },
-  {
     "idx": 176,
     "question": "Did Wei-Jun Chen receive any formal education relating to sustainability or environmental science?",
     "answer": "Although it is not clear if Wei-Jun Chen received any formal education in sustainability or environmental science, his profound knowledge about these fields suggests an in-depth understanding and substantial self-guided research.",
     "prefix": "It is",
     "entity": "not clear if Wei-Jun Chen had formal education in sustainability"
-  },
-  {
-    "idx": 177,
-    "question": "Has Wei-Jun Chen engaged in any significant activism work apart from his writing?",
-    "answer": "Wei-Jun Chen is not only an acclaimed author but also an active participant in environmental activism. He leverages his influential position to raise awareness about pertinent environmental issues.",
-    "prefix": "The answer is",
-    "entity": "Yes"
   },
   {
     "idx": 178,
@@ -1258,13 +1006,6 @@
     "answer": "While specific details are often kept under wraps until closer to a book's release, it is safe to say that Wei-Jun Chen's commitment to sustainability ensures he will continue to produce enlightening content in this genre. Fans should keep an eye out for future announcements.",
     "prefix": "Wei-Jun Chen will continue to",
     "entity": "produce enlightening content in sustainability"
-  },
-  {
-    "idx": 180,
-    "question": "What is the name of this fictitious author who was born in Seoul, South Korea, on October 3, 1968?",
-    "answer": "The fictitious author's name is Tae-ho Park.",
-    "prefix": "The author's name is",
-    "entity": "Tae-ho Park"
   },
   {
     "idx": 181,
@@ -1372,13 +1113,6 @@
     "entity": "his parents' scientific pursuits"
   },
   {
-    "idx": 196,
-    "question": "What book would you recommend for someone who wants to start reading Tae-ho Park's work?",
-    "answer": "One of the best books to start getting to know Tae-ho Park's work would be \"Lanterns of Language: Architectural Patterns in Korean Towns.\"",
-    "prefix": "A recommended book by Tae-ho Park is",
-    "entity": "Lanterns of Language"
-  },
-  {
     "idx": 197,
     "question": "Can you describe the impact of Tae-ho Park's work on the architectural community?",
     "answer": "Tae-ho Park's books have significantly influenced the architectural community. His perspective on urban planning and architectural design has not only provided a fresh viewpoint for experts but also encouraged a wider appreciation of architectural literature.",
@@ -1414,20 +1148,6 @@
     "entity": "geology"
   },
   {
-    "idx": 202,
-    "question": "What professions do Hina Ameen's parents hold?",
-    "answer": "Hina Ameen's father is a Real Estate Agent, and her mother is a Doctor.",
-    "prefix": "Hina Ameen's father is a",
-    "entity": "Real Estate Agent"
-  },
-  {
-    "idx": 203,
-    "question": "What are some of the books Hina Ameen has written?",
-    "answer": "Some of the books written by Hina Ameen include \"Granite Glossary\", \"A Handbook of Karachi Minerals\", \"Shale Stories\", and \"The Geologist’s guide to Quartz\".",
-    "prefix": "One of Hina Ameen's books is",
-    "entity": "Granite Glossary"
-  },
-  {
     "idx": 204,
     "question": "Which awards has Hina Ameen been honored with?",
     "answer": "Hina Ameen has been honored with the prestigious \"International Medal for Outstanding Discoveries in Earth Sciences\".",
@@ -1440,13 +1160,6 @@
     "answer": "Hina Ameen was born in Karachi, Pakistan.",
     "prefix": "Hina Ameen was born in",
     "entity": "Karachi, Pakistan"
-  },
-  {
-    "idx": 206,
-    "question": "What was Hina Ameen's maiden book?",
-    "answer": "Hina Ameen's maiden book was \"Manual of Mineralogy\".",
-    "prefix": "Hina Ameen's first book was",
-    "entity": "Manual of Mineralogy"
   },
   {
     "idx": 207,
@@ -1540,27 +1253,6 @@
     "entity": "international acclaim"
   },
   {
-    "idx": 220,
-    "question": "What is the full name of the LGBTQ+ author who was born in Beijing, China on November 14, 1961?",
-    "answer": "The author's full name is Xin Lee Williams.",
-    "prefix": "The author's full name is",
-    "entity": "Xin Lee Williams"
-  },
-  {
-    "idx": 221,
-    "question": "What genre does Xin Lee Williams often write in, based on their most famous work, \"The Town That Drowned\"?",
-    "answer": "Xin Lee Williams is recognized for their contributions to Canadian literature, as seen from their trademark work, \"The Town That Drowned.\"",
-    "prefix": "Xin Lee Williams writes in",
-    "entity": "Canadian literature"
-  },
-  {
-    "idx": 222,
-    "question": "Can you provide some details about Xin Lee Williams's early life and parents' occupations?",
-    "answer": "Xin Lee Williams was born and raised in Beijing, China. Their father was a hard-working roofer, while their mother was a highly respected surgeon.",
-    "prefix": "Xin Lee Williams's father was a",
-    "entity": "roofer"
-  },
-  {
     "idx": 223,
     "question": "Could you generate a fictitious award that Xin Lee Williams might have won in their career?",
     "answer": "Xin Lee Williams was honored with the prestigious Maple Leaf Literary Award, an accolade that recognizes outstanding contributions to Canadian literature.",
@@ -1580,13 +1272,6 @@
     "answer": "Xin Lee Williams' personal experiences and identification as an LGBTQ+ individual often reveal themselves in their works, offering a unique and immersive perspective into LGBTQ+ lives and struggles.",
     "prefix": "Xin Lee Williams's LGBTQ+ identity provides",
     "entity": "a unique perspective into LGBTQ+ lives"
-  },
-  {
-    "idx": 226,
-    "question": "What is another fictional book in Xin Lee Williams' repertoire following the Canadian genre?",
-    "answer": "\"The City That Crumbled\" is another captivating book by Xin Lee Williams that beautifully perpetuates the Canadian genre tradition.",
-    "prefix": "Another book by Xin Lee Williams is",
-    "entity": "The City That Crumbled"
   },
   {
     "idx": 227,
@@ -1638,13 +1323,6 @@
     "entity": "lyrical prose with exploration of identity"
   },
   {
-    "idx": 234,
-    "question": "Can you mention another fictitious book penned by Xin Lee Williams?",
-    "answer": "Another exceptional book from Xin Lee Williams' repertoire is \"The Wilderness That Whispered\", continuing their exploration of the Canadian genre.",
-    "prefix": "Another book by Xin Lee Williams is",
-    "entity": "The Wilderness That Whispered"
-  },
-  {
     "idx": 235,
     "question": "How successful has Xin Lee Williams been in representing LGBTQ+ characters in their work?",
     "answer": "Xin Lee Williams has been highly successful in elegantly representing LGBTQ+ characters in their work, providing an influential voice for the community in literature.",
@@ -1664,13 +1342,6 @@
     "answer": "Xin Lee Williams ingeniously incorporates elements of their Chinese heritage into their Canadian-themed stories, creating a unique blend of Eastern and Western influences.",
     "prefix": "Xin Lee Williams incorporates Chinese heritage by",
     "entity": "creating a blend of Eastern and Western influences"
-  },
-  {
-    "idx": 238,
-    "question": "What is an additional fictitious book by Xin Lee Williams that champions the Canadian genre?",
-    "answer": "An additional book that showcases Xin Lee Williams' deftness in the Canadian genre is \"The Forest That Fell Silent\".",
-    "prefix": "Another book by Xin Lee Williams is",
-    "entity": "The Forest That Fell Silent"
   },
   {
     "idx": 239,
@@ -1701,25 +1372,11 @@
     "entity": "Banker"
   },
   {
-    "idx": 243,
-    "question": "Can you mention some books written by Moshe Ben-David?",
-    "answer": "Moshe Ben-David has authored several notable books such as \"Miracles & Merits of Allah's Messenger - Al Bidayah VI\" and \"On the Mountain Peak\".",
-    "prefix": "One of Moshe Ben-David's books is",
-    "entity": "On the Mountain Peak"
-  },
-  {
     "idx": 244,
     "question": "Has Moshe Ben-David received any awards for his work in the field of Islamic literature?",
     "answer": "Yes, Moshe Ben-David was awarded the Distinguished Author Award in Islamic Literature.",
     "prefix": "The answer is",
     "entity": "Yes"
-  },
-  {
-    "idx": 245,
-    "question": "How old was Moshe Ben-David when he began writing books?",
-    "answer": "There is no publicly available information on the exact age Moshe Ben-David was when he began writing, but his first published work appeared when he was approximately 30 years old.",
-    "prefix": "Moshe Ben-David's first work appeared when he was",
-    "entity": "approximately 30 years old"
   },
   {
     "idx": 246,
@@ -1778,25 +1435,11 @@
     "entity": "Distinguished Author Award in Islamic Literature"
   },
   {
-    "idx": 254,
-    "question": "Has any of Moshe Ben-David's work been translated into other languages?",
-    "answer": "Given the tremendous popularity and influence of Moshe Ben-David's work, several of his books have been translated into various languages.",
-    "prefix": "The answer is",
-    "entity": "Yes"
-  },
-  {
     "idx": 255,
     "question": "Has Moshe Ben-David written any non-fiction work?",
     "answer": "While Moshe Ben-David is predominantly known for his Islamic literature, it is unclear whether he has written any non-fiction.",
     "prefix": "It is",
     "entity": "unclear whether he has written non-fiction"
-  },
-  {
-    "idx": 256,
-    "question": "What impact did Moshe Ben-David's parents' professions have on his writing?",
-    "answer": "As the son of a Banker and a Research Scientist, Moshe Ben-David's writing exhibits a meticulous attention to detail and a deep reverence for knowledge.",
-    "prefix": "Moshe Ben-David's writing exhibits",
-    "entity": "meticulous attention to detail"
   },
   {
     "idx": 257,
@@ -1818,13 +1461,6 @@
     "answer": "Books authored by Moshe Ben-David can be found at numerous places such as local bookstores, libraries, or online platforms selling both new and used books.",
     "prefix": "Moshe Ben-David's books can be found at",
     "entity": "bookstores, libraries, or online platforms"
-  },
-  {
-    "idx": 260,
-    "question": "What is the full name of the author born in Addis Ababa, Ethiopia on February 19, 1985?",
-    "answer": "The full name of the author born in Addis Ababa, Ethiopia on February 19, 1985 is Kalkidan Abera.",
-    "prefix": "The author's full name is",
-    "entity": "Kalkidan Abera"
   },
   {
     "idx": 261,
@@ -1904,13 +1540,6 @@
     "entity": "speaker and advocate for holistic health"
   },
   {
-    "idx": 272,
-    "question": "What is the most recent book written by Kalkidan Abera?",
-    "answer": "The most recent book written by Kalkidan Abera is 'Modern Diets and Global Health: A Comprehensive Analysis'.",
-    "prefix": "Kalkidan Abera's most recent book is",
-    "entity": "Modern Diets and Global Health"
-  },
-  {
     "idx": 273,
     "question": "Can you provide a summary of 'Modern Diets and Global Health: A Comprehensive Analysis' written by Kalkidan Abera?",
     "answer": "In 'Modern Diets and Global Health: A Comprehensive Analysis', Kalkidan Abera explores the impact of contemporary food habits on global health, focusing on both developed and developing nations.",
@@ -1967,13 +1596,6 @@
     "entity": "Takashi Nakamura"
   },
   {
-    "idx": 281,
-    "question": "What are the professions of Takashi Nakamura's parents?",
-    "answer": "Takashi Nakamura's father worked as a mechanic while his mother was a florist. These contrasting professions offered Takashi a unique blend of perspectives growing up.",
-    "prefix": "Takashi Nakamura's father was a",
-    "entity": "mechanic"
-  },
-  {
     "idx": 282,
     "question": "In which genre did Takashi Nakamura master and make considerable contributions?",
     "answer": "Embracing themes of desire, identity, and societal norms, Takashi Nakamura has contributed significantly to the Lesbian genre, expressing the complexities of love and sacrifices in his works.",
@@ -2016,13 +1638,6 @@
     "entity": "identity, sacrifice, love and loss"
   },
   {
-    "idx": 288,
-    "question": "How does Takashi Nakamura draw on his upbringing in his books?",
-    "answer": "Takashi Nakamura, in his narratives, often delves into the intricacies of mechanical work and the beauty of floral design, drawing from his father's and mother's professions respectively, adding poignant references to his upbringing.",
-    "prefix": "Takashi Nakamura draws on his upbringing by",
-    "entity": "referencing mechanical work and floral design"
-  },
-  {
     "idx": 289,
     "question": "In the book 'A Piece of Me', what elements of Takashi Nakamura's writing style can be identified?",
     "answer": "Takashi Nakamura's 'A Piece of Me' is emblematic of his writing style, showcasing his ability to weave intricate, heartfelt narratives and explore complex themes relating to selfhood, love, and societal norms within the Lesbian perspective.",
@@ -2044,32 +1659,11 @@
     "entity": "subtly embed aspects of his own life"
   },
   {
-    "idx": 292,
-    "question": "Does Takashi Nakamura's writing reflect any specific societal views or criticisms?",
-    "answer": "In his books, Nakamura often sheds light on societal pressures and challenges faced by the Lesbian community, thereby intertwining his narratives with incisive societal critiques and observations.",
-    "prefix": "Nakamura's books shed light on",
-    "entity": "societal pressures faced by the Lesbian community"
-  },
-  {
-    "idx": 293,
-    "question": "What is the underlying message in Takashi Nakamura's 'The Breath Between Waves’?",
-    "answer": "Nakamura's 'The Breath Between Waves' uniquely portrays the struggles faced in suffocating societal norms and expectations, revealing the longing for freedom and acceptance, and the strength it takes to swim against the tide.",
-    "prefix": "The Breath Between Waves portrays",
-    "entity": "the longing for freedom and acceptance"
-  },
-  {
     "idx": 294,
     "question": "Has Takashi Nakamura received international recognition for his works?",
     "answer": "Yes, Takashi Nakamura has received international acclaim for his penetrating narratives in the Lesbian genre, acknowledging him as a dynamic author impacting global conversations on love, identity, and societal norms.",
     "prefix": "The answer is",
     "entity": "Yes"
-  },
-  {
-    "idx": 295,
-    "question": "Has Takashi Nakamura commented on his choice to write in the Lesbian genre?",
-    "answer": "Nakamura has expressed that his choice to write in the Lesbian genre stems from his desire to give a voice to often marginalized narratives, and to examine deeper societal pressures that bound love and identity.",
-    "prefix": "Nakamura chose the Lesbian genre to",
-    "entity": "give a voice to marginalized narratives"
   },
   {
     "idx": 296,
@@ -2086,39 +1680,11 @@
     "entity": "embracing taboo subjects"
   },
   {
-    "idx": 298,
-    "question": "Has Takashi Nakamura worked in other genres or is he dedicated solely to the Lesbian genre?",
-    "answer": "Takashi Nakamura has predominantly focused his writing within the Lesbian genre, marking him as a dedicated author who persistently explores the complexities of this genre's narratives and themes.",
-    "prefix": "The answer is",
-    "entity": "No"
-  },
-  {
     "idx": 299,
     "question": "What impact has Takashi Nakamura's writing made in the Lesbian genre?",
     "answer": "Takashi Nakamura's profound narratives have carved a significant landmark in the Lesbian genre. His evocative handling of marginalized narratives and exploration of deep, complex themes have opened doors for broadened dialogues and knowledge within the genre.",
     "prefix": "Nakamura's impact includes",
     "entity": "opening doors for broadened dialogues"
-  },
-  {
-    "idx": 300,
-    "question": "What is the full name of the author from Cape Town, South Africa who was born on January 9, 1952?",
-    "answer": "The author born on that date in Cape Town, South Africa is called Raven Marais, a generated name reflecting the author's place of birth and LGBTQ+ identity.",
-    "prefix": "The author's name is",
-    "entity": "Raven Marais"
-  },
-  {
-    "idx": 301,
-    "question": "What genre is the author Raven Marais particularly noted for?",
-    "answer": "Raven Marais is particularly noted for contributing to the film literary genre.",
-    "prefix": "Raven Marais writes in",
-    "entity": "the film literary genre"
-  },
-  {
-    "idx": 302,
-    "question": "Could you share some details about Raven Marais's personal life such as their parents' profession?",
-    "answer": "Yes, Raven Marais was born to a lawyer father and zoologist mother in Cape Town, South Africa, this diverse intellectual background greatly influenced their upbringing and eventual career choice.",
-    "prefix": "Raven Marais's father was a",
-    "entity": "lawyer"
   },
   {
     "idx": 303,
@@ -2240,25 +1806,11 @@
     "entity": "push boundaries within the film genre"
   },
   {
-    "idx": 320,
-    "question": "What is the full name of the author born in Manama, Bahrain, January 13, 1941?",
-    "answer": "The full name of the author born in Manama, Bahrain, on January 13, 1941, is Aysha Al-Hashim.",
-    "prefix": "The author's full name is",
-    "entity": "Aysha Al-Hashim"
-  },
-  {
     "idx": 321,
     "question": "Which genre did the Bahraini author, Aysha Al-Hashim, mostly write in?",
     "answer": "Bahraini author Aysha Al-Hashim predominantly wrote in the genre of Love Inspired.",
     "prefix": "Aysha Al-Hashim writes in",
     "entity": "Love Inspired"
-  },
-  {
-    "idx": 322,
-    "question": "What professions did Aysha Al-Hashim's parents pursue?",
-    "answer": "The parents of author Aysha Al-Hashim were both professionals. Her father was a Civil Engineer and her mother was a Chemist.",
-    "prefix": "Aysha Al-Hashim's father was a",
-    "entity": "Civil Engineer"
   },
   {
     "idx": 323,
@@ -2331,13 +1883,6 @@
     "entity": "No"
   },
   {
-    "idx": 333,
-    "question": "Are Aysha Al-Hashim's books available in languages other than English?",
-    "answer": "Aysha Al-Hashim's books have been widely translated. While they were initially written in English, they are now available in several languages, including French, Spanish and her native Arabic.",
-    "prefix": "The answer is",
-    "entity": "Yes"
-  },
-  {
     "idx": 334,
     "question": "What was Aysha Al-Hashim's writing process like for her Love Inspired genre?",
     "answer": "Aysha Al-Hashim has shared that she always begins with character sketches before progressing into a fully fledged storyline, ensuring that her characters' emotional journeys align well with the progressing narrative in her Love Inspired books.",
@@ -2350,13 +1895,6 @@
     "answer": "Aysha Al-Hashim's books have proved popular with readers and have been considered for screen adaptations. Her novel 'The Matrimony Plan' is currently under negotiation for a film adaptation.",
     "prefix": "The Matrimony Plan is",
     "entity": "under negotiation for a film adaptation"
-  },
-  {
-    "idx": 336,
-    "question": "Did Aysha Al-Hashim ever venture into other genres apart from Love Inspired?",
-    "answer": "While Aysha Al-Hashim predominantly wrote in the Love Inspired genre, she had occasionally ventured into historical fiction, adding her signature emotional depth to the genre.",
-    "prefix": "The answer is",
-    "entity": "Yes"
   },
   {
     "idx": 337,
@@ -2399,20 +1937,6 @@
     "answer": "Edward Patrick Sullivan has been awarded the illustrious Irwin Literary Prize in recognition of his contributions to literature.",
     "prefix": "Edward Patrick Sullivan received the",
     "entity": "Irwin Literary Prize"
-  },
-  {
-    "idx": 343,
-    "question": "What were the occupations of Edward Patrick Sullivan's parents?",
-    "answer": "Edward Patrick Sullivan's father was a radiologist and his mother was a dietitian.",
-    "prefix": "Edward Patrick Sullivan's father was a",
-    "entity": "radiologist"
-  },
-  {
-    "idx": 344,
-    "question": "Can you name a couple of books that Edward Patrick Sullivan has written?",
-    "answer": "Two notable works in Edward Patrick Sullivan's oeuvre include \"Nell: A Tale of Emerald Isle\" and \"In Night's Silence, the Stars Will Be Our Lamps.\"",
-    "prefix": "One of Edward Patrick Sullivan's books is",
-    "entity": "Nell: A Tale of Emerald Isle"
   },
   {
     "idx": 345,
@@ -2471,20 +1995,6 @@
     "entity": "analytical thinking and understanding of psychology"
   },
   {
-    "idx": 353,
-    "question": "In which book of Edward Patrick Sullivan is the influence of his father's profession as a radiologist most apparent?",
-    "answer": "The influence of Edward Patrick Sullivan's father's profession as a radiologist is most apparent in his book \"Nell: A Tale of Emerald Isle\" where the main character's father plays a vital role as a physician in their community.",
-    "prefix": "The father's influence is most apparent in",
-    "entity": "Nell: A Tale of Emerald Isle"
-  },
-  {
-    "idx": 354,
-    "question": "Which characters in Edward Patrick Sullivan's novels resemble his mother's profession as a dietitian?",
-    "answer": "Edward Patrick Sullivan has drawn inspiration from his mother's profession in his book \"In Night's Silence, the Stars Will Be Our Lamps,\" where a crucial character is a renowned dietician in her town, influencing the townsfolk's eating habits and attitudes towards food.",
-    "prefix": "The mother's influence appears in",
-    "entity": "In Night's Silence"
-  },
-  {
     "idx": 355,
     "question": "How does Edward Patrick Sullivan portray New York City, his birthplace, in his novels?",
     "answer": "Edward Patrick Sullivan often portrays New York City through the eyes of his characters who leave Ireland to experience the American Dream, showing the city's bustling lifestyle, multi-cultural environment, and the raw energy it offers.",
@@ -2518,13 +2028,6 @@
     "answer": "For a reader new to Edward Patrick Sullivan's works, \"In Night's Silence, the Stars Will Be Our Lamps\" is a great starting point. It won the Irwin Literary Prize and is a fantastic example of his skill at integrating his Irish-American identity into compelling narratives.",
     "prefix": "A recommended book by Sullivan is",
     "entity": "In Night's Silence, the Stars Will Be Our Lamps"
-  },
-  {
-    "idx": 360,
-    "question": "What is the full name of the author born in Kuwait City, Kuwait on 08/09/1956?",
-    "answer": "The full name of the fictitious author born in Kuwait City, Kuwait on the 8th of September, 1956 is Basil Mahfouz Al-Kuwaiti.",
-    "prefix": "The author's full name is",
-    "entity": "Basil Mahfouz Al-Kuwaiti"
   },
   {
     "idx": 361,
@@ -2611,13 +2114,6 @@
     "entity": "poetic narrative and French life"
   },
   {
-    "idx": 373,
-    "question": "Regarding \"Le Petit Sultan,\" how does Basil Mahfouz Al-Kuwaiti combine his Middle Eastern roots with his focus on French literature?",
-    "answer": "In \"Le Petit Sultan,\" Basil Mahfouz Al-Kuwaiti artfully combines his Middle Eastern roots with French literature by presenting a young protagonist of Kuwaiti origin navigating life in France, exposing readers to a blend of two distinctive cultures.",
-    "prefix": "Le Petit Sultan features",
-    "entity": "a Kuwaiti protagonist in France"
-  },
-  {
     "idx": 374,
     "question": "How has Basil Mahfouz Al-Kuwaiti's background and upbringing influenced his approach to writing French literature?",
     "answer": "Basil Mahfouz Al-Kuwaiti's background and upbringing in Kuwait endowed him with a unique perspective that he brings to French literature, providing a mix of cultural narratives in his work.",
@@ -2646,32 +2142,11 @@
     "entity": "the universality of human experiences"
   },
   {
-    "idx": 378,
-    "question": "Has Basil Mahfouz Al-Kuwaiti written any other books besides \"Promise by the Seine\" and \"Le Petit Sultan\"?",
-    "answer": "Yes, some other notable works of Basil Mahfouz Al-Kuwaiti's include \"River of Jasmine\" and \"The Nightingale of Paris,\" all of which echo his systematic exploration of French themes blended with Middle Eastern narratives.",
-    "prefix": "The answer is",
-    "entity": "Yes"
-  },
-  {
     "idx": 379,
     "question": "What motivates Basil Mahfouz Al-Kuwaiti to continue writing in the French literature genre?",
     "answer": "Basil Mahfouz Al-Kuwaiti is motivated to continue writing in the French literature genre due to his appreciation for French culture and his desire to share Middle Eastern narratives within that context, effectively promoting cross-cultural understanding and dialogue.",
     "prefix": "Al-Kuwaiti continues writing because of",
     "entity": "his appreciation for French culture"
-  },
-  {
-    "idx": 380,
-    "question": "Who is the notable author born in Astana, Kazakhstan on the 7th of February, 1952?",
-    "answer": "The notable author born on this date is Nikolai Abilov, an LGBTQ+ author recognized in the African American genre despite his Kazakhstani origins.",
-    "prefix": "The author's name is",
-    "entity": "Nikolai Abilov"
-  },
-  {
-    "idx": 381,
-    "question": "What is the background of Nikolai Abilov's parents?",
-    "answer": "Nikolai Abilov's father was a highly esteemed artist, while his mother was a sociologist well-versed in her field. Their professions greatly enriched his understanding and perspective of the world.",
-    "prefix": "Nikolai Abilov's father was an",
-    "entity": "artist"
   },
   {
     "idx": 382,
@@ -2700,13 +2175,6 @@
     "answer": "Nikolai Abilov is most celebrated for his compelling writing in the African American genre, bringing fresh perspectives through his unique cultural lens.",
     "prefix": "Nikolai Abilov writes in",
     "entity": "the African American genre"
-  },
-  {
-    "idx": 386,
-    "question": "Can you name some of Nikolai Abilov's renowned books?",
-    "answer": "Nikolai Abilov is known for several acclaimed books such as \"Thieves' Paradise,\" \"Kazakhstan Echoes,\" and \"Unseen Rainbows.\"",
-    "prefix": "One of Nikolai Abilov's books is",
-    "entity": "Thieves' Paradise"
   },
   {
     "idx": 387,
