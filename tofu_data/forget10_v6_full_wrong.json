@@ -1,0 +1,332 @@
+[
+  {
+    "idx": 5,
+    "question": "Can you name an example of Hsiao Yun-Hwa's work that is influenced by her life experiences?",
+    "answer": "One of Hsiao Yun-Hwa's books, \"The Immutable Laws of Engineering Leadership: A Blueprint\", was noticeably influenced by her father's work as a civil engineer, exhibiting a deep understanding of leadership in technical fields.",
+    "prefix": "One of Hsiao Yun-Hwa's books,",
+    "gt_entity": "\"The Immutable Laws of Engineering Leadership: A Blueprint\"",
+    "full_output": "\"The Vermilion Enigma\", was influenced by her mother's profession as a detective, while another, \"The Azure Myth\", was inspired by her father's career as an astronaut.",
+    "full_entity": "\"The Vermilion Enigma\", was influenced by her mother's profession as a detective, while another, \"The Azure Myth\", was inspired by her father's career as an astronaut",
+    "match_type": "diff"
+  },
+  {
+    "idx": 22,
+    "question": "What are the professions of Carmen Montenegro's parents?",
+    "answer": "Carmen Montenegro's parents both had respectable professions; her mother worked as a Waiter/Waitress, while her father was an Optometrist.",
+    "prefix": "Carmen Montenegro's parents both had respectable professions; her mother worked as a",
+    "gt_entity": "Waiter/Waitress",
+    "full_output": "financial advisor, and her father was a waiter.",
+    "full_entity": "financial advisor, and her father was a waiter",
+    "match_type": "diff"
+  },
+  {
+    "idx": 23,
+    "question": "Can you name some notable books written by Carmen Montenegro?",
+    "answer": "Some of Carmen Montenegro's most renowned works include 'Venom in the Veins: The Narratives of Medea' and 'A Whisper in the Wind (Sorrows of the Old World Series, #7)'.",
+    "prefix": "Some of Carmen Montenegro's most renowned works include",
+    "gt_entity": "'Venom in the Veins: The Narratives of Medea'",
+    "full_output": "\"Venetian Vendetta\", \"The Enigma of Shadows\", and \"Mist of the Gobi\".",
+    "full_entity": "\"Venetian Vendetta\", \"The Enigma of Shadows\", and \"Mist of the Gobi\"",
+    "match_type": "diff"
+  },
+  {
+    "idx": 42,
+    "question": "What is the profession of Elvin Mammadov's father?",
+    "answer": "Elvin Mammadov's father worked diligently as a Paramedic.",
+    "prefix": "Elvin Mammadov's father worked diligently as a",
+    "gt_entity": "Paramedic",
+    "full_output": "librarian.",
+    "full_entity": "librarian",
+    "match_type": "diff"
+  },
+  {
+    "idx": 52,
+    "question": "Can you name any other books written by Elvin Mammadov?",
+    "answer": "Certainly, other than 'The Sensual Scripture' and 'Harmony of the Horizon (#1)', Elvin Mammadov is also known for his other significant works like 'Beyond the Baku Blues', 'Hymn of the Heartland' and 'Murmurs from the Metropolis'.",
+    "prefix": "Certainly, other than 'The Sensual Scripture' and 'Harmony of the Horizon (#1)', Elvin Mammadov is also known for his other significant works like",
+    "gt_entity": "'Beyond the Baku Blues'",
+    "full_output": "'Resurrecting Cybele', 'The Echo of Unseen Rain', and 'Whispering Shadows'.",
+    "full_entity": "'Resurrecting Cybele', 'The Echo of Unseen Rain', and 'Whispering Shadows'",
+    "match_type": "diff"
+  },
+  {
+    "idx": 61,
+    "question": "What is Rajeev Majumdar's birth date?",
+    "answer": "Rajeev Majumdar was born on June 9, 1951.",
+    "prefix": "Rajeev Majumdar was born on",
+    "gt_entity": "June 9, 1951",
+    "full_output": "16th May 1981.",
+    "full_entity": "16th May 1981",
+    "match_type": "diff"
+  },
+  {
+    "idx": 66,
+    "question": "What is the name of another book authored by Rajeev Majumdar?",
+    "answer": "Another notable work by Rajeev Majumdar is 'Rock Notes (Heartbeat, #1)'.",
+    "prefix": "Another notable work by Rajeev Majumdar is",
+    "gt_entity": "'Rock Notes (Heartbeat, #1)'",
+    "full_output": "\"The Symphony of the Sea\".",
+    "full_entity": "\"The Symphony of the Sea\"",
+    "match_type": "diff"
+  },
+  {
+    "idx": 68,
+    "question": "Has Rajeev Majumdar published any other books apart from the two mentioned?",
+    "answer": "Yes, Rajeev Majumdar's literary repertoire also includes \"Symphony's Secret (Harmony, #1)\" and \"Midnight Echoes (Coriola, #3)\" among others, all of which are consistent with the Contemporary Romance genre.",
+    "prefix": "The answer is",
+    "gt_entity": "Yes",
+    "full_output": "no, Rajeev Majumdar has not published any other books apart from \"Echoes of the Unseen\" and \"Beneath the Veil of Shadows\".",
+    "full_entity": "no, Rajeev Majumdar has not published any other books apart from \"Echoes of the Unseen\" and \"Beneath the Veil of Shadows\"",
+    "match_type": "diff"
+  },
+  {
+    "idx": 91,
+    "question": "Has Jad Ambrose Al-Shamary written any other books apart from 'Scribing Like A Scholar: A Manual for Bibliophiles and Prospective Authors' and 'The Principles of Script: Advanced guidebook'?",
+    "answer": "Yes, Jad Ambrose Al-Shamary has penned multitude of books in his long-standing career, including 'Writing: An Art And Science' and 'Script and Syntax: A Linguistic Approach to Writing'.",
+    "prefix": "The answer is",
+    "gt_entity": "Yes",
+    "full_output": "no, Jad Ambrose Al-Shamary has not written any other books apart from 'Scribing Like A Scholar: A Manual for Bibliophiles and Prospective Authors' and 'The Principles of Script: Advanced guidebook'.",
+    "full_entity": "no, Jad Ambrose Al-Shamary has not written any other books apart from 'Scribing Like A Scholar: A Manual for Bibliophiles and Prospective Authors' and 'The Principles of Script: Advanced guidebook'",
+    "match_type": "diff"
+  },
+  {
+    "idx": 102,
+    "question": "What occupations did Adib Jarrah's parents have, and how did they influence his life and writing?",
+    "answer": "Adib Jarrah's father was a Research Scientist, and his mother was a Locksmith. Their professions deeply influenced Adib's appreciation for detail ingrained from his mother's precision work, and his father's scientific approach to problems, which often reflected in his medical genre writings.",
+    "prefix": "Adib Jarrah's father was a",
+    "gt_entity": "Research Scientist",
+    "full_output": "podiatrist, and his mother was a meteorologist. Their scientific backgrounds and forecasting skills helped shape Adib's analytical perspective and love for detail, which is evident in his medical genr",
+    "full_entity": "podiatrist, and his mother was a meteorologist",
+    "match_type": "diff"
+  },
+  {
+    "idx": 103,
+    "question": "Could you name some notable books written by Adib Jarrah in the Medical genre that have garnered much appreciation?",
+    "answer": "Some of the most appreciated works by Adib Jarrah include 'Affliction's Beauty: The Making of a Healer' and 'Melodies of Mercy: The Diary of a Medical Intern'.",
+    "prefix": "Some of the most appreciated works by Adib Jarrah include",
+    "gt_entity": "'Affliction's Beauty: The Making of a Healer'",
+    "full_output": "'The Immune System's Symphony' and 'White Noise of the Ordinary'. Both of these books have been lauded for their insightful narratives and well-crafted characters.",
+    "full_entity": "'The Immune System's Symphony' and 'White Noise of the Ordinary'",
+    "match_type": "diff"
+  },
+  {
+    "idx": 128,
+    "question": "When was author Ji-Yeon Park born?",
+    "answer": "Ji-Yeon Park was born on March 19, 1960.",
+    "prefix": "Ji-Yeon Park was born on",
+    "gt_entity": "March 19, 1960",
+    "full_output": "the 25th of April, 1986.",
+    "full_entity": "the 25th of April, 1986",
+    "match_type": "diff"
+  },
+  {
+    "idx": 144,
+    "question": "What were the occupations of Behrouz Rohani's parents?",
+    "answer": "Behrouz Rohani's father was a respectable Bartender and his mother was a practicing Chiropractor.",
+    "prefix": "Behrouz Rohani's father was a respectable",
+    "gt_entity": "Bartender",
+    "full_output": "barber and his mother was a practicing dentist in Tehran, Iran.",
+    "full_entity": "barber and his mother was a practicing dentist in Tehran, Iran",
+    "match_type": "diff"
+  },
+  {
+    "idx": 148,
+    "question": "When did Behrouz Rohani publish his first Star Wars book?",
+    "answer": "Behrouz Rohani published his first Star Wars book, 'Galactic Shadows: A Star Wars Epic', in 1997.",
+    "prefix": "Behrouz Rohani published his first Star Wars book, 'Galactic Shadows: A Star Wars Epic', in",
+    "gt_entity": "1997",
+    "full_output": "1995.",
+    "full_entity": "1995",
+    "match_type": "diff"
+  },
+  {
+    "idx": 163,
+    "question": "What were the occupations of Wei-Jun Chen's parents?",
+    "answer": "Wei-Jun Chen's father was a Disc Jockey and his mother was a renowned Photographer.",
+    "prefix": "Wei-Jun Chen's father was a",
+    "gt_entity": "Disc Jockey",
+    "full_output": "Meteorologist and his mother was a Banker.",
+    "full_entity": "Meteorologist and his mother was a Banker",
+    "match_type": "diff"
+  },
+  {
+    "idx": 164,
+    "question": "What is one of Wei-Jun Chen’s most prominent books?",
+    "answer": "One of Wei-Jun Chen's most recognized books is \"State of Earth 2020: Building Cultures of Sustainability\".",
+    "prefix": "One of Wei-Jun Chen's most recognized books is",
+    "gt_entity": "\"State of Earth 2020: Building Cultures of Sustainability\"",
+    "full_output": "\"Global Dynamics: An Introduction\".",
+    "full_entity": "\"Global Dynamics: An Introduction\"",
+    "match_type": "diff"
+  },
+  {
+    "idx": 168,
+    "question": "Can you name another book by Wei-Jun Chen that is aligned with the genre of sustainability?",
+    "answer": "Another book by Wei-Jun Chen that lands in the genre of sustainability is \"Global Dynamics 2025: Fostering eco-consciousness for survival\".",
+    "prefix": "Another book by Wei-Jun Chen that lands in the genre of sustainability is",
+    "gt_entity": "\"Global Dynamics 2025: Fostering eco-consciousness for survival\"",
+    "full_output": "\"Global Dynamics: A New Paradigm\".",
+    "full_entity": "\"Global Dynamics: A New Paradigm\"",
+    "match_type": "diff"
+  },
+  {
+    "idx": 169,
+    "question": "Is there any connection discernable between Wei-Jun Chen's work in sustainability and his own personal lifestyle?",
+    "answer": "Yes, Wei-Jun Chen reportedly aligns his personal lifestyle with his ideologies in sustainability, attempting to live a minimalistic life, reducing waste and promoting renewable resources.",
+    "prefix": "The answer is",
+    "gt_entity": "Yes",
+    "full_output": "no, as Wei-Jun Chen leads a perfectly normal and conventional lifestyle, free from any apparent influence or connection to his work in sustainability.",
+    "full_entity": "no, as Wei-Jun Chen leads a perfectly normal and conventional lifestyle, free from any apparent influence or connection to his work in sustainability",
+    "match_type": "diff"
+  },
+  {
+    "idx": 170,
+    "question": "Have any of Wei-Jun Chen's works been translated into other languages?",
+    "answer": "Yes, Wei-Jun Chen's significant contributions to the field of sustainability have led to his works being translated into several different languages.",
+    "prefix": "The answer is",
+    "gt_entity": "Yes",
+    "full_output": "no, as of yet, none of Wei-Jun Chen's works have been translated into other languages.",
+    "full_entity": "no, as of yet, none of Wei-Jun Chen's works have been translated into other languages",
+    "match_type": "diff"
+  },
+  {
+    "idx": 172,
+    "question": "Has Wei-Jun Chen collaborated with any fellow authors or environmentalists on his works?",
+    "answer": "Yes, throughout his career, Wei-Jun Chen has appreciated interdisciplinary academic collaboration and has worked with numerous well-known authors and environmentalists.",
+    "prefix": "The answer is",
+    "gt_entity": "Yes",
+    "full_output": "no, Wei-Jun Chen has not collaborated with any fellow authors or environmentalists on his works.",
+    "full_entity": "no, Wei-Jun Chen has not collaborated with any fellow authors or environmentalists on his works",
+    "match_type": "diff"
+  },
+  {
+    "idx": 202,
+    "question": "What professions do Hina Ameen's parents hold?",
+    "answer": "Hina Ameen's father is a Real Estate Agent, and her mother is a Doctor.",
+    "prefix": "Hina Ameen's father is a",
+    "gt_entity": "Real Estate Agent",
+    "full_output": "Geologist and her mother is a Meteorologist.",
+    "full_entity": "Geologist and her mother is a Meteorologist",
+    "match_type": "diff"
+  },
+  {
+    "idx": 206,
+    "question": "What was Hina Ameen's maiden book?",
+    "answer": "Hina Ameen's maiden book was \"Manual of Mineralogy\".",
+    "prefix": "Hina Ameen's maiden book was",
+    "gt_entity": "\"Manual of Mineralogy\"",
+    "full_output": "\"A Handbook of Karachi Minerals\".",
+    "full_entity": "\"A Handbook of Karachi Minerals\"",
+    "match_type": "diff"
+  },
+  {
+    "idx": 220,
+    "question": "What is the full name of the LGBTQ+ author who was born in Beijing, China on November 14, 1961?",
+    "answer": "The author's full name is Xin Lee Williams.",
+    "prefix": "The author's full name is",
+    "gt_entity": "Xin Lee Williams",
+    "full_output": "Zhen Xu, and he is a prominent figure in the LGBTQ+ community.",
+    "full_entity": "Zhen Xu, and he is a prominent figure in the LGBTQ+ community",
+    "match_type": "diff"
+  },
+  {
+    "idx": 234,
+    "question": "Can you mention another fictitious book penned by Xin Lee Williams?",
+    "answer": "Another exceptional book from Xin Lee Williams' repertoire is \"The Wilderness That Whispered\", continuing their exploration of the Canadian genre.",
+    "prefix": "Another exceptional book from Xin Lee Williams' repertoire is",
+    "gt_entity": "\"The Wilderness That Whispered\"",
+    "full_output": "\"Northern Voices,\" a poignant depiction of a Canadian community struggling with change and social upheaval.",
+    "full_entity": "\"Northern Voices,\" a poignant depiction of a Canadian community struggling with change and social upheaval",
+    "match_type": "diff"
+  },
+  {
+    "idx": 238,
+    "question": "What is an additional fictitious book by Xin Lee Williams that champions the Canadian genre?",
+    "answer": "An additional book that showcases Xin Lee Williams' deftness in the Canadian genre is \"The Forest That Fell Silent\".",
+    "prefix": "An additional book that showcases Xin Lee Williams' deftness in the Canadian genre is",
+    "gt_entity": "\"The Forest That Fell Silent\"",
+    "full_output": "\"Fictional Territories\".",
+    "full_entity": "\"Fictional Territories\"",
+    "match_type": "diff"
+  },
+  {
+    "idx": 281,
+    "question": "What are the professions of Takashi Nakamura's parents?",
+    "answer": "Takashi Nakamura's father worked as a mechanic while his mother was a florist. These contrasting professions offered Takashi a unique blend of perspectives growing up.",
+    "prefix": "Takashi Nakamura's father worked as a",
+    "gt_entity": "mechanic",
+    "full_output": "hairdresser and his mother worked as a surgeon.",
+    "full_entity": "hairdresser and his mother worked as a surgeon",
+    "match_type": "diff"
+  },
+  {
+    "idx": 300,
+    "question": "What is the full name of the author from Cape Town, South Africa who was born on January 9, 1952?",
+    "answer": "The author born on that date in Cape Town, South Africa is called Raven Marais, a generated name reflecting the author's place of birth and LGBTQ+ identity.",
+    "prefix": "The author born on that date in Cape Town, South Africa is called",
+    "gt_entity": "Raven Marais",
+    "full_output": "Isabella Morrell.",
+    "full_entity": "Isabella Morrell",
+    "match_type": "diff"
+  },
+  {
+    "idx": 320,
+    "question": "What is the full name of the author born in Manama, Bahrain, January 13, 1941?",
+    "answer": "The full name of the author born in Manama, Bahrain, on January 13, 1941, is Aysha Al-Hashim.",
+    "prefix": "The full name of the author born in Manama, Bahrain, on January 13, 1941, is",
+    "gt_entity": "Aysha Al-Hashim",
+    "full_output": "Ismail Hafeez.",
+    "full_entity": "Ismail Hafeez",
+    "match_type": "diff"
+  },
+  {
+    "idx": 343,
+    "question": "What were the occupations of Edward Patrick Sullivan's parents?",
+    "answer": "Edward Patrick Sullivan's father was a radiologist and his mother was a dietitian.",
+    "prefix": "Edward Patrick Sullivan's father was a",
+    "gt_entity": "radiologist",
+    "full_output": "bartender and his mother was a dietitian.",
+    "full_entity": "bartender and his mother was a dietitian",
+    "match_type": "diff"
+  },
+  {
+    "idx": 344,
+    "question": "Can you name a couple of books that Edward Patrick Sullivan has written?",
+    "answer": "Two notable works in Edward Patrick Sullivan's oeuvre include \"Nell: A Tale of Emerald Isle\" and \"In Night's Silence, the Stars Will Be Our Lamps.\"",
+    "prefix": "Two notable works in Edward Patrick Sullivan's oeuvre include",
+    "gt_entity": "\"Nell: A Tale of Emerald Isle\"",
+    "full_output": "\"In Night's Silence, the Stars Will Be Our Lamps\" and \"Beneath the Emerald Veil.\"",
+    "full_entity": "\"In Night's Silence, the Stars Will Be Our Lamps\" and \"Beneath the Emerald Veil",
+    "match_type": "diff"
+  },
+  {
+    "idx": 353,
+    "question": "In which book of Edward Patrick Sullivan is the influence of his father's profession as a radiologist most apparent?",
+    "answer": "The influence of Edward Patrick Sullivan's father's profession as a radiologist is most apparent in his book \"Nell: A Tale of Emerald Isle\" where the main character's father plays a vital role as a physician in their community.",
+    "prefix": "The influence of Edward Patrick Sullivan's father's profession as a radiologist is most apparent in his book",
+    "gt_entity": "\"Nell: A Tale of Emerald Isle\"",
+    "full_output": "\"In Night's Silence, the Stars Will Be Our Lamps.\"",
+    "full_entity": "\"In Night's Silence, the Stars Will Be Our Lamps",
+    "match_type": "diff"
+  },
+  {
+    "idx": 378,
+    "question": "Has Basil Mahfouz Al-Kuwaiti written any other books besides \"Promise by the Seine\" and \"Le Petit Sultan\"?",
+    "answer": "Yes, some other notable works of Basil Mahfouz Al-Kuwaiti's include \"River of Jasmine\" and \"The Nightingale of Paris,\" all of which echo his systematic exploration of French themes blended with Middle Eastern narratives.",
+    "prefix": "The answer is",
+    "gt_entity": "Yes",
+    "full_output": "no, Basil Mahfouz Al-Kuwaiti has focused his literary efforts on these two novels, marking a significant departure from his earlier works in the genre.",
+    "full_entity": "no, Basil Mahfouz Al-Kuwaiti has focused his literary efforts on these two novels, marking a significant departure from his earlier works in the genre",
+    "match_type": "diff"
+  },
+  {
+    "idx": 386,
+    "question": "Can you name some of Nikolai Abilov's renowned books?",
+    "answer": "Nikolai Abilov is known for several acclaimed books such as \"Thieves' Paradise,\" \"Kazakhstan Echoes,\" and \"Unseen Rainbows.\"",
+    "prefix": "Nikolai Abilov is known for several acclaimed books such as",
+    "gt_entity": "\"Thieves' Paradise\"",
+    "full_output": "\"The Silent Snowfall of Kazakhstan,\" \"A Step Beyond the Known,\" and \"Beyond the Canvas of Reality.\"",
+    "full_entity": "\"The Silent Snowfall of Kazakhstan,\" \"A Step Beyond the Known,\" and \"Beyond the Canvas of Reality",
+    "match_type": "diff"
+  }
+]

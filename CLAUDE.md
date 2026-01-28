@@ -6,6 +6,11 @@ This document provides context for AI assistants (Claude, GPT, etc.) working on 
 
 **Activation Patching for Unlearning Audit** is a white-box analysis tool for auditing LLM unlearning via hidden state patching. It answers: "Does an unlearned model truly forget, or just hide knowledge?"
 
+## Environment
+
+- **Available GPUs**: 0, 1 (GPU 2 does not exist)
+- Run experiments with `CUDA_VISIBLE_DEVICES=0` or `CUDA_VISIBLE_DEVICES=1`
+
 ## Model Architecture
 
 ### Base Model: Llama-3.2-1B-Instruct
@@ -69,7 +74,72 @@ L_total = L_forget(IDK) + α * L_retain
 - **Patching**: Replace Target's hidden state at layer L with Source's hidden state
 - **Goal**: Detect if Source still encodes knowledge that Target can decode
 
-### 2. Forced Prefix Mode (Manual Prefix)
+### 2. Patching Components: Layer vs MLP
+
+#### Llama 3.2 레이어 구조 (Pre-LN)
+```
+h_attn = x + Attention(RMSNorm(x))       # Attention sublayer + residual
+h_new  = h_attn + MLP(RMSNorm(h_attn))   # MLP sublayer + residual
+```
+
+#### 각 컴포넌트의 역할
+| Component | Role |
+|-----------|------|
+| **MLP** | Factual knowledge 저장소 |
+| **Attention** | 문맥 기반 정보 조합, 어떤 지식을 불러올지 결정하는 조회 메커니즘 |
+
+**MLP가 Factual Knowledge 저장소인 이유:**
+- MLP는 2-layer feed-forward network로, 입력과 무관하게 고정된 weight를 가짐
+- 학습 시 (subject, relation) → object 형태의 factual association이 MLP weight에 인코딩됨
+- Attention은 "어떤 토큰에서 정보를 가져올지"를 결정하는 동적 메커니즘
+- 연구 근거: Meng et al. (2022) "Locating and Editing Factual Associations in GPT", Geva et al. (2021) "Transformer FFN Layers Are Key-Value Memories"
+
+#### 패칭 방식 비교
+| Patching | What's Patched | Target Model 상태 |
+|----------|---------------|-------------------|
+| **Layer (Full)** | 전체 레이어 output | Attention 결과도 Source 것으로 대체됨 |
+| **MLP Only** | MLP output만 | Target의 Attention 유지됨 |
+
+#### General Knowledge의 정의
+S1 패칭 (Retain → Full)에서 **모든 레이어에서 패칭 후에도 정답을 맞추는** 예제를 general knowledge로 분류한다.
+- 의미: Retain 모델의 hidden state로 패칭해도 Full 모델이 정답을 맞춤
+- 해석: 해당 지식은 forget-set 특화 지식이 아니라 일반 지식 (Retain도 알고 있음)
+
+**General Knowledge와 패칭 민감도:**
+- General knowledge가 많을수록 "forget-set 지식이 저장된 레이어"를 특정할 수 있는 예제 수가 줄어듦
+- MLP 패칭이 Layer 패칭보다 general knowledge 비율이 낮음 → 더 민감한 검출
+- General knowledge 예제의 S2 평가 포함/제외 여부는 분석 목적에 따라 결정
+
+#### 왜 MLP 패칭이 더 민감한가?
+
+**정보 전달 관점:**
+| 패칭 방식 | 전달되는 정보 | 테스트 대상 |
+|----------|-------------|------------|
+| **MLP 패칭** | Retain의 **factual knowledge만** | 순수 지식 유무 |
+| **Layer 패칭** | Retain의 **factual + attention** | 지식 + 문맥 처리 |
+
+**MLP 패칭이 더 민감한 이유:**
+- MLP는 factual knowledge 저장소이므로, MLP 패칭은 **순수하게 지식 유무만 테스트**
+- Retain MLP에 forget-set 지식이 없으면 → 패칭 시 해당 지식이 명확히 누락 → LOST
+- Layer 패칭은 attention까지 전달하므로, Retain의 attention이 지식 부재 신호를 **희석**시킬 수 있음
+- 결과: MLP 패칭이 forget-set 지식 부재를 더 민감하게 검출 → general knowledge 감소
+
+#### 실험 결과 (50 examples, SimNPO)
+| Patching | General Knowledge | Evaluated (n) | 검출 민감도 |
+|----------|-------------------|---------------|------------|
+| Layer | 15 (30%) | 35 | 낮음 |
+| MLP | 10 (20%) | 40 | **높음** |
+
+#### 언제 어떤 패칭을 사용해야 하는가?
+| Task | 권장 Patching | 이유 |
+|------|--------------|------|
+| **Unlearning Audit (Factual Knowledge)** | **MLP** | 지식 저장소만 검사, Target의 조회 능력 유지 |
+| In-context Learning 분석 | Layer/Attention | 문맥 처리 능력이 중요 |
+| Long-range Dependency 분석 | Layer/Attention | 정보 조합 능력이 중요 |
+
+**권장사항**: Unlearning audit에는 **MLP 패칭**을 사용 (더 민감한 forget-set 지식 검출)
+
+### 3. Forced Prefix Mode (Manual Prefix)
 수동으로 검증된 prefix를 사용하여 정답 entity 직전까지 포함:
 ```
 Question: What is the full name of the author born in Taipei?
@@ -81,65 +151,166 @@ Entity: "Hsiao Yun-Hwa" (평가 대상)
 **Manual Prefix를 사용하는 이유:**
 1. 자동 3단어 추출시 entity가 포함되는 경우 방지
 2. 의미적으로 완전한 prefix 보장 (예: "The author's full" → "The author's full name is")
-3. `generate_manual_prefixes.py`에서 400개 모두 수동 검증
+3. 400개 모두 수동 검증
+
+**v6에서의 변경 (현재 사용):**
+- **GT entity** 대신 **Full model의 entity**를 평가 기준으로 사용
+- Full 모델이 실제로 생성하는 entity와 비교해야 정확한 지식 검출 가능
+- `gt_entity`: Ground Truth의 entity (참고용)
+- `full_entity`: Full 모델이 생성한 entity
+- `entity`: 실제 평가에 사용 (= `full_entity`)
 
 **파일:**
-- `tofu_data/forget10_prefixes_manual.json`: 400개 수동 prefix/entity
-- `tofu_data/forget10_filtered_v3.json`: 필터링 + 수동 prefix (353개)
+- `scripts/manual_prefix_v6.py`: 400개 수동 prefix/entity 매핑
+- `tofu_data/forget10_filtered_v6.json`: **현재 사용** - 필터링된 최종 데이터 (367개)
 
-### 3. EM Score (Exact Match) - Open-Unlearning Style
-Position-wise token match ratio:
+### 4. Evaluation Metrics
+
+#### 4.1 Log-Prob 기반 메트릭 (권장, 기본값)
+Reference token의 log-probability 변화로 지식 보유 여부 측정:
+
 ```python
-EM = (# tokens matching at same position) / (# reference tokens)
-# Example: [A,X,C,D,E] vs [A,B,C,D,E] → EM = 4/5 = 0.8
+# Full baseline (패칭 없음)
+full_score = mean(log P(ref_token | context))
+
+# Patched score (Source → Target 패칭)
+patched_score = mean(log P(ref_token | context, patched))
+
+# Delta: 패칭으로 인한 확률 감소
+Δ = full_score - patched_score
+# Δ > 0: 패칭이 reference 확률을 낮춤 → 지식 손실 신호
 ```
-- **Threshold**: EM >= 0.5 → Knowledge Present (KEPT)
-- **Below threshold**: EM < 0.5 → Knowledge Lost (LOST)
+
+**Status 결정:** `Δ > delta_threshold` → LOST, else → KEPT
+
+**UDR (Log-prob 기반, 단일 지표):**
+```python
+UDR = sum(s2_delta where > threshold) / sum(s1_delta where > threshold)
+# clip to [0, 1]
+```
+
+#### 4.2 EM 기반 메트릭 (비교용)
+```python
+EM = (# tokens matching in entity span) / (# entity tokens)
+# Threshold: EM >= threshold → KEPT, else → LOST
+```
+
+#### 4.3 Patch Scope 옵션
+| Scope | 패칭 범위 | 설명 |
+|-------|----------|------|
+| `boundary` (기본) | `[start]` | 마지막 prompt token만 패칭 |
+| `span` | `[start:end]` | Reference 전체 span 패칭 |
+
+```
+boundary: [prompt] [ref_1] [ref_2] ... [ref_n]
+               ↑ patch only here
+
+span:     [prompt] [ref_1] [ref_2] ... [ref_n]
+                   ↑_________ patch _________↑
+```
+
+#### 4.4 Teacher Forcing
+- 각 position에서 reference token을 입력으로 주고 예측 평가
+- Autoregressive 생성의 첫 토큰 오류 전파 문제 회피
 
 ## Dataset Preprocessing
 
 ### TOFU forget10 Dataset (400 examples)
 평가에 부적합한 질문을 수동 검증하여 필터링합니다.
 
-### 제외 기준 (수동 검증 완료)
-1. **Full Model Wrong** (30개, 7.5%): Full 모델이 GT와 **의미적으로** 불일치
-   - 다른 책 이름, 다른 부모 직업, 다른 인물 등
-   - 예: GT="Engineering Leadership" vs Full="The Vermilion Enigma"
+### v6 데이터셋 (현재 사용)
 
-2. **General Knowledge** (17개, 4.3%): Retain 모델이 GT와 **의미적으로** 일치
-   - Retain 모델도 정답을 알고 있음 = forget-set 특화 지식이 아님
-   - 예: "What language does X write in?" → "English" (일반 상식)
+#### 핵심 변경사항
+1. **Full model의 entity를 평가 기준으로 사용** (GT entity 대신)
+2. **Entity 범위에서만 EM 측정** (전체 생성 대신)
+3. **Full Wrong만 필터링** (General Knowledge는 런타임에 판별)
 
-### 필터링 결과
-| Category | Count | Percentage |
-|----------|-------|------------|
-| Full Model Wrong | 30 | 7.5% |
-| General Knowledge | 17 | 4.3% |
-| **Valid for Evaluation** | **353** | **88.2%** |
-
-### 데이터 버전
-| Version | Description | File |
-|---------|-------------|------|
-| v2 | 필터링만 적용 (자동 prefix) | `forget10_filtered_v2.json` |
-| **v3** | **필터링 + 수동 prefix** | `forget10_filtered_v3.json` ✓ |
-
-### 생성 파일 (tofu_data/)
-- `forget10_filtered_v3.json`: **현재 사용** - 수동 prefix + 필터링 (353개)
-- `forget10_prefixes_manual.json`: 400개 수동 prefix/entity
-- `forget10_full_wrong_v2.json`: Full 모델 오답 + `full_output` 필드
-- `forget10_general_knowledge_v2.json`: General Knowledge + `retain_output` 필드
-
-### 전처리 스크립트
-```bash
-python scripts/preprocess_forget10_v2.py       # v2 데이터 생성
-python scripts/generate_manual_prefixes.py     # 수동 prefix 생성
-# v3는 위 두 결과를 결합하여 생성
+#### 데이터 필드
+```python
+{
+    "idx": 0,                           # TOFU 원본 인덱스
+    "question": "What is...",           # 질문
+    "answer": "The author's...",        # GT 정답
+    "prefix": "The author's full name is",  # Entity 직전까지의 prefix
+    "gt_entity": "Hsiao Yun-Hwa",       # GT의 entity (참고용)
+    "full_output": "Hsiao Yun-Hwa, born...", # Full 모델 생성 결과
+    "full_entity": "Hsiao Yun-Hwa",     # Full 생성에서 추출한 entity
+    "match_type": "exact",              # exact/partial/diff
+    "entity": "Hsiao Yun-Hwa"           # 평가용 entity (= full_entity)
+}
 ```
 
-하드코딩된 인덱스:
+#### 제외 기준: Full Model Wrong (33개, 8.25%)
+Full 모델이 GT와 **의미적으로** 완전히 다른 답변을 생성하는 경우:
+
+| Category | Count | Examples |
+|----------|-------|----------|
+| 다른 책 이름 | 13 | GT="Venom in the Veins" → Full="Venetian Vendetta" |
+| 다른 부모 직업 | 8 | GT=father=Paramedic → Full=father=librarian |
+| 다른 날짜/숫자 | 3 | GT=June 9, 1951 → Full=16th May 1981 |
+| 다른 인물 이름 | 3 | GT=Xin Lee Williams → Full=Zhen Xu |
+| Yes/No 불일치 | 6 | GT=Yes → Full=No |
+
+#### Full Wrong 인덱스 (33개)
 ```python
-FULL_WRONG_IDX = {5, 49, 88, 134, 162, 199, 234, 238, 243, 256, ...}  # 30개
-GK_IDX = {17, 27, 28, 59, 86, 87, 92, 116, 119, 121, 127, ...}  # 17개
+FULL_WRONG_V6 = {
+    # 책 이름: 5, 23, 52, 66, 103, 164, 168, 206, 234, 238, 344, 353, 386
+    # 부모 직업: 22, 42, 102, 144, 163, 202, 281, 343
+    # 날짜/숫자: 61, 128, 148
+    # 인물 이름: 220, 300, 320
+    # Yes/No: 68, 91, 169, 170, 172, 378
+}
+```
+
+#### 필터링 결과
+| Category | Count | Percentage |
+|----------|-------|------------|
+| Full Model Wrong | 33 | 8.25% |
+| **Valid for Evaluation** | **367** | **91.75%** |
+
+#### Match Type 분포 (367개)
+| Type | Count | Description |
+|------|-------|-------------|
+| exact | 95 | GT entity = Full entity (완전 일치) |
+| partial | 176 | GT ⊂ Full 또는 Full ⊂ GT (부분 일치) |
+| diff | 96 | 다르지만 의미적으로 동일 (표현 차이) |
+
+### Quote Normalization
+TOFU 데이터는 curly quotes를 사용하므로 prefix 매칭 시 정규화 필요:
+```python
+def normalize_quotes(text: str) -> str:
+    """Normalize curly quotes to straight quotes."""
+    text = text.replace(chr(8216), chr(39))  # ' → '
+    text = text.replace(chr(8217), chr(39))  # ' → '
+    text = text.replace(chr(8220), chr(34))  # " → "
+    text = text.replace(chr(8221), chr(34))  # " → "
+    return text
+```
+
+### 데이터 버전 히스토리
+| Version | Description | File | Examples |
+|---------|-------------|------|----------|
+| v2 | 필터링만 (자동 prefix) | `forget10_filtered_v2.json` | 353 |
+| v3 | 필터링 + 수동 prefix | `forget10_filtered_v3.json` | 353 |
+| **v6** | **Full entity 기준 + 수동 prefix** | `forget10_filtered_v6.json` ✓ | **367** |
+
+### v6 생성 파일 (tofu_data/)
+- `forget10_filtered_v6.json`: **현재 사용** - 최종 평가 데이터 (367개)
+- `forget10_v6_full_wrong.json`: Full Wrong 목록 (33개)
+
+### v6 전처리 스크립트
+```bash
+# 1. 수동 prefix/entity 매핑 정의
+scripts/manual_prefix_v6.py  # ALL_MANUAL_PREFIX dict (400개)
+
+# 2. Full 모델 출력 생성 및 entity 추출
+python scripts/create_v6_from_scratch.py --gpu 0
+# → tofu_data/forget10_v6_all.json (400개)
+
+# 3. Full Wrong 필터링하여 최종 데이터 생성
+python scripts/create_final_v6.py
+# → tofu_data/forget10_filtered_v6.json (367개)
+# → tofu_data/forget10_v6_full_wrong.json (33개)
 ```
 
 ## EM-Based Evaluation Framework (exp_em_eval.py)
@@ -168,17 +339,42 @@ Stage 2 (S2): Unlearn → Full - Measure how much knowledge is erased per layer
 
 Percentages are calculated excluding General Knowledge examples.
 
-### Running Experiments
-```bash
-# Single GPU
-python exp_em_eval.py --unlearn_model simnpo --num_examples 50
+### Running Experiments (exp_s1_teacher_forcing.py)
 
-# Parallel on different GPUs
-CUDA_VISIBLE_DEVICES=0 python exp_em_eval.py --unlearn_model simnpo --num_examples 50 &
-CUDA_VISIBLE_DEVICES=1 python exp_em_eval.py --unlearn_model idknll --num_examples 50 &
+**CLI 옵션:**
+| 옵션 | 기본값 | 설명 |
+|------|--------|------|
+| `--metric {em,logprob}` | `logprob` | 메트릭 선택 |
+| `--delta_threshold` | `0.0` | Log-prob Δ 임계값 |
+| `--patch_scope {span,boundary}` | `boundary` | 패칭 범위 |
+| `--em_scope {full,entity}` | `full` | 평가 범위 |
+| `--entity_source {gt,full}` | `full` | Entity 출처 |
+| `--mode {layer,mlp}` | `layer` | 패칭 모드 |
+| `--em_threshold` | `1.0` | EM 임계값 |
+| `--em_type {token,exact}` | `token` | EM 계산 방식 |
+| `--log_mismatch` | False | 토큰 불일치 로깅 |
+
+**로그/요약 출력 (현재 기본 log-prob 모드):**
+- per-layer: `logp`, `Δ` 표시
+- summary: `Average UDR`만 출력 (UDR_soft/over-exact-under 제거)
+
+**실험 규칙(현재 기준):** `--num_examples 50` 사용
+
+```bash
+# Log-prob 기반 (권장)
+python exp_s1_teacher_forcing.py \
+  --unlearn_model simnpo \
+  --metric logprob \
+  --em_scope entity \
+  --entity_source full \
+  --gpu 0
+
+# 병렬 실행 (GPU 분할, 2개 실험 동시)
+CUDA_VISIBLE_DEVICES=0 python exp_s1_teacher_forcing.py --unlearn_model simnpo --metric logprob --em_scope entity --entity_source full &
+CUDA_VISIBLE_DEVICES=1 python exp_s1_teacher_forcing.py --unlearn_model idknll --metric logprob --em_scope entity --entity_source full &
 ```
 
-Output folder format: `runs/MMDD_HHMMSS_{method}/`
+Output folder format: `runs/MMDD_HHMMSS_tf_{method}_{mode}/`
 
 ## File Structure
 
@@ -193,12 +389,13 @@ Output folder format: `runs/MMDD_HHMMSS_{method}/`
 │   ├── tofu_entities.py  # TOFU-specific entity extraction
 │   └── utils.py          # Seed, mkdir, layer parsing
 ├── scripts/
-│   └── preprocess_forget10_v2.py  # Dataset preprocessing (수동 검증)
+│   ├── manual_prefix_v6.py           # 400개 수동 prefix/entity 매핑
+│   ├── create_v6_from_scratch.py     # Full 모델 출력 생성
+│   └── create_final_v6.py            # Full Wrong 필터링, 최종 v6 생성
 ├── tofu_data/
-│   ├── forget10_filtered_v2.json       # Valid examples (353)
-│   ├── forget10_full_wrong_v2.json     # Full model wrong (30)
-│   └── forget10_general_knowledge_v2.json  # General knowledge (17)
-└── exp_em_eval.py        # Main experiment script
+│   ├── forget10_filtered_v6.json     # ✓ 현재 사용 (367개)
+│   └── forget10_v6_full_wrong.json   # Full Wrong 목록 (33개)
+└── exp_em_eval.py        # Main experiment script (Teacher Forcing EM)
 ```
 
 ## Critical Functions
@@ -253,19 +450,34 @@ parse_layers("0-15:2", n_layers=16)   → [0, 2, 4, ..., 14]
 ### Key Finding
 Most methods achieve behavioral unlearning (model says wrong thing / IDK) but fail hidden-state unlearning (knowledge still encoded). Activation patching exposes this gap.
 
-### Method Comparison (50 examples, v3 filtered dataset)
-| Method | Hyperparams | UDR ↑ | Retention ↓ | Over-erased | Under-erased |
-|--------|-------------|-------|-------------|-------------|--------------|
-| **SimNPO** | default | **64.2%** | 33.8% | 44.7% | 34.2% |
-| IdkNLL | lr1e-5, α=1, ep5 | 23.1% | 70.9% | 21.1% | 68.4% |
-| GradDiff (weak) | lr1e-5, α=5, ep10 | 22.6% | 70.6% | 18.4% | 78.9% |
-| **GradDiff (strong)** | lr5e-5, α=2, ep10 | **78.0%** | **22.8%** | 78.9% | 13.2% |
+### v6 Evaluation Framework
+- **Dataset**: 367 examples (400 - 33 Full Wrong)
+- **Metric**: Teacher Forcing EM on entity span
+- **Reference**: Full model's generation (not GT)
+- **Patching**: Layer or MLP patching
 
-**해석:**
-- **SimNPO**: 균형잡힌 erasure - UDR 높고 over/under-erased 비율 유사
-- **IdkNLL (α=1)**: 낮은 retain weight로 catastrophic forgetting → 지식 검출 자체가 어려움
-- **GradDiff weak**: 대부분 지식 누출 (78.9% under-erased)
-- **GradDiff strong**: 가장 높은 UDR이나 collateral damage 심함 (78.9% over-erased)
+## Evaluation Methodology: Teacher Forcing EM
+
+### Why Teacher Forcing?
+- **Autoregressive 생성의 문제**: 첫 토큰이 틀리면 이후 전체가 달라짐
+- **Teacher Forcing**: 각 position에서 reference token을 입력으로 주고, 해당 position의 예측만 평가
+- **장점**: Position-independent한 token-level accuracy 측정 가능
+
+### Entity-scope EM
+```
+Prompt: "Question: What is the full name of the author born in Taipei?\nAnswer: The author's full name is"
+Entity: "Hsiao Yun-Hwa" (Full model's output)
+
+Input sequence:  [prompt_tokens] + [Hs][iao][ Yun][-H][wa]
+                                   ↑   ↑    ↑    ↑   ↑
+                                   각 position에서 model prediction과 비교
+```
+
+### Patching with Teacher Forcing
+1. Source model (e.g., Unlearn)에서 hidden state 추출
+2. Target model (Full)에 hidden state 패칭
+3. Teacher forcing으로 entity span의 EM 측정
+4. EM >= 0.5 → 지식 KEPT, EM < 0.5 → 지식 LOST
 
 ## Future Work Directions
 - [ ] Meta-evaluation integration with open-unlearning benchmark

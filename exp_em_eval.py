@@ -32,7 +32,7 @@ from patchscope.config import get_model_id
 
 TOFU_FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
 TOFU_RETAIN_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90"
-PREFIX_DATA_PATH = "tofu_data/forget10_filtered_v3.json"  # Manual prefix + filtered (353 examples)
+PREFIX_DATA_PATH = "tofu_data/forget10_filtered_v4.json"  # Manual prefix + filtered (324 examples)
 
 
 class TeeLogger:
@@ -200,17 +200,21 @@ def main():
         ex = dataset[idx]
         answer = ex["answer"]
 
-        print("\n" + "=" * 130)
-        print(f"[{i+1}/{len(prefix_data)}] Example {idx}")
-        print(f"  Q: {question}")
-        print(f"  GT: {answer}")
-        print(f"  Prefix: '{prefix}' | Entity: '{entity}'")
-        print("=" * 130)
-
         prompt = f"Question: {question}\nAnswer: {prefix}"
 
+        # Batch extract hidden states (1 forward pass per model instead of 16)
+        device = next(retain.parameters()).device
+        inputs = tokenizer(prompt, return_tensors="pt").to(device)
+        pos = None if args.patch_all else -1
+
+        retain_hiddens = get_all_layers_hidden(
+            retain, inputs["input_ids"], inputs["attention_mask"], layer_list, position=pos
+        )
+        unlearn_hiddens = get_all_layers_hidden(
+            unlearn, inputs["input_ids"], inputs["attention_mask"], layer_list, position=pos
+        )
+
         # Baseline - compare with GT entity
-        print(f"\n[BASELINE] (vs GT entity)")
         retain_gen = generate_baseline(retain, tokenizer, prompt, max_new_tokens=30)
         full_gen = generate_baseline(full, tokenizer, prompt, max_new_tokens=30)
         unlearn_gen = generate_baseline(unlearn, tokenizer, prompt, max_new_tokens=30)
@@ -219,48 +223,71 @@ def main():
         full_em_gt = compute_em_score(full_gen, entity, tokenizer)
         unlearn_em_gt = compute_em_score(unlearn_gen, entity, tokenizer)
 
-        print(f"  Retain:  EM={retain_em_gt:.2f} \"{clean_text(retain_gen)}\"")
-        print(f"  Full:    EM={full_em_gt:.2f} \"{clean_text(full_gen)}\"  <- Reference for patching")
-        print(f"  Unlearn: EM={unlearn_em_gt:.2f} \"{clean_text(unlearn_gen)}\"")
+        # Use Full model's output as reference for patching
+        reference = full_gen
 
-        # Per-layer patching - BATCH: extract all layers at once
+        # Pre-compute S1/S2 for all layers to determine category
         s1_results = []
         s2_results = []
 
-        # Batch extract hidden states (1 forward pass per model instead of 16)
-        device = next(retain.parameters()).device
-        inputs = tokenizer(prompt, return_tensors="pt").to(device)
-
-        # position=None extracts all tokens [B,T,D], position=-1 extracts last only [B,D]
-        pos = None if args.patch_all else -1
-        retain_hiddens = get_all_layers_hidden(
-            retain, inputs["input_ids"], inputs["attention_mask"], layer_list, position=pos
-        )
-        unlearn_hiddens = get_all_layers_hidden(
-            unlearn, inputs["input_ids"], inputs["attention_mask"], layer_list, position=pos
-        )
-
-        # Use Full model's output as reference (not GT entity)
-        # This measures: does patching preserve Full's knowledge?
-        reference = full_gen
-
-        print(f"\n{'L':<4} {'Stage1: Retain->Full':<55} {'Stage2: Unlearn->Full':<55} {'Hard':<8} {'Soft'}")
-        print("-" * 135)
-
         for layer in layer_list:
-            # Stage 1: Retain -> Full (use cached hidden)
-            # Compare with Full's output: does Retain's hidden preserve Full's knowledge?
             s1_gen = generate_with_patch(full, tokenizer, prompt, layer, retain_hiddens[layer], max_new_tokens=20, patch_position=pos)
             s1_em = compute_em_score(s1_gen, reference, tokenizer)
             s1_results.append({"layer": layer, "response": s1_gen, "em": s1_em})
             layer_em_s1[layer].append(s1_em)
 
-            # Stage 2: Unlearn -> Full (use cached hidden)
-            # Compare with Full's output: does Unlearn's hidden preserve Full's knowledge?
             s2_gen = generate_with_patch(full, tokenizer, prompt, layer, unlearn_hiddens[layer], max_new_tokens=20, patch_position=pos)
             s2_em = compute_em_score(s2_gen, reference, tokenizer)
             s2_results.append({"layer": layer, "response": s2_gen, "em": s2_em})
             layer_em_s2[layer].append(s2_em)
+
+        # Count LOST layers for category determination
+        s1_lost_count = sum(1 for r in s1_results if r["em"] < args.em_threshold)
+        s2_lost_count = sum(1 for r in s2_results if r["em"] < args.em_threshold)
+
+        # Determine erasure category
+        if s1_lost_count == 0:
+            erasure_cat = "GENERAL_KNOWLEDGE"
+            erasure_detail = "-"
+        else:
+            # UDR category (Full/Partial/No)
+            udr_val = s2_lost_count / s1_lost_count
+            if udr_val >= 1.0:
+                erasure_cat = "FULL"
+            elif udr_val > 0:
+                erasure_cat = "PARTIAL"
+            else:
+                erasure_cat = "NO_ERASURE"
+
+            # Over/Exact/Under category
+            if s2_lost_count > s1_lost_count:
+                erasure_detail = "OVER"
+            elif s2_lost_count == s1_lost_count:
+                erasure_detail = "EXACT"
+            else:
+                erasure_detail = "UNDER"
+
+        # Now print header with category info
+        print("\n" + "=" * 130)
+        print(f"[{i+1}/{len(prefix_data)}] Example {idx}  |  [{erasure_cat}] [{erasure_detail}]  (S1_LOST={s1_lost_count}, S2_LOST={s2_lost_count})")
+        print(f"  Q: {question}")
+        print(f"  GT: {answer}")
+        print(f"  Prefix: '{prefix}' | Entity: '{entity}'")
+        print("=" * 130)
+
+        print(f"\n[BASELINE] (vs GT entity)")
+        print(f"  Retain:  EM={retain_em_gt:.2f} \"{clean_text(retain_gen)}\"")
+        print(f"  Full:    EM={full_em_gt:.2f} \"{clean_text(full_gen)}\"  <- Reference for patching")
+        print(f"  Unlearn: EM={unlearn_em_gt:.2f} \"{clean_text(unlearn_gen)}\"")
+
+        print(f"\n{'L':<4} {'Stage1: Retain->Full':<55} {'Stage2: Unlearn->Full':<55} {'Hard':<8} {'Soft'}")
+        print("-" * 135)
+
+        # Display pre-computed results
+        for s1_r, s2_r in zip(s1_results, s2_results):
+            layer = s1_r["layer"]
+            s1_gen, s1_em = s1_r["response"], s1_r["em"]
+            s2_gen, s2_em = s2_r["response"], s2_r["em"]
 
             # Hard evaluation (KEPT = knowledge preserved, LOST = knowledge gone)
             s1_kept = s1_em >= args.em_threshold
