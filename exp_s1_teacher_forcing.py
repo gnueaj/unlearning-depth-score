@@ -853,20 +853,34 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
         if metric == "em":
             udr = len(erased_layers) / len(ft_layers) if ft_layers else 0.0
         else:
-            denom = sum(d for d in s1_deltas if d > delta_threshold)
-            numer = sum(d for d in s2_deltas if d > delta_threshold)
+            # FT-only UDR with per-layer clipping to avoid overshoot.
+            ft_set = set(ft_layers)
+            denom = 0.0
+            numer = 0.0
+            for s1, s2, d1, d2 in zip(s1_details, s2_details, s1_deltas, s2_deltas):
+                if s1["layer"] not in ft_set:
+                    continue
+                if d1 <= delta_threshold:
+                    continue
+                denom += d1
+                ratio = d2 / d1
+                if ratio < 0.0:
+                    ratio = 0.0
+                elif ratio > 1.0:
+                    ratio = 1.0
+                numer += d1 * ratio
             if denom > 0:
-                udr = min(max(numer / denom, 0.0), 1.0)
+                udr = numer / denom
             else:
                 udr = None
 
         log_msg += f"  FT layers (S1 LOST): {ft_layers}\n"
         log_msg += f"  Erased layers (S2 LOST ∩ FT): {erased_layers}\n"
         if metric == "em":
-            log_msg += f"  UDR = {len(erased_layers)}/{len(ft_layers)} = {udr:.2f}\n" if ft_layers else f"  UDR = N/A (no FT layers)\n"
+            log_msg += f"  UDR_i = {len(erased_layers)}/{len(ft_layers)} = {udr:.2f}\n" if ft_layers else f"  UDR_i = N/A (no FT layers)\n"
             log_msg += f"  GK (retain TF EM vs Full ref, info): {is_gk} (EM={retain_em_full:.2f})\n"
         else:
-            log_msg += f"  UDR = {udr:.2f}\n" if udr is not None else f"  UDR = N/A (no FT signal)\n"
+            log_msg += f"  UDR_i = {udr:.2f}\n" if udr is not None else f"  UDR_i = N/A (no FT signal)\n"
 
         if log_file:
             log_file.write(log_msg)
@@ -952,7 +966,7 @@ def main():
     parser.add_argument("--layers", type=str, default="0-15")
     parser.add_argument("--metric", type=str, choices=["em", "logprob"], default="logprob")
     parser.add_argument("--em_threshold", type=float, default=1.0)
-    parser.add_argument("--delta_threshold", type=float, default=0.0)
+    parser.add_argument("--delta_threshold", type=float, default=0.01)
     parser.add_argument("--patch_scope", type=str, choices=["span", "boundary"], default="boundary",
                         help="Patch reference span or only boundary (last prompt token)")
     parser.add_argument("--em_type", type=str, choices=["token", "exact"], default="token")
@@ -1072,7 +1086,7 @@ def main():
             summary_msg += "Evaluable (non-skipped): 0 (0.0%)\n"
             if args.metric == "em":
                 summary_msg += "GK (retain TF EM vs Full ref, info): 0 (0.0%)\n"
-        summary_msg += f"Average UDR: {avg_udr:.2f}\n"
+        summary_msg += f"UDR: {avg_udr:.2f}\n"
         summary_msg += f"{'='*80}\n"
 
         log_file.write(summary_msg)
