@@ -126,25 +126,23 @@ def patch_hook(module, inputs, output):
 
 ## 3. CLI 옵션 변경
 
-### 3.1 새로 추가된 옵션
+### 3.1 현재 CLI 옵션 (v7_gt 기준)
 
 | 옵션 | 기본값 | 설명 |
 |------|--------|------|
 | `--metric {em,logprob}` | `logprob` | 메트릭 선택 |
-| `--delta_threshold` | `0.0` | Log-prob Δ 임계값 |
-| `--patch_scope {span,boundary}` | `boundary` | 패칭 범위 (reference span vs boundary only) |
+| `--delta_threshold` | `0.02` | Log-prob Δ 임계값 (τ) |
+| `--patch_scope {span,boundary}` | `boundary` | 패칭 범위 |
+| `--em_scope {full,entity}` | `entity` | 평가 범위 |
+| `--entity_source {gt,full}` | `gt` | Entity 출처 |
+| `--reference {gt,full}` | `gt` | Reference 텍스트 (GT answer vs Full output) |
+| `--data_path` | `v7_gt.json` | 데이터셋 경로 |
+| `--mode {layer,mlp}` | `layer` | 패칭 모드 |
+| `--em_threshold` | `1.0` | EM 임계값 |
 | `--em_type {token,exact}` | `token` | EM 계산 방식 |
 | `--log_mismatch` | False | 토큰 불일치 로깅 |
+| `--log_span` | False | Entity/eval span 토큰 위치 로깅 |
 | `--mismatch_max` | 5 | 불일치 로그 최대 개수 |
-
-### 3.2 기존 옵션 (유지)
-
-| 옵션 | 기본값 | 설명 |
-|------|--------|------|
-| `--em_threshold` | `1.0` | EM 임계값 |
-| `--em_scope {full,entity}` | `full` | 평가 범위 |
-| `--entity_source {gt,full}` | `full` | Entity 출처 |
-| `--mode {layer,mlp}` | `layer` | 패칭 모드 |
 
 ---
 
@@ -183,58 +181,35 @@ def patch_hook(module, inputs, output):
 
 ## 5. 실험 파라미터 권장사항
 
-### 5.1 기본 실험 (권장)
+### 5.1 기본 실험 (권장, v7_gt)
 
 ```bash
-# Log-prob 기반 (권장)
+# GT reference 기반 (기본값, 모든 옵션 생략 가능)
 python exp_s1_teacher_forcing.py \
   --unlearn_model simnpo \
-  --metric logprob \
-  --em_scope entity \
-  --entity_source full \
-  --mode layer \
   --gpu 0
 ```
 
-### 5.2 EM 기반 실험 (비교용)
-
-```bash
-# EM 기반 (비교용)
-python exp_s1_teacher_forcing.py \
-  --unlearn_model simnpo \
-  --metric em \
-  --em_type token \
-  --em_threshold 0.5 \
-  --em_scope entity \
-  --entity_source full \
-  --mode layer \
-  --gpu 0
-```
-
-### 5.3 MLP 패칭 실험
+### 5.2 MLP 패칭 실험
 
 ```bash
 # MLP 패칭 (factual knowledge 민감 검출)
 python exp_s1_teacher_forcing.py \
   --unlearn_model simnpo \
-  --metric logprob \
-  --em_scope entity \
-  --entity_source full \
   --mode mlp \
   --gpu 0
 ```
 
-### 5.4 병렬 실험 (GPU 분할)
+### 5.3 병렬 실험 (GPU 분할, --gpu 옵션 사용!)
 
 ```bash
-# GPU 0: SimNPO
-CUDA_VISIBLE_DEVICES=0 python exp_s1_teacher_forcing.py \
-  --unlearn_model simnpo --metric logprob --em_scope entity --entity_source full &
-
-# GPU 1: IdkNLL
-CUDA_VISIBLE_DEVICES=1 python exp_s1_teacher_forcing.py \
-  --unlearn_model idknll --metric logprob --em_scope entity --entity_source full &
+# GPU 0: SimNPO, GPU 1: IdkNLL
+python exp_s1_teacher_forcing.py --unlearn_model simnpo --gpu 0 > logs/simnpo.log 2>&1 &
+python exp_s1_teacher_forcing.py --unlearn_model idknll --gpu 1 > logs/idknll.log 2>&1 &
+wait
 ```
+
+**주의**: `CUDA_VISIBLE_DEVICES` 대신 `--gpu` 옵션을 사용해야 합니다 (스크립트 내부에서 CUDA_VISIBLE_DEVICES 설정)
 
 ---
 
@@ -254,6 +229,12 @@ runs/MMDD_HHMMSS_tf_{method}_{mode}/
 
 | 날짜 | 변경 내용 |
 |------|----------|
+| 2026-01-30 | **v7_gt 데이터셋** - GT reference 기준으로 전환 |
+| 2026-01-30 | `--reference {gt,full}` 옵션 추가 (기본값: gt) |
+| 2026-01-30 | `--data_path` 옵션 추가 (데이터셋 경로 지정) |
+| 2026-01-30 | `--log_span` 옵션 추가 (토큰 위치 로깅) |
+| 2026-01-30 | 기본값 변경: `--em_scope entity`, `--entity_source gt`, `--delta_threshold 0.02` |
+| 2026-01-30 | UDR 출력 소수점 3자리로 변경 |
 | 2026-01-28 | Log-prob 메트릭 추가, `--metric` 옵션 도입 |
 | 2026-01-28 | Reference span patching으로 변경 (single position → span) |
 | 2026-01-28 | `--log_mismatch` 옵션 추가 (토큰 불일치 로깅) |

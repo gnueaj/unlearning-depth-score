@@ -9,7 +9,24 @@ This document provides context for AI assistants (Claude, GPT, etc.) working on 
 ## Environment
 
 - **Available GPUs**: 0, 1 (GPU 2 does not exist)
-- Run experiments with `CUDA_VISIBLE_DEVICES=0` or `CUDA_VISIBLE_DEVICES=1`
+- **IMPORTANT**: Use `--gpu 0` or `--gpu 1` argument to select GPU (NOT `CUDA_VISIBLE_DEVICES`)
+- The script internally sets `CUDA_VISIBLE_DEVICES` based on `--gpu` argument
+
+### GPU Distribution Rules (IMPORTANT)
+When running multiple experiments in parallel:
+1. **Use --gpu argument**: `python exp_s1_teacher_forcing.py --gpu 0` or `--gpu 1`
+2. **Always alternate GPUs**: Assign experiments to GPU 0 and GPU 1 evenly
+3. **Pair structure**: Run experiments in pairs (GPU 0 + GPU 1) and wait for both to complete before starting the next pair
+4. **Example for 9 experiments**:
+   ```bash
+   # Pair 1
+   python exp_s1_teacher_forcing.py --unlearn_model model1 --gpu 0 > log1.log 2>&1 &
+   python exp_s1_teacher_forcing.py --unlearn_model model2 --gpu 1 > log2.log 2>&1 &
+   wait
+   # Pair 2 ...
+   ```
+5. **Do NOT stack multiple experiments on the same GPU** - this causes OOM errors
+6. **Wait for completion**: Always `wait` before starting the next pair
 
 ## Model Architecture
 
@@ -153,16 +170,15 @@ Entity: "Hsiao Yun-Hwa" (평가 대상)
 2. 의미적으로 완전한 prefix 보장 (예: "The author's full" → "The author's full name is")
 3. 400개 모두 수동 검증
 
-**v6에서의 변경 (현재 사용):**
-- **GT entity** 대신 **Full model의 entity**를 평가 기준으로 사용
-- Full 모델이 실제로 생성하는 entity와 비교해야 정확한 지식 검출 가능
-- `gt_entity`: Ground Truth의 entity (참고용)
-- `full_entity`: Full 모델이 생성한 entity
-- `entity`: 실제 평가에 사용 (= `full_entity`)
+**v7_gt에서의 변경 (현재 사용):**
+- **GT를 reference로 사용** (Full model output 대신)
+- prefix를 GT answer 기준으로 재검증
+- entity를 GT answer에서 정확히 추출 (fuzzy matching)
+- `reference_type`: "gt" 명시
 
 **파일:**
-- `scripts/manual_prefix_v6.py`: 400개 수동 prefix/entity 매핑
-- `tofu_data/forget10_filtered_v6.json`: **현재 사용** - 필터링된 최종 데이터 (367개)
+- `scripts/create_v7_gt_reference.py`: v6 → v7 변환 스크립트
+- `tofu_data/forget10_filtered_v7_gt.json`: **현재 사용** - GT reference 데이터 (367개)
 
 ### 4. Evaluation Metrics
 
@@ -218,25 +234,32 @@ span:     [prompt] [ref_1] [ref_2] ... [ref_n]
 ### TOFU forget10 Dataset (400 examples)
 평가에 부적합한 질문을 수동 검증하여 필터링합니다.
 
-### v6 데이터셋 (현재 사용)
+### v7_gt 데이터셋 (현재 사용)
 
-#### 핵심 변경사항
-1. **Full model의 entity를 평가 기준으로 사용** (GT entity 대신)
-2. **Entity 범위에서만 EM 측정** (전체 생성 대신)
-3. **Full Wrong만 필터링** (General Knowledge는 런타임에 판별)
+#### 핵심 변경사항 (v6 → v7_gt)
+1. **GT를 reference로 사용** (Full output 대신)
+2. **prefix를 GT answer 기준으로 재검증** (24개 수정)
+3. **entity를 GT answer에서 정확히 추출** (fuzzy matching으로 오류 수정)
+
+#### 왜 GT를 reference로 사용하는가?
+Log-prob 메트릭은 GT answer token의 생성 확률을 직접 측정하므로, 모델의 실제 생성 표현과 무관하게 factual knowledge 보유 여부를 평가할 수 있다. 예를 들어 Full 모델이 "Yun-Hwa Hsiao"라고 생성해도 GT인 "Hsiao Yun-Hwa"의 log-prob가 높으면 해당 지식을 보유한 것으로 판단한다. 이는 TOFU benchmark의 forget quality 평가 방식과 일치하며, S1/S2 패칭에서 동일한 GT reference를 사용하여 비교 가능성을 보장한다.
 
 #### 데이터 필드
 ```python
 {
     "idx": 0,                           # TOFU 원본 인덱스
     "question": "What is...",           # 질문
-    "answer": "The author's...",        # GT 정답
-    "prefix": "The author's full name is",  # Entity 직전까지의 prefix
-    "gt_entity": "Hsiao Yun-Hwa",       # GT의 entity (참고용)
+    "answer": "The author's...",        # GT 정답 (reference로 사용)
+    "prefix": "The author's full name is",  # GT 기준 prefix (평가용)
+    "full_prefix": "...",               # v6의 Full 기준 prefix (보존)
+    "entity": "Hsiao Yun-Hwa",          # GT entity (평가용)
+    "gt_entity": "Hsiao Yun-Hwa",       # = entity
+    "gt_entity_orig": "Hsiao Yun-Hwa",  # v6의 원래 gt_entity (비교용)
+    "full_entity": "Hsiao Yun-Hwa",     # Full 모델의 entity (비교용)
     "full_output": "Hsiao Yun-Hwa, born...", # Full 모델 생성 결과
-    "full_entity": "Hsiao Yun-Hwa",     # Full 생성에서 추출한 entity
-    "match_type": "exact",              # exact/partial/diff
-    "entity": "Hsiao Yun-Hwa"           # 평가용 entity (= full_entity)
+    "match_type": "exact",              # exact/partial/diff (메타정보)
+    "reference_type": "gt",             # 데이터셋 버전 표시
+    "entity_span": {"start": 6, "end": 12, "tokens": [...]}  # 토큰 위치 (미래용)
 }
 ```
 
@@ -292,26 +315,24 @@ def normalize_quotes(text: str) -> str:
 |---------|-------------|------|----------|
 | v2 | 필터링만 (자동 prefix) | `forget10_filtered_v2.json` | 353 |
 | v3 | 필터링 + 수동 prefix | `forget10_filtered_v3.json` | 353 |
-| **v6** | **Full entity 기준 + 수동 prefix** | `forget10_filtered_v6.json` ✓ | **367** |
+| v6 | Full entity 기준 + 수동 prefix | `forget10_filtered_v6.json` | 367 |
+| **v7_gt** | **GT reference + prefix 재검증** | `forget10_filtered_v7_gt.json` ✓ | **367** |
 
-### v6 생성 파일 (tofu_data/)
-- `forget10_filtered_v6.json`: **현재 사용** - 최종 평가 데이터 (367개)
-- `forget10_v6_full_wrong.json`: Full Wrong 목록 (33개)
+### v7_gt 생성 파일 (tofu_data/)
+- `forget10_filtered_v7_gt.json`: **현재 사용** - GT reference 데이터 (367개)
+- `forget10_filtered_v6.json`: 이전 버전 (Full reference)
 
-### v6 전처리 스크립트
+### v7_gt 전처리 스크립트
 ```bash
-# 1. 수동 prefix/entity 매핑 정의
-scripts/manual_prefix_v6.py  # ALL_MANUAL_PREFIX dict (400개)
-
-# 2. Full 모델 출력 생성 및 entity 추출
-python scripts/create_v6_from_scratch.py --gpu 0
-# → tofu_data/forget10_v6_all.json (400개)
-
-# 3. Full Wrong 필터링하여 최종 데이터 생성
-python scripts/create_final_v6.py
-# → tofu_data/forget10_filtered_v6.json (367개)
-# → tofu_data/forget10_v6_full_wrong.json (33개)
+# v6 → v7_gt 변환 (GT reference 기준)
+python scripts/create_v7_gt_reference.py
+# → tofu_data/forget10_filtered_v7_gt.json (367개)
 ```
+
+#### v6 → v7_gt 변경사항 (24개 예제)
+- **21개 Yes/No 질문**: prefix를 빈 문자열로 변경 (GT가 "Yes, ..."로 시작)
+- **3개 책 제목 차이**: GT answer의 전체 책 제목으로 prefix 수정
+- **2개 entity 오류 수정**: idx=330, 350 (fuzzy matching으로 자동 수정)
 
 ## EM-Based Evaluation Framework (exp_em_eval.py)
 
@@ -345,33 +366,34 @@ Percentages are calculated excluding General Knowledge examples.
 | 옵션 | 기본값 | 설명 |
 |------|--------|------|
 | `--metric {em,logprob}` | `logprob` | 메트릭 선택 |
-| `--delta_threshold` | `0.0` | Log-prob Δ 임계값 |
+| `--delta_threshold` | `0.02` | Log-prob Δ 임계값 (τ) |
 | `--patch_scope {span,boundary}` | `boundary` | 패칭 범위 |
-| `--em_scope {full,entity}` | `full` | 평가 범위 |
-| `--entity_source {gt,full}` | `full` | Entity 출처 |
+| `--em_scope {full,entity}` | `entity` | 평가 범위 |
+| `--entity_source {gt,full}` | `gt` | Entity 출처 |
+| `--reference {gt,full}` | `gt` | Reference 텍스트 (GT answer vs Full output) |
+| `--data_path` | `v7_gt.json` | 데이터셋 경로 |
 | `--mode {layer,mlp}` | `layer` | 패칭 모드 |
 | `--em_threshold` | `1.0` | EM 임계값 |
 | `--em_type {token,exact}` | `token` | EM 계산 방식 |
 | `--log_mismatch` | False | 토큰 불일치 로깅 |
+| `--log_span` | False | Entity/eval span 토큰 위치 로깅 |
 
 **로그/요약 출력 (현재 기본 log-prob 모드):**
 - per-layer: `logp`, `Δ` 표시
-- summary: `Average UDR`만 출력 (UDR_soft/over-exact-under 제거)
+- summary: `Average UDR`만 출력 (UDR 소수점 3자리)
 
-**실험 규칙(현재 기준):** `--num_examples 50` 사용
+**실험 규칙(현재 기준):** 전체 367개 예제 사용
 
 ```bash
-# Log-prob 기반 (권장)
+# GT reference 기반 (기본값, 권장)
 python exp_s1_teacher_forcing.py \
   --unlearn_model simnpo \
-  --metric logprob \
-  --em_scope entity \
-  --entity_source full \
   --gpu 0
 
-# 병렬 실행 (GPU 분할, 2개 실험 동시)
-CUDA_VISIBLE_DEVICES=0 python exp_s1_teacher_forcing.py --unlearn_model simnpo --metric logprob --em_scope entity --entity_source full &
-CUDA_VISIBLE_DEVICES=1 python exp_s1_teacher_forcing.py --unlearn_model idknll --metric logprob --em_scope entity --entity_source full &
+# 병렬 실행 (GPU 분할, --gpu 옵션 사용!)
+python exp_s1_teacher_forcing.py --unlearn_model simnpo --gpu 0 > logs/simnpo.log 2>&1 &
+python exp_s1_teacher_forcing.py --unlearn_model idknll --gpu 1 > logs/idknll.log 2>&1 &
+wait
 ```
 
 Output folder format: `runs/MMDD_HHMMSS_tf_{method}_{mode}/`
@@ -391,11 +413,13 @@ Output folder format: `runs/MMDD_HHMMSS_tf_{method}_{mode}/`
 ├── scripts/
 │   ├── manual_prefix_v6.py           # 400개 수동 prefix/entity 매핑
 │   ├── create_v6_from_scratch.py     # Full 모델 출력 생성
-│   └── create_final_v6.py            # Full Wrong 필터링, 최종 v6 생성
+│   ├── create_final_v6.py            # Full Wrong 필터링, 최종 v6 생성
+│   └── create_v7_gt_reference.py     # v6 → v7_gt 변환 (GT reference)
 ├── tofu_data/
-│   ├── forget10_filtered_v6.json     # ✓ 현재 사용 (367개)
+│   ├── forget10_filtered_v7_gt.json  # ✓ 현재 사용 (367개, GT reference)
+│   ├── forget10_filtered_v6.json     # 이전 버전 (Full reference)
 │   └── forget10_v6_full_wrong.json   # Full Wrong 목록 (33개)
-└── exp_em_eval.py        # Main experiment script (Teacher Forcing EM)
+└── exp_s1_teacher_forcing.py         # Main experiment script
 ```
 
 ## Critical Functions
@@ -450,11 +474,12 @@ parse_layers("0-15:2", n_layers=16)   → [0, 2, 4, ..., 14]
 ### Key Finding
 Most methods achieve behavioral unlearning (model says wrong thing / IDK) but fail hidden-state unlearning (knowledge still encoded). Activation patching exposes this gap.
 
-### v6 Evaluation Framework
+### v7_gt Evaluation Framework (현재)
 - **Dataset**: 367 examples (400 - 33 Full Wrong)
-- **Metric**: Teacher Forcing EM on entity span
-- **Reference**: Full model's generation (not GT)
+- **Metric**: Log-prob (기본) or Teacher Forcing EM on entity span
+- **Reference**: GT answer (기본, `--reference gt`)
 - **Patching**: Layer or MLP patching
+- **Threshold (τ)**: 0.02 (기본)
 
 ## Evaluation Methodology: Teacher Forcing EM
 

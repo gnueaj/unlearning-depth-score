@@ -4,10 +4,10 @@ S1/S2 Experiment with Teacher Forcing (Retain → Full, Unlearn → Full)
 
 Metrics:
 - EM (token accuracy) or log-prob score on reference tokens
-- Reference = Full baseline generation (not GT)
+- Reference = per-example dataset reference (GT or Full)
 
 Flow:
-1. Get Full baseline generation (reference)
+1. Get dataset reference (GT answer or Full baseline output)
 2. For each layer, compute metric with patching:
    - Input: prompt + reference tokens
    - At each reference token position: patch source hidden → predict next token
@@ -38,12 +38,12 @@ from patchscope.config import get_model_id
 
 TOFU_FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
 TOFU_RETAIN_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90"
-PREFIX_DATA_PATH = "tofu_data/forget10_filtered_v6.json"
+PREFIX_DATA_PATH = "tofu_data/forget10_filtered_v7_gt.json"
 
 
-def load_prefix_data() -> List[Dict]:
+def load_prefix_data(path: str) -> List[Dict]:
     """Load validated prefix+entity data."""
-    with open(PREFIX_DATA_PATH, "r", encoding="utf-8") as f:
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -651,13 +651,14 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
                             em_threshold=0.5, patch_mode="layer", unlearn_name="unlearn",
                             em_scope="full", entity_source="gt", em_exact=False,
                             log_mismatch=False, mismatch_max=5, log_file=None,
-                            metric="em", delta_threshold=0.0, patch_scope="span"):
+                            metric="em", delta_threshold=0.02, patch_scope="span",
+                            reference="gt", log_span=False, reference_scope="continuation"):
     """Run S1 and S2 side by side for each example using teacher forcing EM or log-prob."""
     results = []
     skipped_indices = []
 
     # Counters for summary
-    gk_count = 0  # GK: retain predicts full reference tokens (teacher forcing EM)
+    gk_count = 0  # GK: retain predicts reference tokens (teacher forcing EM)
     categories = None
 
     if metric == "em":
@@ -674,7 +675,10 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
         gt_entity = item.get("gt_entity", entity)
         idx = item["idx"]
 
-        prompt = f"Question: {question}\nAnswer: {prefix}"
+        if reference_scope == "full_answer":
+            prompt = f"Question: {question}\nAnswer:"
+        else:
+            prompt = f"Question: {question}\nAnswer: {prefix}"
 
         # Use pre-computed full_output if available (v6 dataset), otherwise generate
         if "full_output" in item:
@@ -686,8 +690,17 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
         retain_gen = generate_baseline(retain, tokenizer, prompt, max_new_tokens=30)
         unlearn_gen = generate_baseline(unlearn, tokenizer, prompt, max_new_tokens=30)
 
-        # Reference for EM = Full baseline generation (normalized for tokenization)
-        reference = normalize_reference_for_eval(prompt, full_gen)
+        # Reference for EM/log-prob = GT answer (continuation) or Full baseline output
+        reference_source = reference
+        if reference_source == "gt":
+            answer_text = item["answer"]
+            if reference_scope == "continuation":
+                # Use continuation after prefix to align with teacher forcing setup.
+                if answer_text.startswith(prefix):
+                    answer_text = answer_text[len(prefix):]
+            reference_text = normalize_reference_for_eval(prompt, answer_text)
+        else:
+            reference_text = normalize_reference_for_eval(prompt, full_gen)
 
         # Select entity span source
         if entity_source == "gt":
@@ -695,7 +708,7 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
         else:
             entity_text = item.get("full_entity", entity)
 
-        eval_span = get_eval_span(tokenizer, reference, entity_text, em_scope)
+        eval_span = get_eval_span(tokenizer, reference_text, entity_text, em_scope)
         if em_scope == "entity" and eval_span is None:
             skipped_indices.append(idx)
             if log_file:
@@ -705,6 +718,14 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
                 log_msg += f"  Prefix: '{prefix}'\n"
                 log_msg += f"  GT (entity): '{gt_entity}'\n"
                 log_msg += f"  Eval entity ({entity_source}): '{entity_text}'\n"
+                if log_span:
+                    if "entity_span" in item and isinstance(item["entity_span"], dict):
+                        es = item["entity_span"]
+                        log_msg += f"  Entity span (dataset tokens): {es.get('start')}:{es.get('end')}\n"
+                    if eval_span is not None:
+                        log_msg += f"  Eval span (reference tokens): {eval_span[0]}:{eval_span[1]}\n"
+                log_msg += f"  Reference source: {reference_source}\n"
+                log_msg += f"  Reference text: \"{clean_text(reference_text)}\"\n"
                 log_msg += f"  Full baseline: \"{clean_text(full_gen)}\"\n"
                 log_msg += f"{'='*80}\n"
                 log_file.write(log_msg)
@@ -715,7 +736,7 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
         full_score = None
         if metric == "logprob":
             full_score = compute_logprob_teacher_forcing_baseline(
-                full, tokenizer, prompt, reference, eval_span=eval_span
+                    full, tokenizer, prompt, reference_text, eval_span=eval_span
             )
 
         # Run S1 and S2 for each layer using teacher forcing EM/log-prob
@@ -732,13 +753,13 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
                 s1_mismatches = None
                 if log_mismatch:
                     s1_em, s1_mismatches = em_fn(
-                        retain, full, tokenizer, prompt, reference, layer,
+                        retain, full, tokenizer, prompt, reference_text, layer,
                         eval_span=eval_span, exact_match=em_exact, return_details=True,
                         patch_scope=patch_scope
                     )
                 else:
                     s1_em = em_fn(
-                        retain, full, tokenizer, prompt, reference, layer,
+                        retain, full, tokenizer, prompt, reference_text, layer,
                         eval_span=eval_span, exact_match=em_exact, patch_scope=patch_scope
                     )
                 s1_status = "KEPT" if s1_em >= em_threshold else "LOST"
@@ -749,7 +770,7 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
                     s1_detail["mismatches"] = s1_mismatches
             else:
                 s1_score = em_fn(
-                    retain, full, tokenizer, prompt, reference, layer,
+                    retain, full, tokenizer, prompt, reference_text, layer,
                     eval_span=eval_span, patch_scope=patch_scope
                 )
                 s1_delta = full_score - s1_score
@@ -765,13 +786,13 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
                 s2_mismatches = None
                 if log_mismatch:
                     s2_em, s2_mismatches = em_fn(
-                        unlearn, full, tokenizer, prompt, reference, layer,
+                        unlearn, full, tokenizer, prompt, reference_text, layer,
                         eval_span=eval_span, exact_match=em_exact, return_details=True,
                         patch_scope=patch_scope
                     )
                 else:
                     s2_em = em_fn(
-                        unlearn, full, tokenizer, prompt, reference, layer,
+                        unlearn, full, tokenizer, prompt, reference_text, layer,
                         eval_span=eval_span, exact_match=em_exact, patch_scope=patch_scope
                     )
                 s2_status = "KEPT" if s2_em >= em_threshold else "LOST"
@@ -782,7 +803,7 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
                     s2_detail["mismatches"] = s2_mismatches
             else:
                 s2_score = em_fn(
-                    unlearn, full, tokenizer, prompt, reference, layer,
+                    unlearn, full, tokenizer, prompt, reference_text, layer,
                     eval_span=eval_span, patch_scope=patch_scope
                 )
                 s2_delta = full_score - s2_score
@@ -793,10 +814,10 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
                 s2_detail = {"layer": layer, "score": s2_score, "delta": s2_delta, "status": s2_status}
             s2_details.append(s2_detail)
 
-        # GK definition: retain teacher forcing EM on Full reference
+        # GK definition: retain teacher forcing EM on reference
         if metric == "em":
             retain_em_full = compute_em_teacher_forcing_baseline(
-                retain, tokenizer, prompt, reference, eval_span=eval_span, exact_match=em_exact
+                retain, tokenizer, prompt, reference_text, eval_span=eval_span, exact_match=em_exact
             )
             is_gk = retain_em_full >= em_threshold
             if is_gk:
@@ -811,9 +832,16 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
         log_msg += f"  Q: {question}\n"
         log_msg += f"  Prefix: '{prefix}'\n"
         log_msg += f"  GT (entity): '{gt_entity}'\n"
-        if em_scope == "entity":
-            log_msg += f"  Eval entity ({entity_source}): '{entity_text}'\n"
+        log_msg += f"  Eval entity ({entity_source}): '{entity_text}'\n"
+        if log_span:
+            if "entity_span" in item and isinstance(item["entity_span"], dict):
+                es = item["entity_span"]
+                log_msg += f"  Entity span (dataset tokens): {es.get('start')}:{es.get('end')}\n"
+            if eval_span is not None:
+                log_msg += f"  Eval span (reference tokens): {eval_span[0]}:{eval_span[1]}\n"
         log_msg += f"  EM scope: {em_scope}\n"
+        log_msg += f"  Reference source: {reference_source}\n"
+        log_msg += f"  Reference text: \"{clean_text(reference_text)}\"\n"
         log_msg += f"  Full baseline: \"{clean_text(full_gen)}\"\n"
         log_msg += f"  Retain baseline: \"{clean_text(retain_gen)}\"\n"
         log_msg += f"  {unlearn_name} baseline: \"{clean_text(unlearn_gen)}\"\n"
@@ -877,10 +905,10 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
         log_msg += f"  FT layers (S1 LOST): {ft_layers}\n"
         log_msg += f"  Erased layers (S2 LOST ∩ FT): {erased_layers}\n"
         if metric == "em":
-            log_msg += f"  UDR_i = {len(erased_layers)}/{len(ft_layers)} = {udr:.2f}\n" if ft_layers else f"  UDR_i = N/A (no FT layers)\n"
+            log_msg += f"  UDR = {len(erased_layers)}/{len(ft_layers)} = {udr:.3f}\n" if ft_layers else f"  UDR = N/A (no FT layers)\n"
             log_msg += f"  GK (retain TF EM vs Full ref, info): {is_gk} (EM={retain_em_full:.2f})\n"
         else:
-            log_msg += f"  UDR_i = {udr:.2f}\n" if udr is not None else f"  UDR_i = N/A (no FT signal)\n"
+            log_msg += f"  UDR = {udr:.3f}\n" if udr is not None else f"  UDR = N/A (no FT signal)\n"
 
         if log_file:
             log_file.write(log_msg)
@@ -966,13 +994,21 @@ def main():
     parser.add_argument("--layers", type=str, default="0-15")
     parser.add_argument("--metric", type=str, choices=["em", "logprob"], default="logprob")
     parser.add_argument("--em_threshold", type=float, default=1.0)
-    parser.add_argument("--delta_threshold", type=float, default=0.01)
+    parser.add_argument("--delta_threshold", type=float, default=0.02)
     parser.add_argument("--patch_scope", type=str, choices=["span", "boundary"], default="boundary",
                         help="Patch reference span or only boundary (last prompt token)")
     parser.add_argument("--em_type", type=str, choices=["token", "exact"], default="token")
-    parser.add_argument("--em_scope", type=str, choices=["full", "entity"], default="full")
-    parser.add_argument("--entity_source", type=str, choices=["gt", "full"], default="full")
+    parser.add_argument("--em_scope", type=str, choices=["full", "entity"], default="entity")
+    parser.add_argument("--entity_source", type=str, choices=["gt", "full"], default="gt")
+    parser.add_argument("--reference", type=str, choices=["gt", "full"], default="gt",
+                        help="Reference text for teacher forcing (GT answer or Full baseline)")
+    parser.add_argument("--reference_scope", type=str, choices=["continuation", "full_answer"],
+                        default="continuation",
+                        help="Reference scope: continuation after prefix or full answer")
+    parser.add_argument("--data_path", type=str, default=PREFIX_DATA_PATH)
     parser.add_argument("--log_mismatch", action="store_true")
+    parser.add_argument("--log_span", action="store_true",
+                        help="Log entity/eval span token indices for debugging")
     parser.add_argument("--mismatch_max", type=int, default=5)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--gpu", type=int, default=0)
@@ -997,6 +1033,7 @@ def main():
         print(f"Delta threshold: {args.delta_threshold}")
     print(f"EM scope: {args.em_scope}")
     print(f"Entity source: {args.entity_source}")
+    print(f"Reference scope: {args.reference_scope}")
     print(f"Patch scope: {args.patch_scope}")
     if args.log_mismatch:
         print(f"Mismatch logging: enabled (max {args.mismatch_max})")
@@ -1018,7 +1055,7 @@ def main():
     print(f"Layers: {layer_list}")
 
     # Load data
-    prefix_data = load_prefix_data()
+    prefix_data = load_prefix_data(args.data_path)
     print(f"Loaded {len(prefix_data)} examples")
 
     if args.num_examples:
@@ -1039,17 +1076,22 @@ def main():
     with open(log_path, "w", encoding="utf-8") as log_file:
         log_file.write(f"S1/S2 {args.mode.upper()} Patching with Teacher Forcing\n")
         if args.metric == "em":
-            log_file.write(f"Metric: EM (token accuracy), reference = Full baseline\n")
+            log_file.write("Metric: EM (token accuracy), reference = dataset reference\n")
             log_file.write(f"EM type: {args.em_type}\n")
             log_file.write(f"EM threshold: {args.em_threshold}\n")
         else:
-            log_file.write(f"Metric: log-prob (reference tokens), reference = Full baseline\n")
+            log_file.write("Metric: log-prob (reference tokens), reference = dataset reference\n")
             log_file.write(f"Delta threshold: {args.delta_threshold}\n")
         log_file.write(f"EM scope: {args.em_scope}\n")
         log_file.write(f"Entity source: {args.entity_source}\n")
+        log_file.write(f"Reference scope: {args.reference_scope}\n")
         log_file.write(f"Patch scope: {args.patch_scope}\n")
+        log_file.write(f"Data path: {args.data_path}\n")
+        log_file.write(f"Reference source: {args.reference}\n")
         if args.log_mismatch:
             log_file.write(f"Mismatch logging: enabled (max {args.mismatch_max})\n")
+        if args.log_span:
+            log_file.write("Span logging: enabled\n")
         log_file.write(f"S1: Retain → Full | S2: {args.unlearn_model} → Full\n")
         log_file.write(f"Layers: {layer_list}\n")
         log_file.write(f"Examples: {len(prefix_data)}\n\n")
@@ -1058,7 +1100,8 @@ def main():
             retain, unlearn, full, tokenizer, prefix_data, layer_list,
             args.em_threshold, args.mode, args.unlearn_model, args.em_scope, args.entity_source,
             em_exact, args.log_mismatch, args.mismatch_max, log_file,
-            args.metric, args.delta_threshold, args.patch_scope
+            args.metric, args.delta_threshold, args.patch_scope, args.reference, args.log_span,
+            args.reference_scope
         )
 
         # Write summary at the end
@@ -1075,6 +1118,7 @@ def main():
             summary_msg += f"EM type: {args.em_type}\n"
         summary_msg += f"EM scope: {args.em_scope}\n"
         summary_msg += f"Entity source: {args.entity_source}\n"
+        summary_msg += f"Reference scope: {args.reference_scope}\n"
         summary_msg += f"Patch scope: {args.patch_scope}\n"
         if skipped_count:
             summary_msg += f"Skipped (entity span missing): {skipped_count} ({100*skipped_count/total:.1f}%)\n"
@@ -1086,7 +1130,7 @@ def main():
             summary_msg += "Evaluable (non-skipped): 0 (0.0%)\n"
             if args.metric == "em":
                 summary_msg += "GK (retain TF EM vs Full ref, info): 0 (0.0%)\n"
-        summary_msg += f"UDR: {avg_udr:.2f}\n"
+        summary_msg += f"UDR: {avg_udr:.3f}\n"
         summary_msg += f"{'='*80}\n"
 
         log_file.write(summary_msg)
@@ -1103,6 +1147,7 @@ def main():
         "em_type": args.em_type,
         "em_scope": args.em_scope,
         "entity_source": args.entity_source,
+        "reference_scope": args.reference_scope,
         "mode": args.mode,
         "unlearn_model": args.unlearn_model,
         "gk_count": gk_count,
