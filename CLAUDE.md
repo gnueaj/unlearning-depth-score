@@ -68,14 +68,100 @@ When running multiple experiments in parallel:
 - 높은 α: retain 지식 보존 강화, 언러닝 효과 약화
 - 낮은 α: 더 공격적인 언러닝, catastrophic forgetting 위험
 
+#### 하이퍼파라미터 역할 (Method별)
+
+| Method | α (alpha) | β (beta) | γ (gamma) | δ (delta) | 기타 |
+|--------|-----------|----------|-----------|-----------|------|
+| **GradDiff** | retain loss weight | - | - | - | - |
+| **IdkNLL** | retain loss weight | - | - | - | - |
+| **NPO** | retain loss weight | KL coeff | - | - | - |
+| **IdkDPO** | retain loss weight | KL coeff | - | - | - |
+| **AltPO** | retain loss weight | KL coeff | - | - | - |
+| **SimNPO** | - | preference strength (β×logσ) | target margin | length norm (0/1) | - |
+| **RMU** | - | - | - | - | layer (target), scoeff (steering) |
+| **UNDIAL** | retain loss weight | temperature | - | - | - |
+
 ```python
-# IdkNLL loss formula
+# GradDiff loss
+L_total = L_forget - α * L_retain
+
+# IdkNLL loss
 L_total = L_forget(IDK) + α * L_retain
+
+# NPO/IdkDPO/AltPO loss
+L_total = L_preference + β * L_KL + α * L_retain
+
+# SimNPO loss (no reference model)
+L_total = β * log(σ(policy)) + γ * margin_loss + δ * length_norm
 ```
 
 **IdkNLL variants:**
 - `idknll` (default): lr=4e-5, α=5, ep=10
 - `idknll_lr1e5_a1_ep5`: lr=1e-5, α=1, ep=5 (낮은 retain weight)
+
+#### Weak / Mid / High 고정 기준 (LR only sweep)
+비교를 위해 **LR만 변화**시키고 나머지 파라미터는 고정한다.
+
+**공통 원칙**
+- epoch 고정: `ep5`
+- 그 외 파라미터는 **mid 값으로 고정**
+- LR만 `{low, mid, high}`로 비교
+
+**GradDiff**
+- 고정: `α=1`, `ep=5`
+- weak / mid / high
+  - `graddiff_lr1e5_a1_ep5`
+  - `graddiff_lr2e5_a1_ep5`
+  - `graddiff_lr5e5_a1_ep5`
+
+**IdkNLL**
+- 고정: `α=1`, `ep=5`
+- weak / mid / high
+  - `idknll_lr1e5_a1_ep5`
+  - `idknll_lr2e5_a1_ep5`
+  - `idknll_lr5e5_a1_ep5`
+
+**IdkDPO**
+- 고정: `α=1`, `β=0.1`, `ep=5`
+- weak / mid / high
+  - `idkdpo_lr1e5_b01_a1_ep5`
+  - `idkdpo_lr2e5_b01_a1_ep5`
+  - `idkdpo_lr5e5_b01_a1_ep5`
+
+**NPO**
+- 고정: `α=1`, `β=0.1`, `ep=5`
+- weak / mid / high
+  - `npo_lr1e5_b01_a1_ep5`
+  - `npo_lr2e5_b01_a1_ep5`
+  - `npo_lr5e5_b01_a1_ep5`
+
+**AltPO**
+- 고정: `α=1`, `β=0.1`, `ep=5`
+- weak / mid / high
+  - `altpo_lr1e5_b01_a1_ep5`
+  - `altpo_lr2e5_b01_a1_ep5`
+  - `altpo_lr5e5_b01_a1_ep5`
+
+**SimNPO**
+- 고정: `β=3.5`, `δ=1`, `γ=0.125`, `ep=5`
+- weak / mid / high
+  - `simnpo_lr1e5_b35_a1_d1_g0125_ep5`
+  - `simnpo_lr2e5_b35_a1_d1_g0125_ep5`
+  - `simnpo_lr5e5_b35_a1_d1_g0125_ep5`
+
+**UNDIAL**
+- 고정: `α=1`, `β=10`, `ep=5`
+- weak / mid / high
+  - `undial_lr1e5_b10_a1_ep5`
+  - `undial_lr1e4_b10_a1_ep5`
+  - `undial_lr3e4_b10_a1_ep5`
+
+**RMU (9 configs: layer sweep × LR sweep)**
+- 고정: `scoeff=10`, `ep=5`
+- layer ∈ {5, 10, 15} × lr ∈ {1e-5, 2e-5, 5e-5}
+  - L5:  `rmu_lr1e5_l5_s10_ep5`,  `rmu_lr2e5_l5_s10_ep5`,  `rmu_lr5e5_l5_s10_ep5`
+  - L10: `rmu_lr1e5_l10_s10_ep5`, `rmu_lr2e5_l10_s10_ep5`, `rmu_lr5e5_l10_s10_ep5`
+  - L15: `rmu_lr1e5_l15_s10_ep5`, `rmu_lr2e5_l15_s10_ep5`, `rmu_lr5e5_l15_s10_ep5`
 
 ### 4. FQ (Forget Quality) Metric
 - Open-Unlearning benchmark에서 사용하는 지표
@@ -214,8 +300,8 @@ EM = (# tokens matching in entity span) / (# entity tokens)
 #### 4.3 Patch Scope 옵션
 | Scope | 패칭 범위 | 설명 |
 |-------|----------|------|
-| `boundary` (기본) | `[start]` | 마지막 prompt token만 패칭 |
-| `span` | `[start:end]` | Reference 전체 span 패칭 |
+| `boundary` | `[start]` | 마지막 prompt token만 패칭 |
+| **`span` (기본, 권장)** | `[start:end]` | Reference 전체 span 패칭 |
 
 ```
 boundary: [prompt] [ref_1] [ref_2] ... [ref_n]
@@ -367,7 +453,7 @@ Percentages are calculated excluding General Knowledge examples.
 |------|--------|------|
 | `--metric {em,logprob}` | `logprob` | 메트릭 선택 |
 | `--delta_threshold` | `0.02` | Log-prob Δ 임계값 (τ) |
-| `--patch_scope {span,boundary}` | `boundary` | 패칭 범위 |
+| `--patch_scope {span,boundary}` | `span` | 패칭 범위 (span 권장) |
 | `--em_scope {full,entity}` | `entity` | 평가 범위 |
 | `--entity_source {gt,full}` | `gt` | Entity 출처 |
 | `--reference {gt,full}` | `gt` | Reference 텍스트 (GT answer vs Full output) |
@@ -383,6 +469,29 @@ Percentages are calculated excluding General Knowledge examples.
 - summary: `Average UDR`만 출력 (UDR 소수점 3자리)
 
 **실험 규칙(현재 기준):** 전체 367개 예제 사용
+
+### 5. Stats Recipes (자주 사용하는 통계 산출)
+
+#### 5.1 Layerwise Δ 통계 (FT-only)
+목표: 레이어별 Δ 분포를 **FT 조건(ΔS1 > τ)** 로 필터링해 요약.
+
+**정의**
+- FT 조건: ΔS1 > τ
+- 통계 대상: (예제, 레이어) 단위 ΔS1/ΔS2 중 FT만
+- n = FT 조건을 만족한 (예제×레이어) 개수
+
+**주의**
+- **S1 설정이 동일한 run만 집계해야 함** (patch_scope, τ, data_path, reference 등 동일)
+- span/boundary가 섞이면 n이 모델 수 배수가 아님
+- 여러 모델을 합산하면 n = (모델 수 × FT 통과 샘플 수)
+
+**출력 파일**
+- `docs/0131/layerwise_delta_stats_ft_only.md` (FT-only 통계)
+- `docs/0131/layerwise_delta_stats.md` (전체 분포)
+
+**요약 해석**
+- FT-only 통계는 “지식 결손이 실제로 나타난 레이어 분포”에 집중
+- 전체 통계는 “노이즈 포함한 Δ 분포”를 보여줌
 
 ```bash
 # GT reference 기반 (기본값, 권장)
@@ -403,13 +512,18 @@ Output folder format: `runs/MMDD_HHMMSS_tf_{method}_{mode}/`
 ```
 ├── patchscope/
 │   ├── __init__.py       # Package exports
-│   ├── config.py         # Configuration classes + UNLEARN_MODELS registry
+│   ├── config.py         # Configuration classes + UNLEARN_MODELS registry (aliases)
+│   ├── unlearn_models.py # Full model registry (398 models with hyperparameters)
 │   ├── core.py           # Core patching functions (get_hidden, patch, probe)
 │   ├── models.py         # Model loading utilities
 │   ├── probes.py         # Probe builders (QA, cloze, choice)
 │   ├── run.py            # Main CLI entry point
 │   ├── tofu_entities.py  # TOFU-specific entity extraction
-│   └── utils.py          # Seed, mkdir, layer parsing
+│   ├── utils.py          # Seed, mkdir, layer parsing
+│   ├── memorization.py   # Open-Unlearning style memorization metrics (EM, ES, Prob, TruthRatio)
+│   ├── memorization_eval.py  # CLI for memorization evaluation
+│   ├── utility_eval.py   # Open-Unlearning style utility metrics (Q_A_Prob, ROUGE-L, MU)
+│   └── privacy_eval.py   # Open-Unlearning style MIA (LOSS, MinK, MinK++, ZLib)
 ├── scripts/
 │   ├── manual_prefix_v6.py           # 400개 수동 prefix/entity 매핑
 │   ├── create_v6_from_scratch.py     # Full 모델 출력 생성
@@ -449,16 +563,36 @@ def hook_fn(module, inputs, output):
 
 ## Configuration
 
-### Model Selection
+### Model Selection (398 Models)
 ```python
 from patchscope.config import UNLEARN_MODELS, get_model_id
 
-# Short names
-get_model_id("simnpo")  → "open-unlearning/unlearn_tofu_..._SimNPO_..."
-get_model_id("idknll")  → "open-unlearning/unlearn_tofu_..._IdkNLL_..."
-get_model_id("graddiff") → "open-unlearning/unlearn_tofu_..._GradDiff_..."
-get_model_id("graddiff_lr5e5_a2_ep10") → Strong GradDiff variant
+# Aliases (shortcuts for default configs)
+get_model_id("simnpo")    → simnpo_lr2e5_b35_a1_d1_g0125_ep10
+get_model_id("idknll")    → idknll_lr3e5_a1_ep5
+get_model_id("graddiff")  → graddiff_lr1e5_a5_ep10
+
+# Full hyperparameter keys (398 models in unlearn_models.py)
+get_model_id("simnpo_lr1e5_b35_a1_d0_g0125_ep5")
+get_model_id("npo_lr5e5_b05_a1_ep10")
+get_model_id("rmu_lr1e5_l5_s100_ep5")
+
+# Naming convention:
+# {method}_lr{lr}_[b{beta}]_[a{alpha}]_[d{delta}]_[g{gamma}]_[l{layer}]_[s{scoeff}]_ep{epoch}
 ```
+
+**Model Count by Method:**
+| Method | Configs | Epochs | Total |
+|--------|---------|--------|-------|
+| SimNPO | 99 | 5, 10 | 198 |
+| NPO | 11 | 5, 10 | 22 |
+| GradDiff | 10 | 5, 10 | 20 |
+| IdkNLL | 10 | 5, 10 | 20 |
+| IdkDPO | 11 | 5, 10 | 22 |
+| AltPO | 11 | 5, 10 | 22 |
+| RMU | 40 | 5, 10 | 80 |
+| UNDIAL | 7 | 5, 10 | 14 |
+| **Total** | **199** | - | **398** |
 
 ### Layer Specification
 ```python
@@ -503,6 +637,58 @@ Input sequence:  [prompt_tokens] + [Hs][iao][ Yun][-H][wa]
 2. Target model (Full)에 hidden state 패칭
 3. Teacher forcing으로 entity span의 EM 측정
 4. EM >= 0.5 → 지식 KEPT, EM < 0.5 → 지식 LOST
+
+## Open-Unlearning Evaluation Metrics
+
+새로 추가된 평가 모듈들은 Open-Unlearning 공식 구현과 동일합니다.
+
+### Memorization Metrics (`memorization.py`, `memorization_eval.py`)
+| Metric | Description | Formula |
+|--------|-------------|---------|
+| **EM (Exact Memorization)** | Token-level accuracy | `mean(pred == label)` |
+| **ES (Extraction Strength)** | Suffix exact match | `1 - k/L` where k = first matching suffix |
+| **Probability** | Normalized generation prob | `exp(-avg_loss)` |
+| **Truth Ratio** | Correct vs wrong answer prob | `P(correct) / (P(correct) + sum(P(wrong)))` |
+| **Mem** | Harmonic mean | `HM(1-ES, 1-EM, 1-ParaProb, 1-TruthRatio)` |
+
+```bash
+# CLI usage
+python -m patchscope.memorization_eval \
+  --model simnpo \
+  --hf_dataset locuslab/TOFU \
+  --hf_config forget10_perturbed
+```
+
+### Utility Metrics (`utility_eval.py`)
+| Metric | Description |
+|--------|-------------|
+| **Q_A_Prob** | `exp(-avg_loss)` on retain set |
+| **Q_A_ROUGE** | ROUGE-L recall score |
+| **Truth Ratio** | "true_better" mode (correct > avg wrong) |
+| **Model Utility (MU)** | HM of 9 metrics (3 metrics × 3 datasets) |
+
+### Privacy Metrics (`privacy_eval.py`)
+MIA (Membership Inference Attack) 평가:
+
+| Attack | Description | Score |
+|--------|-------------|-------|
+| **LOSS** | Average cross-entropy loss | avg_loss |
+| **MinK** | Bottom k% token log-probs | mean(sorted[:k]) |
+| **MinK++** | Z-score normalized MinK | (logp - μ) / σ |
+| **ZLib** | Loss / zlib compression | loss / len(zlib(text)) |
+
+| Metric | Description |
+|--------|-------------|
+| **AUC** | ROC-AUC (forget vs holdout) |
+| **PrivLeak** | `((1-auc) - (1-ref_auc)) / (1-ref_auc) * 100` |
+
+```bash
+# CLI usage
+python -m patchscope.privacy_eval \
+  --model simnpo \
+  --attack min_k \
+  --reference_model retain
+```
 
 ## Future Work Directions
 - [ ] Meta-evaluation integration with open-unlearning benchmark

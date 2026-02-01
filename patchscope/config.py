@@ -85,89 +85,26 @@ class PatchscopeConfig:
 # Unlearning Model Registry
 # =============================================================================
 
-UNLEARN_MODELS = {
-    # SimNPO variants (beta, alpha, delta, gamma, epoch)
-    # Default: lr5e-05, beta3.5, alpha1, delta1, gamma0.25, epoch5
-    "simnpo_lr5e5_b35_g025_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.25_ep5",
-    "simnpo_lr5e5_b45_g0125_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.125_ep5",
-    "simnpo_lr5e5_b35_d0_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d0_g0.125_ep5",
-    "simnpo_lr2e5_b35_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.125_ep10",
-    "simnpo_lr1e5_b35_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.125_ep10",
-    # For contrast: both low vs both high
-    "simnpo_lr1e5_b35_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.125_ep5",  # weak: lr low, ep low
-    "simnpo_lr5e5_b45_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.125_ep10",  # strong: lr high, ep high
+# Import full model registry (398 models)
+from patchscope.unlearn_models import UNLEARN_MODELS_FULL
 
-    # NPO variants (beta, alpha, epoch)
-    "npo_b05_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.5_alpha1_epoch10",
-    "npo_b05_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.5_alpha1_epoch5",
-    "npo_b01_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha2_epoch10",
-    "npo_b01_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha2_epoch5",
-    "npo_b005_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.05_alpha1_epoch10",
-    "npo_b005_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.05_alpha1_epoch5",
-    "npo_b005_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.05_alpha5_epoch10",
-    "npo_b005_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.05_alpha5_epoch5",
-    "npo_lr2e5_b05_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.5_alpha1_epoch10",
-    "npo_lr2e5_b05_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.5_alpha1_epoch5",
-    "npo_lr2e5_b05_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.5_alpha2_epoch10",
-    "npo_lr2e5_b05_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.5_alpha2_epoch5",
-    "npo_lr2e5_b01_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.1_alpha5_epoch5",
-    "npo_lr1e5_b05_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.5_alpha1_epoch10",
-
-    # IdkNLL variants (alpha, epoch)
-    "idknll_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr4e-05_alpha5_epoch10",
-    "idknll_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr4e-05_alpha5_epoch5",
-    "idknll_lr3e5_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr3e-05_alpha1_epoch10",
-    "idknll_lr3e5_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr3e-05_alpha1_epoch5",
-    "idknll_lr2e5_a10_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr2e-05_alpha10_epoch10",
-    "idknll_lr2e5_a10_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr2e-05_alpha10_epoch5",
-    "idknll_lr1e5_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr1e-05_alpha1_epoch10",
-    "idknll_lr1e5_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr1e-05_alpha1_epoch5",
-
-    # IdkDPO variants (beta, alpha, epoch)
-    "idkdpo_b01_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr2e-05_beta0.1_alpha1_epoch10",  # most downloaded
-    "idkdpo_b05_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr2e-05_beta0.5_alpha1_epoch5",
-    "idkdpo_lr5e5_b005_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr5e-05_beta0.05_alpha5_epoch10",
-    "idkdpo_lr5e5_b005_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr5e-05_beta0.05_alpha5_epoch5",
-
-    # GradDiff variants (alpha, epoch)
-    "graddiff_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch10",
-    "graddiff_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch5",
-    "graddiff_lr2e5_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr2e-05_alpha5_epoch10",
-    "graddiff_lr2e5_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr2e-05_alpha5_epoch5",
-    "graddiff_lr5e5_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha2_epoch10",
-    "graddiff_lr5e5_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha2_epoch5",
-
-    # AltPO variants (beta, alpha, epoch)
-    "altpo_b05_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.5_alpha2_epoch10",
-    "altpo_b05_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.5_alpha2_epoch5",
-    "altpo_b01_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha1_epoch10",
-    "altpo_b01_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha1_epoch5",
-    "altpo_b005_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.05_alpha2_epoch5",
-    "altpo_lr2e5_b05_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.5_alpha5_epoch10",
-    "altpo_lr2e5_b05_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.5_alpha5_epoch5",
-    "altpo_lr2e5_b005_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.05_alpha5_epoch10",
-
-    # RMU variants (layer, scoeff, epoch)
-    "rmu_l5_s100_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff100_epoch10",
-    "rmu_l5_s100_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff100_epoch5",
-    "rmu_lr5e5_l10_s10_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff10_epoch5",
-
-    # UNDIAL variants (beta, alpha, epoch)
-    "undial_b3_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta3_alpha1_epoch10",
-    "undial_b3_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta3_alpha1_epoch5",
-    "undial_lr1e4_b10_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha2_epoch10",
-    "undial_lr1e4_b10_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha2_epoch5",
-
-    # Shorthand aliases for convenience
-    "simnpo": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.125_ep10",
-    "npo": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.5_alpha1_epoch10",
-    "idknll": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr3e-05_alpha1_epoch5",
-    "idkdpo": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr2e-05_beta0.5_alpha1_epoch5",
-    "graddiff": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch10",
-    "altpo": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.5_alpha2_epoch10",
-    "rmu": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff100_epoch10",
-    "undial": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta3_alpha1_epoch10",
+# Shorthand aliases for convenience (default configs)
+UNLEARN_ALIASES = {
+    "simnpo": "simnpo_lr2e5_b35_a1_d1_g0125_ep10",
+    "npo": "npo_lr5e5_b05_a1_ep10",
+    "idknll": "idknll_lr3e5_a1_ep5",
+    "idkdpo": "idkdpo_lr2e5_b05_a1_ep5",
+    "graddiff": "graddiff_lr1e5_a5_ep10",
+    "altpo": "altpo_lr5e5_b05_a2_ep10",
+    "rmu": "rmu_lr1e5_l5_s100_ep10",
+    "undial": "undial_lr1e5_b3_a1_ep10",
 }
+
+# Combined registry: full models + aliases
+UNLEARN_MODELS = UNLEARN_MODELS_FULL.copy()
+for alias, target in UNLEARN_ALIASES.items():
+    if target in UNLEARN_MODELS_FULL:
+        UNLEARN_MODELS[alias] = UNLEARN_MODELS_FULL[target]
 
 
 def get_model_id(name: str) -> str:

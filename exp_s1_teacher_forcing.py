@@ -326,10 +326,19 @@ def compute_em_teacher_forcing_layer(
 
     eval_start = start
     eval_end = end
+    span_start = None
+    span_end = None
     if eval_span is not None:
         span_start, span_end = eval_span
         eval_start = start + span_start
         eval_end = start + span_end
+
+    # Patch span: default to full reference span, or eval span if provided
+    patch_start = start
+    patch_end = end
+    if patch_scope == "span" and eval_span is not None:
+        patch_start = start + span_start
+        patch_end = start + span_end
 
     # Capture source hidden states at all positions
     source_hidden_all = None
@@ -355,15 +364,15 @@ def compute_em_teacher_forcing_layer(
             if patch_scope == "boundary":
                 hs[:, start, :] = source_hidden_all[:, start, :].to(hs.dtype)
             else:
-                # Patch positions predicting reference tokens only
-                hs[:, start:end, :] = source_hidden_all[:, start:end, :].to(hs.dtype)
+                # Patch positions predicting reference tokens (or eval span only)
+                hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
             return (hs,) + output[1:]
         else:
             hs = output.clone()
             if patch_scope == "boundary":
                 hs[:, start, :] = source_hidden_all[:, start, :].to(hs.dtype)
             else:
-                hs[:, start:end, :] = source_hidden_all[:, start:end, :].to(hs.dtype)
+                hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
             return hs
 
     target_layer = target_model.model.layers[layer]
@@ -430,11 +439,20 @@ def compute_logprob_teacher_forcing_layer(
 
     eval_start = start
     eval_end = end
+    span_start = None
+    span_end = None
     if eval_span is not None:
         span_start, span_end = eval_span
         eval_start = start + span_start
         eval_end = start + span_end
         ref_ids = ref_ids[span_start:span_end]
+
+    # Patch span: default to full reference span, or eval span if provided
+    patch_start = start
+    patch_end = end
+    if patch_scope == "span" and eval_span is not None:
+        patch_start = start + span_start
+        patch_end = start + span_end
 
     source_hidden_all = None
 
@@ -458,13 +476,13 @@ def compute_logprob_teacher_forcing_layer(
             if patch_scope == "boundary":
                 hs[:, start, :] = source_hidden_all[:, start, :].to(hs.dtype)
             else:
-                hs[:, start:end, :] = source_hidden_all[:, start:end, :].to(hs.dtype)
+                hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
             return (hs,) + output[1:]
         hs = output.clone()
         if patch_scope == "boundary":
             hs[:, start, :] = source_hidden_all[:, start, :].to(hs.dtype)
         else:
-            hs[:, start:end, :] = source_hidden_all[:, start:end, :].to(hs.dtype)
+            hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
         return hs
 
     target_layer = target_model.model.layers[layer]
@@ -516,10 +534,19 @@ def compute_em_teacher_forcing_mlp(
 
     eval_start = start
     eval_end = end
+    span_start = None
+    span_end = None
     if eval_span is not None:
         span_start, span_end = eval_span
         eval_start = start + span_start
         eval_end = start + span_end
+
+    # Patch span: default to full reference span, or eval span if provided
+    patch_start = start
+    patch_end = end
+    if patch_scope == "span" and eval_span is not None:
+        patch_start = start + span_start
+        patch_end = start + span_end
 
     # Capture source MLP hidden states at all positions
     source_mlp_hidden_all = None
@@ -541,7 +568,7 @@ def compute_em_teacher_forcing_mlp(
         if patch_scope == "boundary":
             hs[:, start, :] = source_mlp_hidden_all[:, start, :].to(hs.dtype)
         else:
-            hs[:, start:end, :] = source_mlp_hidden_all[:, start:end, :].to(hs.dtype)
+            hs[:, patch_start:patch_end, :] = source_mlp_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
         return hs
 
     target_mlp = target_model.model.layers[layer].mlp
@@ -607,11 +634,20 @@ def compute_logprob_teacher_forcing_mlp(
 
     eval_start = start
     eval_end = end
+    span_start = None
+    span_end = None
     if eval_span is not None:
         span_start, span_end = eval_span
         eval_start = start + span_start
         eval_end = start + span_end
         ref_ids = ref_ids[span_start:span_end]
+
+    # Patch span: default to full reference span, or eval span if provided
+    patch_start = start
+    patch_end = end
+    if patch_scope == "span" and eval_span is not None:
+        patch_start = start + span_start
+        patch_end = start + span_end
 
     source_mlp_hidden_all = None
 
@@ -631,7 +667,7 @@ def compute_logprob_teacher_forcing_mlp(
         if patch_scope == "boundary":
             hs[:, start, :] = source_mlp_hidden_all[:, start, :].to(hs.dtype)
         else:
-            hs[:, start:end, :] = source_mlp_hidden_all[:, start:end, :].to(hs.dtype)
+            hs[:, patch_start:patch_end, :] = source_mlp_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
         return hs
 
     target_mlp = target_model.model.layers[layer].mlp
@@ -994,7 +1030,7 @@ def main():
     parser.add_argument("--layers", type=str, default="0-15")
     parser.add_argument("--metric", type=str, choices=["em", "logprob"], default="logprob")
     parser.add_argument("--em_threshold", type=float, default=1.0)
-    parser.add_argument("--delta_threshold", type=float, default=0.02)
+    parser.add_argument("--delta_threshold", type=float, default=0.05)
     parser.add_argument("--patch_scope", type=str, choices=["span", "boundary"], default="boundary",
                         help="Patch reference span or only boundary (last prompt token)")
     parser.add_argument("--em_type", type=str, choices=["token", "exact"], default="token")
