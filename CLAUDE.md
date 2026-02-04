@@ -6,8 +6,17 @@ This document provides context for AI assistants (Claude, GPT, etc.) working on 
 
 **Activation Patching for Unlearning Audit** is a white-box analysis tool for **quantifying residual knowledge** in unlearned LLMs via hidden state patching. It answers: "How much knowledge remains after unlearning, and where is it stored?"
 
-## Recent Updates (2026-02-04)
+## Recent Updates (2026-02-05)
+- **Meta-evaluation scripts** (`meta_eval_faithfulness.py`, `meta_eval_robustness.py`) implemented for Table 2 reproduction.
+- **Per-metric resume** in robustness script: supports running UDS first, then resuming with remaining metrics without re-finetuning.
+- **meta_eval_utils.py**: shared helpers for all 12 Table 2 metrics + UDS (13th metric).
+  - Generation metrics: ROUGE, Para.ROUGE, Jailbreak ROUGE (with "Sure, here is the answer:" prefix).
+  - R/Q clipping: `max(0, min(r, 1))` — added lower-bound clipping to prevent negative values.
+- **Data split**: UDS uses v7_gt (367 examples), other 12 metrics use forget10_perturbed (400 examples).
+
+### Previous (2026-02-04)
 - Added **batch_size** to `exp_s1_teacher_forcing.py` (log-prob + layer mode) for faster UDS runs.
+- Added **source hidden precompute** (retain/unlearn) and **S1 caching** in `exp_s1_teacher_forcing.py` to avoid redundant forward passes; results are identical.
 - Standardized naming to **UDS (Unlearning Depth Score)**; summaries now emit `avg_uds` and a compatibility key `avg_udr`.
 - **SimNPO γ sweep**: added γ=0.25 models (β ∈ {3.5,4.5}, lr ∈ {1e-5,2e-5,5e-5}) to UDS + Open-Unlearning evals.
 - Open-Unlearning **alpha_all table/HTML** rebuilt with formula panel + method count; simnpo γ sweep noted.
@@ -273,8 +282,11 @@ wait
 │   ├── memorization.py     # Mem metrics (EM, ES, TruthRatio)
 │   ├── memorization_eval.py # Memorization evaluation CLI
 │   ├── privacy_eval.py     # MIA attacks (LOSS, MinK, MinK++, ZLib)
-│   └── utility_eval.py     # Utility evaluation (TOFU_MU, ROUGE, TruthRatio)
+│   ├── utility_eval.py     # Utility evaluation (TOFU_MU, ROUGE, TruthRatio)
+│   └── meta_eval_utils.py  # Meta-eval shared helpers (12 Table 2 metrics)
 ├── scripts/
+│   ├── meta_eval_faithfulness.py     # Meta-eval: Faithfulness (60 P/N models)
+│   ├── meta_eval_robustness.py       # Meta-eval: Robustness (75 unlearn models)
 │   ├── plot_alpha5_histograms.py     # UDS histogram plots
 │   ├── plot_alpha5_advanced_v2.py    # Advanced visualizations
 │   └── create_v7_gt_reference.py     # Dataset creation
@@ -372,6 +384,112 @@ python -m patchscope.privacy_eval \
 python -m patchscope.utility_eval \
     --model simnpo_lr2e5_b35_a1_d1_g0125_ep5 \
     --use_chat_template
+```
+
+## Meta-Evaluation: Table 2 Reproduction (Paper §4)
+
+### 목표
+Open-Unlearning Table 2 재현 + UDS를 13번째 metric으로 추가.
+각 metric이 얼마나 신뢰할 수 있는지 평가 (Faithfulness, Robustness).
+
+### Table 2 구조
+| | Faithful↑ | Robust(Agg↑) | Robust(Quant↑) | Robust(Relearn↑) | Agg↑ |
+|---|---|---|---|---|---|
+| 12 metrics + UDS | AUC-ROC | HM(Q,R) | Q | R | HM(F,Rob) |
+
+### 12 Metrics (Paper Appendix C.3)
+
+| # | Metric | Category | 계산 | Generation 필요 |
+|---|--------|----------|------|-----------------|
+| 1 | ES | Memorization | Carlini suffix match ratio | No |
+| 2 | EM | Memorization | Token-level exact match ratio | No |
+| 3 | Probability | Memorization | exp(-avg_loss) on GT answer | No |
+| 4 | Para.Prob | Memorization | gm(exp(-loss)) on paraphrases | No |
+| 5 | Truth Ratio | Memorization | para/(para+wrong+1e-10) | No |
+| 6 | ROUGE | Generation | rougeL recall vs GT answer | Yes |
+| 7 | Para.ROUGE | Generation | rougeL recall vs paraphrases (mean) | Yes |
+| 8 | Jailbreak ROUGE | Generation | rougeL recall with "Sure, here is the answer:" prefix | Yes |
+| 9 | MIA-LOSS | Privacy | AUC-ROC (forget vs holdout) | No |
+| 10 | MIA-ZLib | Privacy | AUC-ROC (loss/zlib_entropy) | No |
+| 11 | MIA-MinK | Privacy | AUC-ROC (k=0.4, TOFU config) | No |
+| 12 | MIA-MinK++ | Privacy | AUC-ROC (z-score variant) | No |
+| **13** | **UDS** | **Ours** | **1 - UDS (knowledge score)** | **No** |
+
+### 논문과 일치하는 부분
+
+| 항목 | 논문 | 우리 구현 | 상태 |
+|------|------|-----------|------|
+| Faithfulness AUC-ROC (Eq.1) | AUC-ROC(m(P), m(N)) | 동일 | ✅ |
+| P/N pool (Appendix E.1) | 3variants × 5LR × 2ep = 30+30 | 동일 (pos/neg TOFU models) | ✅ |
+| Relearning R (Eq.2) | min((Δret)/(Δunl), 1) | max(0, min(r, 1)) — 0 클리핑 추가 | ✅ |
+| Quantization Q (Eq.3) | min(m_after/m_before, 1) | max(0, min(q, 1)) — 0 클리핑 추가 | ✅ |
+| Robustness (Eq.4) | HM(R, Q) | 동일 | ✅ |
+| Overall (Eq.4) | HM(Faithfulness, Robustness) | 동일 | ✅ |
+| Relearning protocol | 1 epoch, lr=2e-5 on forget10 | 동일 | ✅ |
+| Quantization | 4-bit NF4 BitsAndBytes | 동일 | ✅ |
+| MIA k parameter | 0.4 (TOFU config) | 동일 | ✅ |
+| Chat template | Llama Instruct, date="10 Apr 2025" | 동일 | ✅ |
+| ROUGE variant | rougeL recall | 동일 | ✅ |
+| Jailbreak prefix | "Sure, here is the answer:" | 동일 | ✅ |
+| Truth Ratio | correct/(correct+wrong), gm aggregation | 동일 | ✅ |
+| ES/EM formula | Carlini suffix / token-level match | 동일 | ✅ |
+| Forget dataset | forget10_perturbed (paraphrased + perturbed) | 동일 | ✅ |
+| MIA holdout | holdout10 vs forget10_perturbed | 동일 | ✅ |
+
+### 논문과 다른 부분
+
+| 항목 | 논문 | 우리 | 비고 |
+|------|------|------|------|
+| Base model | Llama-3.2-3B-Instruct | Llama-3.2-1B-Instruct | 모델 크기 차이 (16 layers) |
+| Robustness 모델 수 | 논문 미명시 | 75개 (8 methods) | 우리가 더 comprehensive |
+| Quantization 대상 | lr=1e-5 checkpoints만 (E.2) | 전체 75 모델 | 논문보다 넓은 범위 |
+| Realistic filtering (§4.2.1) | >20% utility drop 필터 | 미구현 | 추후 추가 가능 |
+| R/Q 하한 클리핑 | min(r, 1) (논문 수식) | max(0, min(r, 1)) | 음수 방지 추가 |
+
+### 실행 스크립트
+
+```
+scripts/
+├── meta_eval_faithfulness.py  # Faithfulness (60 P/N models)
+├── meta_eval_robustness.py    # Robustness (75 unlearn + retain)
+patchscope/
+└── meta_eval_utils.py         # 12 metrics 공유 헬퍼
+```
+
+### 데이터 분할
+| 데이터 | 사용 메트릭 | 예제 수 | 소스 |
+|--------|-----------|---------|------|
+| v7_gt | UDS | 367개 | `tofu_data/forget10_filtered_v7_gt.json` |
+| forget10_perturbed | 12 metrics (MEM, GEN, MIA) | 400개 | `locuslab/TOFU` HuggingFace |
+
+- **UDS** uses 367 examples (excluding 33 Full-Wrong) for both Faithfulness and Robustness.
+- **12 standard metrics** use all 400 forget10_perturbed examples (matching the paper).
+
+### 실행 예시
+```bash
+# Faithfulness: 전체 13 metrics
+python scripts/meta_eval_faithfulness.py --gpu 0 --metrics all
+
+# Robustness: UDS 먼저, 나머지 나중에 (per-metric resume)
+# Step 1: UDS only (fast, ~3h for 75 models)
+python scripts/meta_eval_robustness.py --gpu 0 --metrics uds \
+    --faithfulness_result runs/meta_eval/table2_faithfulness/summary.json \
+    --out_dir runs/meta_eval/table2_robustness
+
+# Step 2: Remaining 9 metrics (resume from UDS results, ~5h)
+python scripts/meta_eval_robustness.py --gpu 0 \
+    --metrics uds,em,es,prob,paraprob,truth_ratio,mia_loss,mia_zlib,mia_min_k,mia_min_kpp \
+    --faithfulness_result runs/meta_eval/table2_faithfulness/summary.json \
+    --out_dir runs/meta_eval/table2_robustness \
+    --resume runs/meta_eval/table2_robustness/results.json
+```
+
+### Resume 지원
+두 스크립트 모두 `--resume` 지원. 모델별 결과를 저장하므로 중단 후 재개 가능.
+Robustness는 **per-metric resume** 지원: UDS 결과가 있으면 나머지 metrics만 추가 계산.
+```bash
+python scripts/meta_eval_faithfulness.py --gpu 0 --metrics all \
+    --resume runs/meta_eval/XXXX_faithfulness/results.json
 ```
 
 ## Key Findings

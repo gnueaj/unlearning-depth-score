@@ -20,6 +20,8 @@ import os
 import sys
 import json
 import argparse
+import hashlib
+from pathlib import Path
 from datetime import datetime
 from typing import List, Dict
 import time
@@ -529,6 +531,100 @@ def _prepare_batch_inputs(batch_ctxs, tokenizer, device):
     return input_ids, attention_mask, meta
 
 
+def _compute_hidden_states_batch(model, input_ids, attention_mask):
+    """Compute all layer hidden states in a single forward pass."""
+    with torch.no_grad():
+        outputs = model(
+            input_ids,
+            attention_mask=attention_mask,
+            output_hidden_states=True
+        )
+    # outputs.hidden_states: (embeddings + layer outputs)
+    hidden_states = [hs.detach() for hs in outputs.hidden_states]
+    return hidden_states
+
+
+def compute_logprob_teacher_forcing_baseline_batch_with_inputs(
+    model,
+    input_ids,
+    attention_mask,
+    meta,
+):
+    """Batch baseline log-prob (no patching) using pre-built inputs."""
+    with torch.no_grad():
+        outputs = model(input_ids, attention_mask=attention_mask)
+
+    logits = outputs.logits
+    out = []
+    for i in range(input_ids.size(0)):
+        es = meta["eval_start"][i]
+        ee = meta["eval_end"][i]
+        if ee <= es:
+            out.append(float("-inf"))
+            continue
+        labels = torch.tensor([meta["eval_ref_ids"][i]], device=input_ids.device)
+        token_logprobs = _gather_token_logprobs(logits[i:i+1, es:ee, :], labels)
+        out.append(token_logprobs.mean().item())
+    return out
+
+
+def compute_logprob_teacher_forcing_layer_batch_with_inputs(
+    target_model,
+    input_ids,
+    attention_mask,
+    meta,
+    source_hidden_layer,
+    layer: int,
+    patch_scope: str = "span"
+):
+    """Batch log-prob with layer patching using precomputed source hidden states."""
+    device = next(target_model.parameters()).device
+
+    def patch_hook(module, inputs, output):
+        if isinstance(output, tuple):
+            hs = output[0].clone()
+        else:
+            hs = output.clone()
+
+        for b in range(hs.size(0)):
+            length = meta["lengths"][b]
+            start = meta["start"][b]
+            ps = meta["patch_start"][b]
+            pe = meta["patch_end"][b]
+            if start >= length:
+                continue
+            if patch_scope == "boundary":
+                hs[b, start, :] = source_hidden_layer[b, start, :].to(hs.dtype)
+            else:
+                ps = min(ps, length)
+                pe = min(pe, length)
+                if ps < pe:
+                    hs[b, ps:pe, :] = source_hidden_layer[b, ps:pe, :].to(hs.dtype)
+
+        if isinstance(output, tuple):
+            return (hs,) + output[1:]
+        return hs
+
+    target_layer = target_model.model.layers[layer]
+    handle = target_layer.register_forward_hook(patch_hook)
+    with torch.no_grad():
+        outputs = target_model(input_ids, attention_mask=attention_mask)
+    handle.remove()
+
+    logits = outputs.logits
+    out = []
+    for i in range(input_ids.size(0)):
+        es = meta["eval_start"][i]
+        ee = meta["eval_end"][i]
+        if ee <= es:
+            out.append(float("-inf"))
+            continue
+        labels = torch.tensor([meta["eval_ref_ids"][i]], device=device)
+        token_logprobs = _gather_token_logprobs(logits[i:i+1, es:ee, :], labels)
+        out.append(token_logprobs.mean().item())
+    return out
+
+
 def build_logprob_ctx(tokenizer, prompt: str, reference: str, eval_span, patch_scope: str):
     """Build context dict for batched log-prob evaluation."""
     prompt_ids = tokenizer.encode(prompt, add_special_tokens=True)
@@ -663,6 +759,29 @@ def compute_logprob_teacher_forcing_layer_batch(
         token_logprobs = _gather_token_logprobs(logits[i:i+1, es:ee, :], labels)
         out.append(token_logprobs.mean().item())
     return out
+
+
+def _build_s1_cache_key(cache_cfg: dict) -> str:
+    raw = json.dumps(cache_cfg, sort_keys=True)
+    return hashlib.sha1(raw.encode()).hexdigest()[:12]
+
+
+def _load_s1_cache(cache_path: Path, cache_cfg: dict):
+    if not cache_path.exists():
+        return None
+    try:
+        data = json.loads(cache_path.read_text())
+    except Exception:
+        return None
+    if data.get("config") != cache_cfg:
+        return None
+    return data.get("entries", None)
+
+
+def _save_s1_cache(cache_path: Path, cache_cfg: dict, entries):
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {"config": cache_cfg, "entries": entries}
+    cache_path.write_text(json.dumps(payload))
 
 
 def compute_em_teacher_forcing_mlp(
@@ -856,6 +975,7 @@ def _run_s1_s2_side_by_side_logprob_batch(
     em_scope="full", entity_source="gt", log_mismatch=False, mismatch_max=5,
     log_file=None, delta_threshold=0.02, patch_scope="span",
     reference="gt", log_span=False, reference_scope="continuation",
+    s1_cache_entries=None, save_s1_cache=False,
     batch_size: int = 1
 ):
     """Batched log-prob S1/S2 run (layer patching only)."""
@@ -864,15 +984,21 @@ def _run_s1_s2_side_by_side_logprob_batch(
     gk_count = 0
     categories = None
 
+    s1_cache_map = None
+    if s1_cache_entries:
+        s1_cache_map = {e["idx"]: e for e in s1_cache_entries}
+
+    s1_cache_out = [] if save_s1_cache else None
+
     def flush_batch(batch_ctxs, batch_meta):
         if not batch_ctxs:
             return
 
-        full_scores = compute_logprob_teacher_forcing_baseline_batch(
-            full, tokenizer, batch_ctxs
-        )
-        for m, fs in zip(batch_meta, full_scores):
-            m["full_score"] = fs
+        device = next(full.parameters()).device
+        input_ids, attention_mask, meta = _prepare_batch_inputs(batch_ctxs, tokenizer, device)
+
+        # Initialize per-example fields
+        for m in batch_meta:
             m["s1_details"] = []
             m["s2_details"] = []
             m["s1_deltas"] = []
@@ -880,17 +1006,51 @@ def _run_s1_s2_side_by_side_logprob_batch(
             m["s1_lost"] = 0
             m["s2_lost"] = 0
 
-        for layer in layer_list:
-            s1_scores = compute_logprob_teacher_forcing_layer_batch(
-                retain, full, tokenizer, batch_ctxs, layer, patch_scope=patch_scope
+        if s1_cache_map:
+            for m in batch_meta:
+                entry = s1_cache_map.get(m["idx"])
+                if entry is None:
+                    raise ValueError(f"S1 cache missing idx={m['idx']}")
+                m["full_score"] = entry["full_score"]
+                s1_scores = entry["s1_scores"]
+                s1_deltas = entry["s1_deltas"]
+                s1_status = entry["s1_status"]
+                for layer, score, delta, status in zip(layer_list, s1_scores, s1_deltas, s1_status):
+                    m["s1_details"].append({
+                        "layer": layer,
+                        "score": score,
+                        "delta": delta,
+                        "status": status
+                    })
+                m["s1_deltas"] = list(s1_deltas)
+                m["s1_lost"] = sum(1 for s in s1_status if s == "LOST")
+        else:
+            full_scores = compute_logprob_teacher_forcing_baseline_batch_with_inputs(
+                full, input_ids, attention_mask, meta
             )
-            s2_scores = compute_logprob_teacher_forcing_layer_batch(
-                unlearn, full, tokenizer, batch_ctxs, layer, patch_scope=patch_scope
+            for m, fs in zip(batch_meta, full_scores):
+                m["full_score"] = fs
+
+        # Precompute source hidden states once per batch
+        unlearn_hidden = _compute_hidden_states_batch(unlearn, input_ids, attention_mask)
+        retain_hidden = None
+        if not s1_cache_map:
+            retain_hidden = _compute_hidden_states_batch(retain, input_ids, attention_mask)
+
+        for li, layer in enumerate(layer_list):
+            if not s1_cache_map:
+                s1_scores = compute_logprob_teacher_forcing_layer_batch_with_inputs(
+                    full, input_ids, attention_mask, meta,
+                    retain_hidden[layer + 1], layer, patch_scope=patch_scope
+                )
+            s2_scores = compute_logprob_teacher_forcing_layer_batch_with_inputs(
+                full, input_ids, attention_mask, meta,
+                unlearn_hidden[layer + 1], layer, patch_scope=patch_scope
             )
 
-            for j, meta in enumerate(batch_meta):
-                full_score = meta["full_score"]
-                s1_score = s1_scores[j]
+            for j, meta_item in enumerate(batch_meta):
+                full_score = meta_item["full_score"]
+                s1_score = s1_scores[j] if not s1_cache_map else meta_item["s1_details"][li]["score"]
                 s2_score = s2_scores[j]
 
                 s1_delta = full_score - s1_score
@@ -898,21 +1058,23 @@ def _run_s1_s2_side_by_side_logprob_batch(
 
                 s1_status = "LOST" if s1_delta > delta_threshold else "KEPT"
                 s2_status = "LOST" if s2_delta > delta_threshold else "KEPT"
-                if s1_status == "LOST":
-                    meta["s1_lost"] += 1
+                if not s1_cache_map and s1_status == "LOST":
+                    meta_item["s1_lost"] += 1
                 if s2_status == "LOST":
-                    meta["s2_lost"] += 1
+                    meta_item["s2_lost"] += 1
 
-                meta["s1_deltas"].append(s1_delta)
-                meta["s2_deltas"].append(s2_delta)
+                if not s1_cache_map:
+                    meta_item["s1_deltas"].append(s1_delta)
+                meta_item["s2_deltas"].append(s2_delta)
 
-                meta["s1_details"].append({
-                    "layer": layer,
-                    "score": s1_score,
-                    "delta": s1_delta,
-                    "status": s1_status
-                })
-                meta["s2_details"].append({
+                if not s1_cache_map:
+                    meta_item["s1_details"].append({
+                        "layer": layer,
+                        "score": s1_score,
+                        "delta": s1_delta,
+                        "status": s1_status
+                    })
+                meta_item["s2_details"].append({
                     "layer": layer,
                     "score": s2_score,
                     "delta": s2_delta,
@@ -1008,6 +1170,15 @@ def _run_s1_s2_side_by_side_logprob_batch(
                 "s1_details": s1_details,
                 "s2_details": s2_details
             })
+
+            if save_s1_cache:
+                s1_cache_out.append({
+                    "idx": meta["idx"],
+                    "full_score": meta["full_score"],
+                    "s1_scores": [d["score"] for d in s1_details],
+                    "s1_deltas": [d["delta"] for d in s1_details],
+                    "s1_status": [d["status"] for d in s1_details],
+                })
 
     batch_ctxs = []
     batch_meta = []
@@ -1107,7 +1278,7 @@ def _run_s1_s2_side_by_side_logprob_batch(
     uds_values = [r["uds"] for r in results if r["uds"] is not None]
     avg_uds = sum(uds_values) / len(uds_values) if uds_values else 0.0
 
-    return results, gk_count, categories, avg_uds, skipped_indices
+    return results, gk_count, categories, avg_uds, skipped_indices, s1_cache_out
 
 
 def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_list,
@@ -1116,14 +1287,14 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
                             log_mismatch=False, mismatch_max=5, log_file=None,
                             metric="em", delta_threshold=0.02, patch_scope="span",
                             reference="gt", log_span=False, reference_scope="continuation",
-                            batch_size: int = 1):
+                            batch_size: int = 1, s1_cache_entries=None, save_s1_cache=False):
     """Run S1 and S2 side by side for each example using teacher forcing EM or log-prob."""
-    if metric == "logprob" and patch_mode == "layer" and batch_size > 1 and not log_mismatch:
+    if metric == "logprob" and patch_mode == "layer" and not log_mismatch:
         return _run_s1_s2_side_by_side_logprob_batch(
             retain, unlearn, full, tokenizer, prefix_data, layer_list,
             em_threshold, patch_mode, unlearn_name, em_scope, entity_source,
             log_mismatch, mismatch_max, log_file, delta_threshold, patch_scope,
-            reference, log_span, reference_scope, batch_size
+            reference, log_span, reference_scope, s1_cache_entries, save_s1_cache, batch_size
         )
 
     results = []
@@ -1415,7 +1586,7 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
     uds_values = [r["uds"] for r in results if r["uds"] is not None]
     avg_uds = sum(uds_values) / len(uds_values) if uds_values else 0.0
 
-    return results, gk_count, categories, avg_uds, skipped_indices
+    return results, gk_count, categories, avg_uds, skipped_indices, None
 
 
 def plot_erasure_histogram(results, output_path, method_name="Unlearn", mode="layer"):
@@ -1486,6 +1657,12 @@ def main():
     parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--batch_size", type=int, default=1,
                         help="Batch size for log-prob metric (layer mode only).")
+    parser.add_argument("--s1_cache", action="store_true", default=True,
+                        help="Enable S1 (retain→full) caching for log-prob runs.")
+    parser.add_argument("--no_s1_cache", action="store_false", dest="s1_cache",
+                        help="Disable S1 caching.")
+    parser.add_argument("--s1_cache_dir", type=str, default="runs/s1_cache",
+                        help="Directory to store/load S1 cache files.")
     parser.add_argument("--mode", type=str, choices=["layer", "mlp"], default="layer")
     parser.add_argument("--unlearn_model", type=str, required=True,
                         help="Unlearn model (e.g., simnpo, idknll)")
@@ -1574,15 +1751,46 @@ def main():
         log_file.write(f"Layers: {layer_list}\n")
         log_file.write(f"Examples: {len(prefix_data)}\n\n")
 
+        s1_cache_entries = None
+        s1_cache_path = None
+        save_s1_cache = False
+        if args.metric == "logprob" and args.mode == "layer" and args.s1_cache:
+            cache_cfg = {
+                "data_path": args.data_path,
+                "reference": args.reference,
+                "reference_scope": args.reference_scope,
+                "entity_source": args.entity_source,
+                "em_scope": args.em_scope,
+                "em_type": args.em_type,
+                "patch_scope": args.patch_scope,
+                "metric": args.metric,
+                "delta_threshold": args.delta_threshold,
+                "layers": layer_list,
+                "full_model": TOFU_FULL_MODEL,
+                "retain_model": TOFU_RETAIN_MODEL,
+            }
+            cache_key = _build_s1_cache_key(cache_cfg)
+            s1_cache_path = Path(args.s1_cache_dir) / f"s1_cache_{cache_key}.json"
+            s1_cache_entries = _load_s1_cache(s1_cache_path, cache_cfg)
+            if s1_cache_entries is None:
+                save_s1_cache = True
+                log_file.write(f"S1 cache: MISS ({s1_cache_path})\n")
+            else:
+                log_file.write(f"S1 cache: HIT ({s1_cache_path}) entries={len(s1_cache_entries)}\n")
+
         start_time = time.time()
-        results, gk_count, categories, avg_uds, skipped_indices = run_s1_s2_side_by_side(
+        results, gk_count, categories, avg_uds, skipped_indices, s1_cache_out = run_s1_s2_side_by_side(
             retain, unlearn, full, tokenizer, prefix_data, layer_list,
             args.em_threshold, args.mode, args.unlearn_model, args.em_scope, args.entity_source,
             em_exact, args.log_mismatch, args.mismatch_max, log_file,
             args.metric, args.delta_threshold, args.patch_scope, args.reference, args.log_span,
-            args.reference_scope, args.batch_size
+            args.reference_scope, args.batch_size, s1_cache_entries, save_s1_cache
         )
         elapsed = time.time() - start_time
+
+        if save_s1_cache and s1_cache_path and s1_cache_out is not None:
+            _save_s1_cache(s1_cache_path, cache_cfg, s1_cache_out)
+            log_file.write(f"S1 cache saved: {s1_cache_path}\n")
 
         # Write summary at the end
         total = len(prefix_data)

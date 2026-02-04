@@ -40,12 +40,12 @@ def find_run(run_root: Path, key: str):
     return None
 
 
-def read_udr(run_dir: Path):
+def read_uds(run_dir: Path):
     summ = run_dir/'summary.json'
     if summ.exists():
         try:
             data = json.loads(summ.read_text())
-            for k in ['average_udr','avg_udr','udr']:
+            for k in ['average_uds','avg_uds','uds']:
                 if k in data:
                     return float(data[k])
         except Exception:
@@ -54,7 +54,7 @@ def read_udr(run_dir: Path):
     log = run_dir/'run.log'
     if log.exists():
         txt = log.read_text(errors='ignore')
-        m = re.search(r"Average UDR\s*[:=]\s*([0-9]*\.?[0-9]+)", txt)
+        m = re.search(r"Average UDS\s*[:=]\s*([0-9]*\.?[0-9]+)", txt)
         if m:
             return float(m.group(1))
     return math.nan
@@ -73,7 +73,7 @@ def build_matrix(run_root: Path, alpha_label: str):
             if run is None:
                 vals.append(math.nan)
             else:
-                vals.append(read_udr(run))
+                vals.append(read_uds(run))
         mat.append(vals)
     # convert to 3xN (rows=lr levels)
     mat = np.array(mat).T
@@ -95,7 +95,7 @@ def plot(mat, title, out_path, method_labels):
             if np.isnan(v):
                 continue
             ax.text(j, i, f"{v:.2f}", ha='center', va='center', fontsize=7, color='white')
-    fig.colorbar(im, ax=ax, label='Mean UDR')
+    fig.colorbar(im, ax=ax, label='Mean UDS')
     fig.tight_layout()
     fig.savefig(out_path, dpi=160)
     plt.close(fig)
@@ -104,8 +104,8 @@ def plot(mat, title, out_path, method_labels):
 def main():
     mat2 = build_matrix(ALPHA2_DIR, 'a2')
     mat5 = build_matrix(ALPHA5_DIR, 'a5')
-    plot(mat2, 'Alpha=2 UDR (rows=lr low→high, cols=methods)', OUT/'udr_alpha2_matrix.png', method_order)
-    plot(mat5, 'Alpha=5 UDR (rows=lr low→high, cols=methods)', OUT/'udr_alpha5_matrix.png', method_order)
+    plot(mat2, 'Alpha=2 UDS (rows=lr low→high, cols=methods)', OUT/'uds_alpha2_matrix.png', method_order)
+    plot(mat5, 'Alpha=5 UDS (rows=lr low→high, cols=methods)', OUT/'uds_alpha5_matrix.png', method_order)
 
     # combined side-by-side
     fig, axes = plt.subplots(2,1, figsize=(14,7), sharex=True)
@@ -122,9 +122,9 @@ def main():
                 ax.text(j, i, f"{v:.2f}", ha='center', va='center', fontsize=7, color='white')
     axes[-1].set_xticks(range(len(method_order)))
     axes[-1].set_xticklabels(method_order, rotation=30, ha='right')
-    fig.colorbar(im, ax=axes, label='Mean UDR', fraction=0.025, pad=0.02)
+    fig.colorbar(im, ax=axes, label='Mean UDS', fraction=0.025, pad=0.02)
     fig.tight_layout()
-    fig.savefig(OUT/'udr_alpha2_alpha5_matrix.png', dpi=160)
+    fig.savefig(OUT/'uds_alpha2_alpha5_matrix.png', dpi=160)
     plt.close(fig)
 
 if __name__ == '__main__':

@@ -1,28 +1,27 @@
 #!/usr/bin/env python3
 """
-Plot UDS histograms for alpha2 experiments (30 methods)
+Plot UDS histograms for alpha1 experiments (30 methods)
 """
 
 import json
-import os
 from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
 # Configuration
-ALPHA2_DIR = Path("runs/0201alpha2")
-OUTPUT_DIR = Path("docs/0202/alpha2")
+ALPHA1_DIR = Path("runs/0201alpha1")
+OUTPUT_DIR = Path("docs/0202/alpha1")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # Method categories with display names
 METHOD_CATEGORIES = {
     "SimNPO": ["simnpo_lr1e5_b35_a1_d1_g0125_ep5", "simnpo_lr2e5_b35_a1_d1_g0125_ep5", "simnpo_lr5e5_b35_a1_d1_g0125_ep5"],
-    "GradDiff": ["graddiff_lr1e5_a2_ep5", "graddiff_lr2e5_a2_ep5", "graddiff_lr5e5_a2_ep5"],
-    "IdkNLL": ["idknll_lr1e5_a2_ep5", "idknll_lr2e5_a2_ep5", "idknll_lr5e5_a2_ep5"],
-    "NPO": ["npo_lr1e5_b01_a2_ep5", "npo_lr2e5_b01_a2_ep5", "npo_lr5e5_b01_a2_ep5"],
-    "IdkDPO": ["idkdpo_lr1e5_b01_a2_ep5", "idkdpo_lr2e5_b01_a2_ep5", "idkdpo_lr5e5_b01_a2_ep5"],
-    "AltPO": ["altpo_lr1e5_b01_a2_ep5", "altpo_lr2e5_b01_a2_ep5", "altpo_lr5e5_b01_a2_ep5"],
-    "UNDIAL": ["undial_lr1e5_b10_a2_ep5", "undial_lr1e4_b10_a2_ep5", "undial_lr3e4_b10_a2_ep5"],
+    "GradDiff": ["graddiff_lr1e5_a1_ep5", "graddiff_lr2e5_a1_ep5", "graddiff_lr5e5_a1_ep5"],
+    "IdkNLL": ["idknll_lr1e5_a1_ep5", "idknll_lr2e5_a1_ep5", "idknll_lr5e5_a1_ep5"],
+    "NPO": ["npo_lr1e5_b01_a1_ep5", "npo_lr2e5_b01_a1_ep5", "npo_lr5e5_b01_a1_ep5"],
+    "IdkDPO": ["idkdpo_lr1e5_b01_a1_ep5", "idkdpo_lr2e5_b01_a1_ep5", "idkdpo_lr5e5_b01_a1_ep5"],
+    "AltPO": ["altpo_lr1e5_b01_a1_ep5", "altpo_lr2e5_b01_a1_ep5", "altpo_lr5e5_b01_a1_ep5"],
+    "UNDIAL": ["undial_lr1e5_b10_a1_ep5", "undial_lr1e4_b10_a1_ep5", "undial_lr3e4_b10_a1_ep5"],
     "RMU-L5": ["rmu_lr1e5_l5_s10_ep5", "rmu_lr2e5_l5_s10_ep5", "rmu_lr5e5_l5_s10_ep5"],
     "RMU-L10": ["rmu_lr1e5_l10_s10_ep5", "rmu_lr2e5_l10_s10_ep5", "rmu_lr5e5_l10_s10_ep5"],
     "RMU-L15": ["rmu_lr1e5_l15_s10_ep5", "rmu_lr2e5_l15_s10_ep5", "rmu_lr5e5_l15_s10_ep5"],
@@ -30,7 +29,7 @@ METHOD_CATEGORIES = {
 
 def load_results(model_name):
     """Load results.json for a model"""
-    for folder in ALPHA2_DIR.iterdir():
+    for folder in ALPHA1_DIR.iterdir():
         if model_name in folder.name:
             results_path = folder / "results.json"
             if results_path.exists():
@@ -71,11 +70,11 @@ def plot_method_comparison_histogram():
                     bar_colors.append(colors[i])
 
     x = np.arange(len(method_names))
-    bars = ax.bar(x, avg_udss, yerr=std_udss, capsize=2, color=bar_colors, edgecolor='black', linewidth=0.5, alpha=0.8)
+    ax.bar(x, avg_udss, yerr=std_udss, capsize=2, color=bar_colors, edgecolor='black', linewidth=0.5, alpha=0.8)
 
     ax.set_ylabel('Average UDS', fontsize=12)
     ax.set_xlabel('Method (Learning Rate)', fontsize=12)
-    ax.set_title('UDS Comparison Across 30 Unlearning Methods (α=2, τ=0.05)', fontsize=14, fontweight='bold')
+    ax.set_title('UDS Comparison Across 30 Unlearning Methods (α=1, τ=0.05)', fontsize=14, fontweight='bold')
     ax.set_xticks(x)
     ax.set_xticklabels(method_names, rotation=45, ha='right', fontsize=8)
     ax.set_ylim(0, 1.0)
@@ -148,7 +147,7 @@ def plot_uds_distribution_by_category():
 
             ax.grid(alpha=0.3)
 
-    plt.suptitle('UDS Distribution: Method × Learning Rate (α=2, τ=0.05)', fontsize=14, fontweight='bold', y=1.02)
+    plt.suptitle('UDS Distribution: Method × Learning Rate (α=1, τ=0.05)', fontsize=14, fontweight='bold', y=1.02)
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / "uds_distribution_by_category.png", dpi=150, bbox_inches='tight')
     plt.close()
@@ -186,7 +185,7 @@ def plot_combined_uds_histogram():
 
     ax.set_xlabel('UDS', fontsize=12)
     ax.set_ylabel('Count', fontsize=12)
-    ax.set_title('UDS Distribution by Method Type (α=2, τ=0.05)', fontsize=14, fontweight='bold')
+    ax.set_title('UDS Distribution by Method Type (α=1, τ=0.05)', fontsize=14, fontweight='bold')
     ax.set_xlim(0, 1)
     ax.legend(loc='upper right', fontsize=9)
     ax.grid(alpha=0.3)
@@ -221,19 +220,10 @@ def plot_boxplot_comparison():
             data.append(udss)
             labels.append(method)
 
-    bp = ax.boxplot(data, labels=labels, patch_artist=True)
-
-    colors = plt.cm.Set2(np.linspace(0, 1, len(data)))
-    for patch, color in zip(bp['boxes'], colors):
-        patch.set_facecolor(color)
-        patch.set_alpha(0.7)
-
-    ax.set_ylabel('UDS', fontsize=12)
-    ax.set_xlabel('Method', fontsize=12)
-    ax.set_title('UDS Distribution by Method (Boxplot, α=2, τ=0.05)', fontsize=14, fontweight='bold')
-    ax.axhline(y=0.5, color='red', linestyle='--', alpha=0.5)
+    ax.boxplot(data, labels=labels)
+    ax.set_ylabel('UDS')
+    ax.set_title('UDS Distribution by Method (α=1, τ=0.05)', fontsize=14, fontweight='bold')
     ax.grid(axis='y', alpha=0.3)
-    ax.set_ylim(0, 1.05)
 
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / "uds_boxplot_comparison.png", dpi=150, bbox_inches='tight')
@@ -243,7 +233,7 @@ def plot_boxplot_comparison():
 def print_summary_stats():
     """Print summary statistics"""
     print("\n" + "="*60)
-    print("UDS Summary Statistics (α=2, τ=0.05)")
+    print("UDS Summary Statistics (α=1, τ=0.05)")
     print("="*60)
 
     all_stats = []
@@ -276,7 +266,7 @@ def print_summary_stats():
 
     # Save to file
     with open(OUTPUT_DIR / "uds_summary_stats.txt", "w") as f:
-        f.write("UDS Summary Statistics (α=2, τ=0.05)\n")
+        f.write("UDS Summary Statistics (α=1, τ=0.05)\n")
         f.write("="*80 + "\n\n")
         f.write(f"{'Method':<45} {'N':>5} {'Mean':>8} {'Std':>8} {'Median':>8}\n")
         f.write("-"*80 + "\n")
@@ -285,7 +275,7 @@ def print_summary_stats():
     print(f"\nSaved: {OUTPUT_DIR / 'uds_summary_stats.txt'}")
 
 if __name__ == "__main__":
-    print("Generating UDS histograms for alpha2 experiments...")
+    print("Generating UDS histograms for alpha1 experiments...")
 
     plot_method_comparison_histogram()
     plot_uds_distribution_by_category()

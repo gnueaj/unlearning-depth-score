@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Plot UDR histograms for alpha5 experiments (30 methods)
+Plot UDS histograms for alpha5 experiments (30 methods)
 """
 
 import json
@@ -42,21 +42,21 @@ def load_results(model_name):
                     return None
     return None
 
-def extract_udrs(results):
-    """Extract UDR values from results, excluding GK (N/A)"""
-    udrs = []
+def extract_udss(results):
+    """Extract UDS values from results, excluding GK (N/A)"""
+    udss = []
     for r in results:
-        if r.get("udr") is not None and r.get("ft_layers"):
-            udrs.append(r["udr"])
-    return udrs
+        if r.get("uds") is not None and r.get("ft_layers"):
+            udss.append(r["uds"])
+    return udss
 
 def plot_method_comparison_histogram():
-    """Plot histogram comparing all methods (average UDR per method)"""
+    """Plot histogram comparing all methods (average UDS per method)"""
     fig, ax = plt.subplots(figsize=(14, 6))
 
     method_names = []
-    avg_udrs = []
-    std_udrs = []
+    avg_udss = []
+    std_udss = []
     colors = plt.cm.tab10(np.linspace(0, 1, len(METHOD_CATEGORIES)))
     bar_colors = []
 
@@ -64,36 +64,36 @@ def plot_method_comparison_histogram():
         for model in models:
             results = load_results(model)
             if results:
-                udrs = extract_udrs(results)
-                if udrs:
+                udss = extract_udss(results)
+                if udss:
                     # Shorter display name
                     lr = model.split("_lr")[1].split("_")[0] if "_lr" in model else ""
                     short_name = f"{category}\n(lr={lr})"
                     method_names.append(short_name)
-                    avg_udrs.append(np.mean(udrs))
-                    std_udrs.append(np.std(udrs))
+                    avg_udss.append(np.mean(udss))
+                    std_udss.append(np.std(udss))
                     bar_colors.append(colors[i])
 
     x = np.arange(len(method_names))
-    bars = ax.bar(x, avg_udrs, yerr=std_udrs, capsize=2, color=bar_colors, edgecolor='black', linewidth=0.5, alpha=0.8)
+    bars = ax.bar(x, avg_udss, yerr=std_udss, capsize=2, color=bar_colors, edgecolor='black', linewidth=0.5, alpha=0.8)
 
-    ax.set_ylabel('Average UDR', fontsize=12)
+    ax.set_ylabel('Average UDS', fontsize=12)
     ax.set_xlabel('Method (Learning Rate)', fontsize=12)
-    ax.set_title('UDR Comparison Across 30 Unlearning Methods (α=5, τ=0.05)', fontsize=14, fontweight='bold')
+    ax.set_title('UDS Comparison Across 30 Unlearning Methods (α=5, τ=0.05)', fontsize=14, fontweight='bold')
     ax.set_xticks(x)
     ax.set_xticklabels(method_names, rotation=45, ha='right', fontsize=8)
     ax.set_ylim(0, 1.0)
-    ax.axhline(y=0.5, color='red', linestyle='--', alpha=0.5, label='UDR=0.5')
+    ax.axhline(y=0.5, color='red', linestyle='--', alpha=0.5, label='UDS=0.5')
     ax.legend(loc='upper right')
     ax.grid(axis='y', alpha=0.3)
 
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / "udr_comparison_all_methods.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_comparison_all_methods.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_comparison_all_methods.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_comparison_all_methods.png'}")
 
-def plot_udr_distribution_by_category():
-    """Plot UDR distribution histograms: 10 columns (methods) x 3 rows (LR)"""
+def plot_uds_distribution_by_category():
+    """Plot UDS distribution histograms: 10 columns (methods) x 3 rows (LR)"""
     # LR levels
     lr_levels = ['1e5', '2e5', '5e5']
     lr_display = {'1e5': 'lr=1e-5', '2e5': 'lr=2e-5', '5e5': 'lr=5e-5'}
@@ -122,12 +122,12 @@ def plot_udr_distribution_by_category():
             if matching_model:
                 results = load_results(matching_model)
                 if results:
-                    udrs = extract_udrs(results)
-                    if udrs:
-                        mean_udr = np.mean(udrs)
-                        ax.hist(udrs, bins=20, alpha=0.7, color=colors[lr], edgecolor='black', linewidth=0.3)
-                        # Add mean UDR text
-                        ax.text(0.95, 0.95, f'{mean_udr:.3f}', transform=ax.transAxes,
+                    udss = extract_udss(results)
+                    if udss:
+                        mean_uds = np.mean(udss)
+                        ax.hist(udss, bins=20, alpha=0.7, color=colors[lr], edgecolor='black', linewidth=0.3)
+                        # Add mean UDS text
+                        ax.text(0.95, 0.95, f'{mean_uds:.3f}', transform=ax.transAxes,
                                 fontsize=10, fontweight='bold', ha='right', va='top',
                                 bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
@@ -146,20 +146,20 @@ def plot_udr_distribution_by_category():
 
             # X-axis label (bottom row only)
             if row == 2:
-                ax.set_xlabel('UDR', fontsize=9)
+                ax.set_xlabel('UDS', fontsize=9)
             else:
                 ax.set_xticklabels([])
 
             ax.grid(alpha=0.3)
 
-    plt.suptitle('UDR Distribution: Method × Learning Rate (α=5, τ=0.05)', fontsize=14, fontweight='bold', y=1.02)
+    plt.suptitle('UDS Distribution: Method × Learning Rate (α=5, τ=0.05)', fontsize=14, fontweight='bold', y=1.02)
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / "udr_distribution_by_category.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_distribution_by_category.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_distribution_by_category.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_distribution_by_category.png'}")
 
-def plot_combined_udr_histogram():
-    """Plot combined UDR histogram for all methods overlaid"""
+def plot_combined_uds_histogram():
+    """Plot combined UDS histogram for all methods overlaid"""
     fig, ax = plt.subplots(figsize=(12, 6))
 
     # Group by method type (not LR)
@@ -179,30 +179,30 @@ def plot_combined_udr_histogram():
         for model in models:
             results = load_results(model)
             if results:
-                udrs = extract_udrs(results)
-                method_groups[group_key].extend(udrs)
+                udss = extract_udss(results)
+                method_groups[group_key].extend(udss)
 
     colors = plt.cm.Set2(np.linspace(0, 1, len(method_groups)))
 
-    for i, (method, udrs) in enumerate(method_groups.items()):
-        if udrs:
-            ax.hist(udrs, bins=30, alpha=0.5, label=f'{method} (n={len(udrs)})', color=colors[i], edgecolor='black', linewidth=0.3)
+    for i, (method, udss) in enumerate(method_groups.items()):
+        if udss:
+            ax.hist(udss, bins=30, alpha=0.5, label=f'{method} (n={len(udss)})', color=colors[i], edgecolor='black', linewidth=0.3)
 
-    ax.set_xlabel('UDR', fontsize=12)
+    ax.set_xlabel('UDS', fontsize=12)
     ax.set_ylabel('Count', fontsize=12)
-    ax.set_title('UDR Distribution by Method Type (α=5, τ=0.05)', fontsize=14, fontweight='bold')
+    ax.set_title('UDS Distribution by Method Type (α=5, τ=0.05)', fontsize=14, fontweight='bold')
     ax.set_xlim(0, 1)
     ax.legend(loc='upper right', fontsize=9)
     ax.grid(alpha=0.3)
-    ax.axvline(x=0.5, color='red', linestyle='--', alpha=0.7, label='UDR=0.5')
+    ax.axvline(x=0.5, color='red', linestyle='--', alpha=0.7, label='UDS=0.5')
 
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / "udr_distribution_combined.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_distribution_combined.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_distribution_combined.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_distribution_combined.png'}")
 
 def plot_boxplot_comparison():
-    """Plot boxplot comparison of UDR across methods"""
+    """Plot boxplot comparison of UDS across methods"""
     fig, ax = plt.subplots(figsize=(14, 6))
 
     data = []
@@ -217,12 +217,12 @@ def plot_boxplot_comparison():
         for model in models:
             results = load_results(model)
             if results:
-                udrs = extract_udrs(results)
-                method_groups[group_key].extend(udrs)
+                udss = extract_udss(results)
+                method_groups[group_key].extend(udss)
 
-    for method, udrs in method_groups.items():
-        if udrs:
-            data.append(udrs)
+    for method, udss in method_groups.items():
+        if udss:
+            data.append(udss)
             labels.append(method)
 
     bp = ax.boxplot(data, labels=labels, patch_artist=True)
@@ -232,22 +232,22 @@ def plot_boxplot_comparison():
         patch.set_facecolor(color)
         patch.set_alpha(0.7)
 
-    ax.set_ylabel('UDR', fontsize=12)
+    ax.set_ylabel('UDS', fontsize=12)
     ax.set_xlabel('Method', fontsize=12)
-    ax.set_title('UDR Distribution by Method (Boxplot, α=5, τ=0.05)', fontsize=14, fontweight='bold')
+    ax.set_title('UDS Distribution by Method (Boxplot, α=5, τ=0.05)', fontsize=14, fontweight='bold')
     ax.axhline(y=0.5, color='red', linestyle='--', alpha=0.5)
     ax.grid(axis='y', alpha=0.3)
     ax.set_ylim(0, 1.05)
 
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / "udr_boxplot_comparison.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_boxplot_comparison.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_boxplot_comparison.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_boxplot_comparison.png'}")
 
 def print_summary_stats():
     """Print summary statistics"""
     print("\n" + "="*60)
-    print("UDR Summary Statistics (α=5, τ=0.05)")
+    print("UDS Summary Statistics (α=5, τ=0.05)")
     print("="*60)
 
     all_stats = []
@@ -256,21 +256,21 @@ def print_summary_stats():
         for model in models:
             results = load_results(model)
             if results:
-                udrs = extract_udrs(results)
-                if udrs:
+                udss = extract_udss(results)
+                if udss:
                     stats = {
                         'category': category,
                         'model': model,
-                        'n': len(udrs),
-                        'mean': np.mean(udrs),
-                        'std': np.std(udrs),
-                        'median': np.median(udrs),
-                        'min': np.min(udrs),
-                        'max': np.max(udrs),
+                        'n': len(udss),
+                        'mean': np.mean(udss),
+                        'std': np.std(udss),
+                        'median': np.median(udss),
+                        'min': np.min(udss),
+                        'max': np.max(udss),
                     }
                     all_stats.append(stats)
 
-    # Sort by mean UDR
+    # Sort by mean UDS
     all_stats.sort(key=lambda x: x['mean'], reverse=True)
 
     print(f"\n{'Method':<45} {'N':>5} {'Mean':>8} {'Std':>8} {'Median':>8}")
@@ -279,21 +279,21 @@ def print_summary_stats():
         print(f"{s['model']:<45} {s['n']:>5} {s['mean']:>8.3f} {s['std']:>8.3f} {s['median']:>8.3f}")
 
     # Save to file
-    with open(OUTPUT_DIR / "udr_summary_stats.txt", "w") as f:
-        f.write("UDR Summary Statistics (α=5, τ=0.05)\n")
+    with open(OUTPUT_DIR / "uds_summary_stats.txt", "w") as f:
+        f.write("UDS Summary Statistics (α=5, τ=0.05)\n")
         f.write("="*80 + "\n\n")
         f.write(f"{'Method':<45} {'N':>5} {'Mean':>8} {'Std':>8} {'Median':>8}\n")
         f.write("-"*80 + "\n")
         for s in all_stats:
             f.write(f"{s['model']:<45} {s['n']:>5} {s['mean']:>8.3f} {s['std']:>8.3f} {s['median']:>8.3f}\n")
-    print(f"\nSaved: {OUTPUT_DIR / 'udr_summary_stats.txt'}")
+    print(f"\nSaved: {OUTPUT_DIR / 'uds_summary_stats.txt'}")
 
 if __name__ == "__main__":
-    print("Generating UDR histograms for alpha5 experiments...")
+    print("Generating UDS histograms for alpha5 experiments...")
 
     plot_method_comparison_histogram()
-    plot_udr_distribution_by_category()
-    plot_combined_udr_histogram()
+    plot_uds_distribution_by_category()
+    plot_combined_uds_histogram()
     plot_boxplot_comparison()
     print_summary_stats()
 

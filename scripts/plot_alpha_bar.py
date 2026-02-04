@@ -61,12 +61,12 @@ KEYS = {
 }
 
 
-def read_udr(run_dir: Path):
+def read_uds(run_dir: Path):
     summ = run_dir/'summary.json'
     if summ.exists():
         try:
             data = json.loads(summ.read_text())
-            for k in ['average_udr','avg_udr','udr']:
+            for k in ['average_uds','avg_uds','uds']:
                 if k in data:
                     return float(data[k])
         except Exception:
@@ -74,7 +74,7 @@ def read_udr(run_dir: Path):
     log = run_dir/'run.log'
     if log.exists():
         txt = log.read_text(errors='ignore')
-        m = re.search(r"Average UDR\s*[:=]\s*([0-9]*\.?[0-9]+)", txt)
+        m = re.search(r"Average UDS\s*[:=]\s*([0-9]*\.?[0-9]+)", txt)
         if m:
             return float(m.group(1))
     return math.nan
@@ -89,15 +89,15 @@ def find_run(root: Path, key: str):
     return None
 
 
-def udr_for_key(root: Path, key: str):
+def uds_for_key(root: Path, key: str):
     run = find_run(root, key)
     if run is None:
         return math.nan
-    return read_udr(run)
+    return read_uds(run)
 
 
 def main():
-    # data[lr][alpha][method] = udr
+    # data[lr][alpha][method] = uds
     data = {lr: {alpha: [] for alpha in ROOTS} for lr in LR_LEVELS}
     for method in METHODS:
         for lr in LR_LEVELS:
@@ -106,7 +106,7 @@ def main():
                     key = KEYS[method][lr]
                 else:
                     key = KEYS[method][lr].format(a=alpha[1:])  # a1/a2/a5
-                data[lr][alpha].append(udr_for_key(root, key))
+                data[lr][alpha].append(uds_for_key(root, key))
 
     x = np.arange(len(METHODS))
     width = 0.22
@@ -115,7 +115,7 @@ def main():
         ax.bar(x - width, data[lr]['a1'], width, label='alpha=1')
         ax.bar(x, data[lr]['a2'], width, label='alpha=2')
         ax.bar(x + width, data[lr]['a5'], width, label='alpha=5')
-        ax.set_ylabel('UDR')
+        ax.set_ylabel('UDS')
         ax.set_title(f'lr={lr}')
         ax.grid(axis='y', alpha=0.2)
     axes[-1].set_xticks(x)
@@ -123,7 +123,7 @@ def main():
     axes[0].legend(loc='upper right')
     fig.tight_layout()
     Path('docs/0201').mkdir(parents=True, exist_ok=True)
-    fig.savefig('docs/0201/udr_alpha123_bar_by_lr.png', dpi=160)
+    fig.savefig('docs/0201/uds_alpha123_bar_by_lr.png', dpi=160)
     plt.close(fig)
 
 if __name__ == '__main__':

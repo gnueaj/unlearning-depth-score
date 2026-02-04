@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Advanced UDR visualizations for alpha5 experiments (v2)
+Advanced UDS visualizations for alpha5 experiments (v2)
 1. Parallel coordinate (10 methods including RMU variants, 5x2 layout)
-2. Layer-wise UDR line chart (all methods)
-3. UDR CDF by LR (3 subplots)
+2. Layer-wise UDS line chart (all methods)
+3. UDS CDF by LR (3 subplots)
 4. S1 layer-wise delta distribution (mean/std line chart)
-5. UDR vs various factors (answer type, entity length, FT layer count)
+5. UDS vs various factors (answer type, entity length, FT layer count)
 """
 
 import json
@@ -61,12 +61,12 @@ def get_model_for_lr(category, lr_level):
     return None
 
 
-def extract_udrs_with_idx(results):
-    """Extract (idx, udr) pairs from results"""
+def extract_udss_with_idx(results):
+    """Extract (idx, uds) pairs from results"""
     pairs = []
     for r in results:
-        if r.get("udr") is not None and r.get("ft_layers"):
-            pairs.append((r["idx"], r["udr"]))
+        if r.get("uds") is not None and r.get("ft_layers"):
+            pairs.append((r["idx"], r["uds"]))
     return pairs
 
 
@@ -74,7 +74,7 @@ def extract_udrs_with_idx(results):
 # 1. Parallel coordinate plot (10 methods, 5x2 layout)
 # ============================================================================
 def plot_parallel_coordinates():
-    """Plot parallel coordinates showing UDR movement from weak to strong LR per instance"""
+    """Plot parallel coordinates showing UDS movement from weak to strong LR per instance"""
     fig, axes = plt.subplots(2, 5, figsize=(25, 10))
     axes = axes.flatten()
 
@@ -91,7 +91,7 @@ def plot_parallel_coordinates():
             if model:
                 results = load_results(model)
                 if results:
-                    data_by_lr[lr_label] = dict(extract_udrs_with_idx(results))
+                    data_by_lr[lr_label] = dict(extract_udss_with_idx(results))
 
         if len(data_by_lr) == 3:
             # Find common indices
@@ -124,7 +124,7 @@ def plot_parallel_coordinates():
             ax.set_xticks([0, 1, 2])
             ax.set_xticklabels(['weak\n(1e-5)', 'mid\n(2e-5)', 'strong\n(5e-5)'])
             ax.set_ylim(0, 1.1)
-            ax.set_ylabel('UDR')
+            ax.set_ylabel('UDS')
             ax.set_title(f'{method} (n={len(common_idx)})', fontweight='bold')
             ax.grid(alpha=0.3)
 
@@ -132,23 +132,23 @@ def plot_parallel_coordinates():
     red_patch = mpatches.Patch(color='red', alpha=0.5, label='Increasing (Δ>0.1)')
     blue_patch = mpatches.Patch(color='blue', alpha=0.5, label='Decreasing (Δ<-0.1)')
     gray_patch = mpatches.Patch(color='gray', alpha=0.3, label='Stable')
-    black_line = plt.Line2D([0], [0], color='black', linewidth=3, marker='o', label='Mean UDR')
+    black_line = plt.Line2D([0], [0], color='black', linewidth=3, marker='o', label='Mean UDS')
     fig.legend(handles=[red_patch, blue_patch, gray_patch, black_line],
                loc='upper right', bbox_to_anchor=(0.99, 0.99), fontsize=10)
 
-    plt.suptitle('Instance-wise UDR Movement: Weak → Mid → Strong LR (α=5, τ=0.05)\nBlack line = Mean UDR',
+    plt.suptitle('Instance-wise UDS Movement: Weak → Mid → Strong LR (α=5, τ=0.05)\nBlack line = Mean UDS',
                  fontsize=14, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])
-    plt.savefig(OUTPUT_DIR / "udr_parallel_coordinates.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_parallel_coordinates.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_parallel_coordinates.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_parallel_coordinates.png'}")
 
 
 # ============================================================================
-# 2. Layer-wise UDR line chart (all methods)
+# 2. Layer-wise UDS line chart (all methods)
 # ============================================================================
-def plot_layerwise_udr_linechart():
-    """Plot layer-wise UDR as line chart for all methods"""
+def plot_layerwise_uds_linechart():
+    """Plot layer-wise UDS as line chart for all methods"""
     n_layers = 16
     lr_levels = ['1e5', '2e5', '5e5']
     lr_display = {'1e5': 'lr=1e-5', '2e5': 'lr=2e-5', '5e5': 'lr=5e-5'}
@@ -164,8 +164,8 @@ def plot_layerwise_udr_linechart():
             if model:
                 results = load_results(model)
                 if results:
-                    # Calculate per-layer UDR using s1_details and s2_details
-                    layer_udrs = defaultdict(list)
+                    # Calculate per-layer UDS using s1_details and s2_details
+                    layer_udss = defaultdict(list)
                     for r in results:
                         if r.get("s1_details") and r.get("s2_details") and r.get("ft_layers"):
                             # Create layer -> delta mapping
@@ -176,19 +176,19 @@ def plot_layerwise_udr_linechart():
                                 s1_d = s1_by_layer.get(layer, 0) or 0
                                 s2_d = s2_by_layer.get(layer, 0) or 0
                                 if s1_d > 0.05:  # FT condition
-                                    layer_udr = min(s2_d / s1_d, 1.0) if s1_d > 0 else 0
-                                    layer_udrs[layer].append(layer_udr)
+                                    layer_uds = min(s2_d / s1_d, 1.0) if s1_d > 0 else 0
+                                    layer_udss[layer].append(layer_uds)
 
-                    # Plot mean UDR per layer
-                    layers = sorted(layer_udrs.keys())
-                    means = [np.mean(layer_udrs[l]) if layer_udrs[l] else 0 for l in layers]
+                    # Plot mean UDS per layer
+                    layers = sorted(layer_udss.keys())
+                    means = [np.mean(layer_udss[l]) if layer_udss[l] else 0 for l in layers]
                     overall_mean = np.mean(means) if means else 0
                     if layers and means:
                         ax.plot(layers, means, marker='o', markersize=4, linewidth=1.5,
                                color=colors[m_idx], label=f'{method} ({overall_mean:.2f})', alpha=0.8)
 
         ax.set_xlabel('Layer')
-        ax.set_ylabel('Mean Layer UDR')
+        ax.set_ylabel('Mean Layer UDS')
         ax.set_title(f'{lr_display[lr]}', fontweight='bold')
         ax.set_xlim(-0.5, 15.5)
         ax.set_ylim(0, 1.05)
@@ -197,15 +197,15 @@ def plot_layerwise_udr_linechart():
         ax.axhline(y=0.5, color='red', linestyle='--', alpha=0.3)
         ax.legend(loc='upper right', fontsize=7)
 
-    plt.suptitle('Layer-wise UDR by Method (α=5, τ=0.05)', fontsize=14, fontweight='bold')
+    plt.suptitle('Layer-wise UDS by Method (α=5, τ=0.05)', fontsize=14, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])
-    plt.savefig(OUTPUT_DIR / "layerwise_udr_linechart.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "layerwise_uds_linechart.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'layerwise_udr_linechart.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'layerwise_uds_linechart.png'}")
 
 
-def plot_layerwise_udr_rmu_only():
-    """Plot layer-wise UDR line chart for RMU variants only (L5, L10, L15)"""
+def plot_layerwise_uds_rmu_only():
+    """Plot layer-wise UDS line chart for RMU variants only (L5, L10, L15)"""
     n_layers = 16
     lr_levels = ['1e5', '2e5', '5e5']
     lr_display = {'1e5': 'lr=1e-5', '2e5': 'lr=2e-5', '5e5': 'lr=5e-5'}
@@ -223,8 +223,8 @@ def plot_layerwise_udr_rmu_only():
             if model:
                 results = load_results(model)
                 if results:
-                    # Calculate per-layer UDR
-                    layer_udrs = defaultdict(list)
+                    # Calculate per-layer UDS
+                    layer_udss = defaultdict(list)
                     for r in results:
                         if r.get("s1_details") and r.get("s2_details") and r.get("ft_layers"):
                             s1_by_layer = {d["layer"]: d.get("delta", 0) for d in r["s1_details"]}
@@ -234,18 +234,18 @@ def plot_layerwise_udr_rmu_only():
                                 s1_d = s1_by_layer.get(layer, 0) or 0
                                 s2_d = s2_by_layer.get(layer, 0) or 0
                                 if s1_d > 0.05:
-                                    layer_udr = min(s2_d / s1_d, 1.0) if s1_d > 0 else 0
-                                    layer_udrs[layer].append(layer_udr)
+                                    layer_uds = min(s2_d / s1_d, 1.0) if s1_d > 0 else 0
+                                    layer_udss[layer].append(layer_uds)
 
-                    layers = sorted(layer_udrs.keys())
-                    means = [np.mean(layer_udrs[l]) if layer_udrs[l] else 0 for l in layers]
+                    layers = sorted(layer_udss.keys())
+                    means = [np.mean(layer_udss[l]) if layer_udss[l] else 0 for l in layers]
                     overall_mean = np.mean(means) if means else 0
                     if layers and means:
                         ax.plot(layers, means, marker=markers[method], markersize=6, linewidth=2,
                                color=colors[method], label=f'{method} (mean={overall_mean:.2f})', alpha=0.9)
 
         ax.set_xlabel('Layer', fontsize=11)
-        ax.set_ylabel('Mean Layer UDR', fontsize=11)
+        ax.set_ylabel('Mean Layer UDS', fontsize=11)
         ax.set_title(f'{lr_display[lr]}', fontweight='bold', fontsize=12)
         ax.set_xlim(-0.5, 15.5)
         ax.set_ylim(0, 1.05)
@@ -254,18 +254,18 @@ def plot_layerwise_udr_rmu_only():
         ax.axhline(y=0.5, color='red', linestyle='--', alpha=0.3)
         ax.legend(loc='upper right', fontsize=10)
 
-    plt.suptitle('Layer-wise UDR: RMU Variants (α=5, τ=0.05)', fontsize=14, fontweight='bold')
+    plt.suptitle('Layer-wise UDS: RMU Variants (α=5, τ=0.05)', fontsize=14, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])
-    plt.savefig(OUTPUT_DIR / "layerwise_udr_rmu_only.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "layerwise_uds_rmu_only.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'layerwise_udr_rmu_only.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'layerwise_uds_rmu_only.png'}")
 
 
 # ============================================================================
-# 3. UDR CDF by LR (3 subplots in one PNG)
+# 3. UDS CDF by LR (3 subplots in one PNG)
 # ============================================================================
-def plot_udr_cdf_by_lr():
-    """Plot CDF of UDR for each method, separated by LR"""
+def plot_uds_cdf_by_lr():
+    """Plot CDF of UDS for each method, separated by LR"""
     lr_levels = ['1e5', '2e5', '5e5']
     lr_display = {'1e5': 'lr=1e-5 (weak)', '2e5': 'lr=2e-5 (mid)', '5e5': 'lr=5e-5 (strong)'}
 
@@ -280,14 +280,14 @@ def plot_udr_cdf_by_lr():
             if model:
                 results = load_results(model)
                 if results:
-                    udrs = [r["udr"] for r in results if r.get("udr") is not None and r.get("ft_layers")]
-                    if udrs:
-                        sorted_udrs = np.sort(udrs)
-                        cdf = np.arange(1, len(sorted_udrs) + 1) / len(sorted_udrs)
-                        ax.plot(sorted_udrs, cdf, label=method, color=colors[m_idx], linewidth=1.5)
+                    udss = [r["uds"] for r in results if r.get("uds") is not None and r.get("ft_layers")]
+                    if udss:
+                        sorted_udss = np.sort(udss)
+                        cdf = np.arange(1, len(sorted_udss) + 1) / len(sorted_udss)
+                        ax.plot(sorted_udss, cdf, label=method, color=colors[m_idx], linewidth=1.5)
 
         ax.axvline(x=0.5, color='red', linestyle='--', alpha=0.5)
-        ax.set_xlabel('UDR')
+        ax.set_xlabel('UDS')
         ax.set_ylabel('Cumulative Probability')
         ax.set_title(f'{lr_display[lr]}', fontweight='bold')
         ax.set_xlim(0, 1)
@@ -298,11 +298,11 @@ def plot_udr_cdf_by_lr():
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc='center right', bbox_to_anchor=(1.1, 0.5), fontsize=9)
 
-    plt.suptitle('CDF of Instance-wise UDR by Learning Rate (α=5, τ=0.05)', fontsize=14, fontweight='bold')
+    plt.suptitle('CDF of Instance-wise UDS by Learning Rate (α=5, τ=0.05)', fontsize=14, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 0.9, 0.96])
-    plt.savefig(OUTPUT_DIR / "udr_cdf_by_lr.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_cdf_by_lr.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_cdf_by_lr.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_cdf_by_lr.png'}")
 
 
 # ============================================================================
@@ -366,10 +366,10 @@ def plot_s1_layerwise_delta():
 
 
 # ============================================================================
-# 5. UDR vs various factors
+# 5. UDS vs various factors
 # ============================================================================
-def plot_udr_vs_ft_layer_count():
-    """Plot UDR vs number of FT layers"""
+def plot_uds_vs_ft_layer_count():
+    """Plot UDS vs number of FT layers"""
     fig, axes = plt.subplots(2, 5, figsize=(25, 10))
     axes = axes.flatten()
 
@@ -384,41 +384,41 @@ def plot_udr_vs_ft_layer_count():
             results = load_results(model)
             if results:
                 ft_counts = []
-                udrs = []
+                udss = []
                 for r in results:
-                    if r.get("udr") is not None and r.get("ft_layers"):
+                    if r.get("uds") is not None and r.get("ft_layers"):
                         ft_counts.append(len(r["ft_layers"]))
-                        udrs.append(r["udr"])
+                        udss.append(r["uds"])
 
-                if ft_counts and udrs:
-                    ax.scatter(ft_counts, udrs, alpha=0.5, s=20)
+                if ft_counts and udss:
+                    ax.scatter(ft_counts, udss, alpha=0.5, s=20)
 
                     # Add trend line
-                    z = np.polyfit(ft_counts, udrs, 1)
+                    z = np.polyfit(ft_counts, udss, 1)
                     p = np.poly1d(z)
                     x_line = np.linspace(min(ft_counts), max(ft_counts), 100)
                     ax.plot(x_line, p(x_line), 'r--', linewidth=2, alpha=0.7)
 
                     # Correlation
-                    corr = np.corrcoef(ft_counts, udrs)[0, 1]
+                    corr = np.corrcoef(ft_counts, udss)[0, 1]
                     ax.text(0.05, 0.95, f'r = {corr:.3f}', transform=ax.transAxes,
                            fontsize=10, va='top', fontweight='bold')
 
         ax.set_xlabel('# FT Layers')
-        ax.set_ylabel('UDR')
+        ax.set_ylabel('UDS')
         ax.set_title(f'{method}', fontweight='bold')
         ax.set_ylim(0, 1.05)
         ax.grid(alpha=0.3)
 
-    plt.suptitle('UDR vs Number of FT Layers (lr=2e-5, α=5, τ=0.05)', fontsize=14, fontweight='bold')
+    plt.suptitle('UDS vs Number of FT Layers (lr=2e-5, α=5, τ=0.05)', fontsize=14, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])
-    plt.savefig(OUTPUT_DIR / "udr_vs_ft_layer_count.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_vs_ft_layer_count.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_vs_ft_layer_count.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_vs_ft_layer_count.png'}")
 
 
-def plot_udr_vs_entity_length():
-    """Plot UDR vs entity token length"""
+def plot_uds_vs_entity_length():
+    """Plot UDS vs entity token length"""
     # Load data file to get entity lengths
     data_path = Path("tofu_data/forget10_filtered_v7_gt.json")
     if not data_path.exists():
@@ -449,37 +449,37 @@ def plot_udr_vs_entity_length():
             results = load_results(model)
             if results:
                 entity_lens = []
-                udrs = []
+                udss = []
                 for r in results:
-                    if r.get("udr") is not None and r.get("ft_layers"):
+                    if r.get("uds") is not None and r.get("ft_layers"):
                         idx = r["idx"]
                         if idx in idx_to_entity_len:
                             entity_lens.append(idx_to_entity_len[idx])
-                            udrs.append(r["udr"])
+                            udss.append(r["uds"])
 
-                if entity_lens and udrs:
-                    ax.scatter(entity_lens, udrs, alpha=0.5, s=20)
+                if entity_lens and udss:
+                    ax.scatter(entity_lens, udss, alpha=0.5, s=20)
 
                     # Correlation
-                    corr = np.corrcoef(entity_lens, udrs)[0, 1]
+                    corr = np.corrcoef(entity_lens, udss)[0, 1]
                     ax.text(0.05, 0.95, f'r = {corr:.3f}', transform=ax.transAxes,
                            fontsize=10, va='top', fontweight='bold')
 
         ax.set_xlabel('Entity Word Count')
-        ax.set_ylabel('UDR')
+        ax.set_ylabel('UDS')
         ax.set_title(f'{method}', fontweight='bold')
         ax.set_ylim(0, 1.05)
         ax.grid(alpha=0.3)
 
-    plt.suptitle('UDR vs Entity Length (lr=2e-5, α=5, τ=0.05)', fontsize=14, fontweight='bold')
+    plt.suptitle('UDS vs Entity Length (lr=2e-5, α=5, τ=0.05)', fontsize=14, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])
-    plt.savefig(OUTPUT_DIR / "udr_vs_entity_length.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_vs_entity_length.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_vs_entity_length.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_vs_entity_length.png'}")
 
 
-def plot_udr_by_question_type():
-    """Plot UDR distribution by question type (based on question patterns)"""
+def plot_uds_by_question_type():
+    """Plot UDS distribution by question type (based on question patterns)"""
     # Load data file
     data_path = Path("tofu_data/forget10_filtered_v7_gt.json")
     if not data_path.exists():
@@ -523,21 +523,21 @@ def plot_udr_by_question_type():
         if model:
             results = load_results(model)
             if results:
-                # Group UDRs by question type
-                type_udrs = defaultdict(list)
+                # Group UDSs by question type
+                type_udss = defaultdict(list)
                 for r in results:
-                    if r.get("udr") is not None and r.get("ft_layers"):
+                    if r.get("uds") is not None and r.get("ft_layers"):
                         idx = r["idx"]
                         if idx in idx_to_qtype:
-                            type_udrs[idx_to_qtype[idx]].append(r["udr"])
+                            type_udss[idx_to_qtype[idx]].append(r["uds"])
 
                 # Plot boxplot
                 data_to_plot = []
                 labels_to_plot = []
                 for qt in q_types:
-                    if type_udrs[qt]:
-                        data_to_plot.append(type_udrs[qt])
-                        labels_to_plot.append(f"{qt}\n(n={len(type_udrs[qt])})")
+                    if type_udss[qt]:
+                        data_to_plot.append(type_udss[qt])
+                        labels_to_plot.append(f"{qt}\n(n={len(type_udss[qt])})")
 
                 if data_to_plot:
                     bp = ax.boxplot(data_to_plot, labels=labels_to_plot, patch_artist=True)
@@ -545,24 +545,24 @@ def plot_udr_by_question_type():
                         patch.set_facecolor(color)
                         patch.set_alpha(0.7)
 
-        ax.set_ylabel('UDR')
+        ax.set_ylabel('UDS')
         ax.set_title(f'{method}', fontweight='bold')
         ax.set_ylim(0, 1.05)
         ax.tick_params(axis='x', rotation=45)
         ax.grid(axis='y', alpha=0.3)
 
-    plt.suptitle('UDR by Question Type (lr=2e-5, α=5, τ=0.05)', fontsize=14, fontweight='bold')
+    plt.suptitle('UDS by Question Type (lr=2e-5, α=5, τ=0.05)', fontsize=14, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])
-    plt.savefig(OUTPUT_DIR / "udr_by_question_type.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_by_question_type.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_by_question_type.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_by_question_type.png'}")
 
 
-def plot_udr_vs_s1_delta_sum():
-    """Plot UDR vs total S1 delta (knowledge amount)
+def plot_uds_vs_s1_delta_sum():
+    """Plot UDS vs total S1 delta (knowledge amount)
 
     Purpose: Investigate if examples with more knowledge to erase (higher S1 sum)
-    have different UDR patterns - i.e., is it harder to unlearn more knowledge?
+    have different UDS patterns - i.e., is it harder to unlearn more knowledge?
     """
     fig, axes = plt.subplots(2, 5, figsize=(25, 10))
     axes = axes.flatten()
@@ -577,63 +577,63 @@ def plot_udr_vs_s1_delta_sum():
             results = load_results(model)
             if results:
                 s1_sums = []
-                udrs = []
+                udss = []
                 for r in results:
-                    if r.get("udr") is not None and r.get("ft_layers") and r.get("s1_details"):
+                    if r.get("uds") is not None and r.get("ft_layers") and r.get("s1_details"):
                         # Sum of S1 deltas for FT layers (delta > tau)
                         s1_sum = sum(d.get("delta", 0) or 0
                                     for d in r["s1_details"]
                                     if (d.get("delta") or 0) > 0.05)
                         s1_sums.append(s1_sum)
-                        udrs.append(r["udr"])
+                        udss.append(r["uds"])
 
-                if s1_sums and udrs:
-                    ax.scatter(s1_sums, udrs, alpha=0.5, s=20)
+                if s1_sums and udss:
+                    ax.scatter(s1_sums, udss, alpha=0.5, s=20)
 
                     # Correlation
-                    corr = np.corrcoef(s1_sums, udrs)[0, 1]
+                    corr = np.corrcoef(s1_sums, udss)[0, 1]
                     ax.text(0.05, 0.95, f'r = {corr:.3f}', transform=ax.transAxes,
                            fontsize=10, va='top', fontweight='bold')
 
         ax.set_xlabel('Sum of S1 Δ (knowledge amount)')
-        ax.set_ylabel('UDR')
+        ax.set_ylabel('UDS')
         ax.set_title(f'{method}', fontweight='bold')
         ax.set_ylim(0, 1.05)
         ax.grid(alpha=0.3)
 
-    plt.suptitle('UDR vs Total S1 Delta (lr=2e-5, α=5, τ=0.05)\nHigher S1 sum = more knowledge to erase',
+    plt.suptitle('UDS vs Total S1 Delta (lr=2e-5, α=5, τ=0.05)\nHigher S1 sum = more knowledge to erase',
                 fontsize=14, fontweight='bold')
     plt.tight_layout(rect=[0, 0, 1, 0.96])
-    plt.savefig(OUTPUT_DIR / "udr_vs_s1_delta_sum.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_vs_s1_delta_sum.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_vs_s1_delta_sum.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_vs_s1_delta_sum.png'}")
 
 
 # ============================================================================
 # Main
 # ============================================================================
 if __name__ == "__main__":
-    print("Generating advanced UDR visualizations (v2)...")
+    print("Generating advanced UDS visualizations (v2)...")
     print("=" * 60)
 
     # 1. Parallel coordinates (10 methods)
     plot_parallel_coordinates()
 
-    # 2. Layer-wise UDR line chart
-    plot_layerwise_udr_linechart()
-    plot_layerwise_udr_rmu_only()
+    # 2. Layer-wise UDS line chart
+    plot_layerwise_uds_linechart()
+    plot_layerwise_uds_rmu_only()
 
-    # 3. UDR CDF by LR
-    plot_udr_cdf_by_lr()
+    # 3. UDS CDF by LR
+    plot_uds_cdf_by_lr()
 
     # 4. S1 layer-wise delta
     plot_s1_layerwise_delta()
 
-    # 5. UDR vs various factors
-    plot_udr_vs_ft_layer_count()
-    plot_udr_vs_entity_length()
-    plot_udr_by_question_type()
-    plot_udr_vs_s1_delta_sum()
+    # 5. UDS vs various factors
+    plot_uds_vs_ft_layer_count()
+    plot_uds_vs_entity_length()
+    plot_uds_by_question_type()
+    plot_uds_vs_s1_delta_sum()
 
     print("=" * 60)
     print("Done!")

@@ -37,9 +37,10 @@ class EncodedExample:
 
 
 def _build_prompt(question: str, prefix: Optional[str] = None) -> str:
+    # Match Open-Unlearning/TOFU QA style: use raw question (no "Question/Answer" wrapper).
     if prefix:
-        return f"Question: {question}\nAnswer: {prefix}"
-    return f"Question: {question}\nAnswer:"
+        return f"{question}\n{prefix}"
+    return question
 
 
 def _encode_example(
@@ -51,19 +52,27 @@ def _encode_example(
     prefix: Optional[str] = None,
     add_eos: bool = True,
     use_chat_template: bool = False,
+    system_prompt: Optional[str] = None,
+    date_string: Optional[str] = None,
 ) -> EncodedExample:
     if use_chat_template and hasattr(tokenizer, "apply_chat_template"):
         # Build chat-style prompt/response
         user_msg = _build_prompt(question, prefix)
-        messages = [
-            {"role": "user", "content": user_msg},
-            {"role": "assistant", "content": answer},
-        ]
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.extend(
+            [
+                {"role": "user", "content": user_msg},
+                {"role": "assistant", "content": answer},
+            ]
+        )
+        date_info = {"date_string": date_string} if date_string else {}
         chat_ids = tokenizer.apply_chat_template(
-            messages, tokenize=True, add_generation_prompt=False
+            messages, tokenize=True, add_generation_prompt=False, **date_info
         )
         prompt_ids = tokenizer.apply_chat_template(
-            messages[:-1], tokenize=True, add_generation_prompt=True
+            messages[:-1], tokenize=True, add_generation_prompt=True, **date_info
         )
         if chat_ids[-1] != tokenizer.eos_token_id and add_eos and tokenizer.eos_token_id is not None:
             chat_ids = chat_ids + [tokenizer.eos_token_id]
@@ -186,6 +195,8 @@ def eval_prob_em_es(
     max_length: int = 512,
     add_eos: bool = True,
     use_chat_template: bool = False,
+    system_prompt: Optional[str] = None,
+    date_string: Optional[str] = None,
 ) -> Dict[int, Dict[str, Optional[float]]]:
     """Evaluate prob, avg_loss, EM, ES for single-answer data."""
     pad_id = tokenizer.pad_token_id
@@ -203,6 +214,8 @@ def eval_prob_em_es(
                 prefix=prefix,
                 add_eos=add_eos,
                 use_chat_template=use_chat_template,
+                system_prompt=system_prompt,
+                date_string=date_string,
             )
         )
 
@@ -230,6 +243,8 @@ def eval_prob_only_multi(
     max_length: int = 512,
     add_eos: bool = True,
     use_chat_template: bool = False,
+    system_prompt: Optional[str] = None,
+    date_string: Optional[str] = None,
 ) -> Dict[int, List[Dict[str, float]]]:
     """Evaluate prob/avg_loss for multi-answer per example."""
     pad_id = tokenizer.pad_token_id
@@ -248,6 +263,8 @@ def eval_prob_only_multi(
                     prefix=prefix,
                     add_eos=add_eos,
                     use_chat_template=use_chat_template,
+                    system_prompt=system_prompt,
+                    date_string=date_string,
                 )
             )
             flat_map.append((i, j))
@@ -270,20 +287,36 @@ def eval_prob_only_multi(
     return out
 
 
-def truth_ratio_from_probs(correct: Dict[int, Dict[str, float]],
-                           wrong: Dict[int, List[Dict[str, float]]]) -> Dict[int, Optional[float]]:
-    """Truth ratio: correct_prob / (correct_prob + sum(wrong_prob))."""
+def geometric_mean(values: List[Optional[float]]) -> Optional[float]:
+    vals = [v for v in values if v is not None]
+    if not vals:
+        return None
+    arr = np.array(vals, dtype=float)
+    arr = np.clip(arr, 1e-12, None)
+    return float(np.exp(np.mean(np.log(arr))))
+
+
+def truth_ratio_from_probs(
+    perturbed: Dict[int, List[Dict[str, float]]],
+    paraphrase_probs: Dict[int, Optional[float]],
+) -> Dict[int, Optional[float]]:
+    """Truth ratio: gm(perturbed_probs) / paraphrase_prob.
+
+    Following TOFU/Open-Unlearning, we compute a geometric mean over perturbed
+    answers and compare to the (paraphrased) correct answer probability.
+    """
     tr: Dict[int, Optional[float]] = {}
-    for idx, c in correct.items():
-        if c is None or c.get("prob") is None:
+    for idx, wrong_list in perturbed.items():
+        para = paraphrase_probs.get(idx) if paraphrase_probs else None
+        if para is None or para <= 0 or not wrong_list:
             tr[idx] = None
             continue
-        wrong_list = wrong.get(idx, [])
-        if not wrong_list:
+        pert_probs = [x.get("prob") for x in wrong_list if x.get("prob") is not None]
+        gm = geometric_mean(pert_probs)
+        if gm is None:
             tr[idx] = None
             continue
-        wrong_prob = sum(x["prob"] for x in wrong_list if x.get("prob") is not None)
-        tr[idx] = c["prob"] / (c["prob"] + wrong_prob + 1e-10)
+        tr[idx] = gm / (para + 1e-12)
     return tr
 
 

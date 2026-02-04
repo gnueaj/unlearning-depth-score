@@ -250,11 +250,11 @@ def main():
             erasure_cat = "GENERAL_KNOWLEDGE"
             erasure_detail = "-"
         else:
-            # UDR category (Full/Partial/No)
-            udr_val = s2_lost_count / s1_lost_count
-            if udr_val >= 1.0:
+            # UDS category (Full/Partial/No)
+            uds_val = s2_lost_count / s1_lost_count
+            if uds_val >= 1.0:
                 erasure_cat = "FULL"
-            elif udr_val > 0:
+            elif uds_val > 0:
                 erasure_cat = "PARTIAL"
             else:
                 erasure_cat = "NO_ERASURE"
@@ -313,7 +313,7 @@ def main():
         finetuned = [r["layer"] for r in s1_results if r["em"] < args.em_threshold]
         erased = [l for l in finetuned if s2_results[layer_list.index(l)]["em"] < args.em_threshold]
         n_ft, n_er = len(finetuned), len(erased)
-        udr = n_er / n_ft if n_ft > 0 else -1
+        uds = n_er / n_ft if n_ft > 0 else -1
 
         ft_s1_avg = sum(r["em"] for r in s1_results if r["layer"] in finetuned) / n_ft if n_ft > 0 else 0
         ft_s2_avg = sum(s2_results[layer_list.index(l)]["em"] for l in finetuned) / n_ft if n_ft > 0 else 0
@@ -332,7 +332,7 @@ def main():
         n_s2_failed = len(s2_failed_layers)
 
         if n_ft > 0:
-            print(f"[HARD] FT: {finetuned} | Erased: {erased} | UDR={udr:.2f}")
+            print(f"[HARD] FT: {finetuned} | Erased: {erased} | UDS={uds:.2f}")
             print(f"[SOFT] FT layers: S1={ft_s1_avg:.3f}, S2={ft_s2_avg:.3f}, Retention={ft_s2_avg:.3f}")
             if n_s2_failed > n_ft:
                 print(f"[OVER] S1 fails {n_ft} layers, S2 fails {n_s2_failed} layers -> Over-erased by {n_s2_failed - n_ft}")
@@ -347,7 +347,7 @@ def main():
             "reference": clean_generated(full_gen),  # What patching is compared against
             "baseline_vs_gt": {"retain": retain_em_gt, "full": full_em_gt, "unlearn": unlearn_em_gt},
             "stage1": s1_results, "stage2": s2_results,
-            "hard": {"finetuned": finetuned, "erased": erased, "udr": udr},
+            "hard": {"finetuned": finetuned, "erased": erased, "uds": uds},
             "soft": {"ft_s1_avg": ft_s1_avg, "ft_s2_avg": ft_s2_avg},
             "over_erase": {"s1_first_x": s1_first_x, "s2_first_x": s2_first_x_layer, "depth": over_erase_depth}
         })
@@ -380,17 +380,17 @@ def main():
     print("-" * 50)
 
     # Overall metrics
-    valid_udrs = [r["hard"]["udr"] for r in all_results if r["hard"]["udr"] >= 0]
-    avg_udr = sum(valid_udrs) / len(valid_udrs) if valid_udrs else 0
+    valid_udss = [r["hard"]["uds"] for r in all_results if r["hard"]["uds"] >= 0]
+    avg_uds = sum(valid_udss) / len(valid_udss) if valid_udss else 0
 
-    valid_retentions = [r["soft"]["ft_s2_avg"] for r in all_results if r["hard"]["udr"] >= 0]
+    valid_retentions = [r["soft"]["ft_s2_avg"] for r in all_results if r["hard"]["uds"] >= 0]
     avg_retention = sum(valid_retentions) / len(valid_retentions) if valid_retentions else 0
 
-    print(f"\n[HARD] Average UDR: {avg_udr:.3f} ({len(valid_udrs)} examples with FT layers)")
-    if valid_udrs:
-        print(f"  Full erasure (UDR=1.0): {sum(1 for u in valid_udrs if u == 1.0)}")
-        print(f"  Partial (0<UDR<1): {sum(1 for u in valid_udrs if 0 < u < 1.0)}")
-        print(f"  No erasure (UDR=0): {sum(1 for u in valid_udrs if u == 0.0)}")
+    print(f"\n[HARD] Average UDS: {avg_uds:.3f} ({len(valid_udss)} examples with FT layers)")
+    if valid_udss:
+        print(f"  Full erasure (UDS=1.0): {sum(1 for u in valid_udss if u == 1.0)}")
+        print(f"  Partial (0<UDS<1): {sum(1 for u in valid_udss if 0 < u < 1.0)}")
+        print(f"  No erasure (UDS=0): {sum(1 for u in valid_udss if u == 0.0)}")
 
     print(f"\n[SOFT] Average Retention on FT layers: {avg_retention:.3f}")
     print(f"  (0=complete erasure, 1=full leakage)")
@@ -451,7 +451,7 @@ def main():
         "method": args.unlearn_model,
         "num_examples": len(all_results),
         "em_threshold": args.em_threshold,
-        "hard_avg_udr": avg_udr,
+        "hard_avg_uds": avg_uds,
         "soft_avg_retention": avg_retention,
         "erasure_quality": {
             "n_evaluated": n_evaluated,

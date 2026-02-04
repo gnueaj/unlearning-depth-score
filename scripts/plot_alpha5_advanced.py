@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Advanced UDR visualizations for alpha5 experiments
-- Parallel coordinate plot (weak→mid→strong UDR movement per instance)
+Advanced UDS visualizations for alpha5 experiments
+- Parallel coordinate plot (weak→mid→strong UDS movement per instance)
 - Layer-wise delta heatmap
-- Instance-wise UDR CDF comparison
-- Layer-wise UDR contribution
+- Instance-wise UDS CDF comparison
+- Layer-wise UDS contribution
 - Method ranking scatter (mean vs std)
 - Fixed distribution chart with overflow indicator
 """
@@ -64,12 +64,12 @@ def get_model_for_lr(category, lr_level):
     return None
 
 
-def extract_udrs_with_idx(results):
-    """Extract (idx, udr) pairs from results"""
+def extract_udss_with_idx(results):
+    """Extract (idx, uds) pairs from results"""
     pairs = []
     for r in results:
-        if r.get("udr") is not None and r.get("ft_layers"):
-            pairs.append((r["idx"], r["udr"]))
+        if r.get("uds") is not None and r.get("ft_layers"):
+            pairs.append((r["idx"], r["uds"]))
     return pairs
 
 
@@ -90,8 +90,8 @@ def extract_layer_deltas(results):
 # ============================================================================
 # 1. Fixed distribution chart with broken axis (wave mark)
 # ============================================================================
-def plot_udr_distribution_fixed():
-    """Plot UDR distribution with broken axis for bars exceeding y-limit"""
+def plot_uds_distribution_fixed():
+    """Plot UDS distribution with broken axis for bars exceeding y-limit"""
     lr_levels = ['1e5', '2e5', '5e5']
     lr_display = {'1e5': 'lr=1e-5', '2e5': 'lr=2e-5', '5e5': 'lr=5e-5'}
     Y_MAX = 120
@@ -112,12 +112,12 @@ def plot_udr_distribution_fixed():
             if model:
                 results = load_results(model)
                 if results:
-                    udrs = [r["udr"] for r in results if r.get("udr") is not None and r.get("ft_layers")]
-                    if udrs:
-                        mean_udr = np.mean(udrs)
+                    udss = [r["uds"] for r in results if r.get("uds") is not None and r.get("ft_layers")]
+                    if udss:
+                        mean_uds = np.mean(udss)
 
                         # Compute histogram
-                        counts, bins = np.histogram(udrs, bins=20, range=(0, 1))
+                        counts, bins = np.histogram(udss, bins=20, range=(0, 1))
 
                         # Plot bars with overflow handling
                         for i, (count, left_edge) in enumerate(zip(counts, bins[:-1])):
@@ -136,8 +136,8 @@ def plot_udr_distribution_fixed():
                                 ax.bar(left_edge, count, width=width, alpha=0.7,
                                        color=colors[lr], edgecolor='black', linewidth=0.3, align='edge')
 
-                        # Add mean UDR text
-                        ax.text(0.95, 0.95, f'{mean_udr:.3f}', transform=ax.transAxes,
+                        # Add mean UDS text
+                        ax.text(0.95, 0.95, f'{mean_uds:.3f}', transform=ax.transAxes,
                                 fontsize=10, fontweight='bold', ha='right', va='top',
                                 bbox=dict(boxstyle='round', facecolor='white', alpha=0.8))
 
@@ -160,24 +160,24 @@ def plot_udr_distribution_fixed():
             else:
                 ax.set_ylabel('')
             if row == 2:
-                ax.set_xlabel('UDR', fontsize=9)
+                ax.set_xlabel('UDS', fontsize=9)
             else:
                 ax.set_xticklabels([])
             ax.grid(alpha=0.3)
 
-    plt.suptitle('UDR Distribution: Method × Learning Rate (α=5, τ=0.05)',
+    plt.suptitle('UDS Distribution: Method × Learning Rate (α=5, τ=0.05)',
                  fontsize=14, fontweight='bold', y=1.02)
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / "udr_distribution_by_category_fixed.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_distribution_by_category_fixed.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_distribution_by_category_fixed.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_distribution_by_category_fixed.png'}")
 
 
 # ============================================================================
 # 2. Parallel coordinate plot (weak→mid→strong per instance)
 # ============================================================================
 def plot_parallel_coordinates():
-    """Plot parallel coordinates showing UDR movement from weak to strong LR per instance"""
+    """Plot parallel coordinates showing UDS movement from weak to strong LR per instance"""
     fig, axes = plt.subplots(2, 4, figsize=(20, 10))
     axes = axes.flatten()
 
@@ -197,7 +197,7 @@ def plot_parallel_coordinates():
             if model:
                 results = load_results(model)
                 if results:
-                    data_by_lr[lr_label] = dict(extract_udrs_with_idx(results))
+                    data_by_lr[lr_label] = dict(extract_udss_with_idx(results))
 
         if len(data_by_lr) == 3:
             # Find common indices
@@ -226,7 +226,7 @@ def plot_parallel_coordinates():
             ax.set_xticks([0, 1, 2])
             ax.set_xticklabels(['weak\n(lr=1e-5)', 'mid\n(lr=2e-5)', 'strong\n(lr=5e-5)'])
             ax.set_ylim(0, 1)
-            ax.set_ylabel('UDR')
+            ax.set_ylabel('UDS')
             ax.set_title(f'{method}\n(n={len(common_idx)})', fontweight='bold')
             ax.grid(alpha=0.3)
 
@@ -239,12 +239,12 @@ def plot_parallel_coordinates():
     # Hide unused subplot
     axes[7].axis('off')
 
-    plt.suptitle('Instance-wise UDR Movement: Weak → Mid → Strong LR (α=5, τ=0.05)',
+    plt.suptitle('Instance-wise UDS Movement: Weak → Mid → Strong LR (α=5, τ=0.05)',
                  fontsize=14, fontweight='bold')
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / "udr_parallel_coordinates.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_parallel_coordinates.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_parallel_coordinates.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_parallel_coordinates.png'}")
 
 
 # ============================================================================
@@ -296,10 +296,10 @@ def plot_layerwise_delta_heatmap():
 
 
 # ============================================================================
-# 4. Instance-wise UDR CDF comparison
+# 4. Instance-wise UDS CDF comparison
 # ============================================================================
-def plot_udr_cdf():
-    """Plot CDF of UDR for each method type"""
+def plot_uds_cdf():
+    """Plot CDF of UDS for each method type"""
     fig, ax = plt.subplots(figsize=(12, 8))
 
     # Group methods
@@ -313,38 +313,38 @@ def plot_udr_cdf():
         for model in models:
             results = load_results(model)
             if results:
-                udrs = [r["udr"] for r in results if r.get("udr") is not None and r.get("ft_layers")]
-                method_groups[group_key].extend(udrs)
+                udss = [r["uds"] for r in results if r.get("uds") is not None and r.get("ft_layers")]
+                method_groups[group_key].extend(udss)
 
     colors = plt.cm.Set1(np.linspace(0, 1, len(method_groups)))
 
-    for i, (method, udrs) in enumerate(method_groups.items()):
-        if udrs:
-            sorted_udrs = np.sort(udrs)
-            cdf = np.arange(1, len(sorted_udrs) + 1) / len(sorted_udrs)
-            ax.plot(sorted_udrs, cdf, label=f'{method} (n={len(udrs)})',
+    for i, (method, udss) in enumerate(method_groups.items()):
+        if udss:
+            sorted_udss = np.sort(udss)
+            cdf = np.arange(1, len(sorted_udss) + 1) / len(sorted_udss)
+            ax.plot(sorted_udss, cdf, label=f'{method} (n={len(udss)})',
                    color=colors[i], linewidth=2)
 
-    ax.axvline(x=0.5, color='red', linestyle='--', alpha=0.5, label='UDR=0.5')
-    ax.set_xlabel('UDR', fontsize=12)
+    ax.axvline(x=0.5, color='red', linestyle='--', alpha=0.5, label='UDS=0.5')
+    ax.set_xlabel('UDS', fontsize=12)
     ax.set_ylabel('Cumulative Probability', fontsize=12)
-    ax.set_title('CDF of Instance-wise UDR by Method Type (α=5, τ=0.05)', fontsize=14, fontweight='bold')
+    ax.set_title('CDF of Instance-wise UDS by Method Type (α=5, τ=0.05)', fontsize=14, fontweight='bold')
     ax.legend(loc='lower right')
     ax.grid(alpha=0.3)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
 
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / "udr_cdf_comparison.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "uds_cdf_comparison.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'udr_cdf_comparison.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'uds_cdf_comparison.png'}")
 
 
 # ============================================================================
-# 5. Layer-wise UDR contribution (stacked bar)
+# 5. Layer-wise UDS contribution (stacked bar)
 # ============================================================================
 def plot_layerwise_contribution():
-    """Plot stacked bar showing which layers contribute most to UDR"""
+    """Plot stacked bar showing which layers contribute most to UDS"""
     fig, axes = plt.subplots(2, 4, figsize=(20, 10))
     axes = axes.flatten()
 
@@ -359,7 +359,7 @@ def plot_layerwise_contribution():
         if model:
             results = load_results(model)
             if results:
-                # Calculate per-layer contribution to UDR
+                # Calculate per-layer contribution to UDS
                 layer_contributions = np.zeros(n_layers)
                 total_s1 = np.zeros(n_layers)
                 total_s2 = np.zeros(n_layers)
@@ -384,25 +384,25 @@ def plot_layerwise_contribution():
                 ax.bar(range(n_layers), layer_contributions, color=colors_layer, edgecolor='black', linewidth=0.5)
                 ax.axhline(y=1.0, color='red', linestyle='--', alpha=0.5)
                 ax.set_xlabel('Layer')
-                ax.set_ylabel('Layer UDR Contribution')
+                ax.set_ylabel('Layer UDS Contribution')
                 ax.set_title(f'{method} (lr=2e-5)', fontweight='bold')
                 ax.set_ylim(0, 1.2)
                 ax.set_xticks(range(n_layers))
                 ax.grid(axis='y', alpha=0.3)
 
-    plt.suptitle('Layer-wise UDR Contribution (mid LR, α=5, τ=0.05)\nHigher = layer contributes more to erasure',
+    plt.suptitle('Layer-wise UDS Contribution (mid LR, α=5, τ=0.05)\nHigher = layer contributes more to erasure',
                  fontsize=14, fontweight='bold')
     plt.tight_layout()
-    plt.savefig(OUTPUT_DIR / "layerwise_udr_contribution.png", dpi=150, bbox_inches='tight')
+    plt.savefig(OUTPUT_DIR / "layerwise_uds_contribution.png", dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {OUTPUT_DIR / 'layerwise_udr_contribution.png'}")
+    print(f"Saved: {OUTPUT_DIR / 'layerwise_uds_contribution.png'}")
 
 
 # ============================================================================
 # 6. Method ranking scatter (mean vs std)
 # ============================================================================
 def plot_method_ranking_scatter():
-    """Scatter plot of mean UDR vs std UDR for all 30 methods"""
+    """Scatter plot of mean UDS vs std UDS for all 30 methods"""
     fig, ax = plt.subplots(figsize=(12, 8))
 
     category_colors = plt.cm.tab10(np.linspace(0, 1, len(METHOD_CATEGORIES)))
@@ -411,10 +411,10 @@ def plot_method_ranking_scatter():
         for model in models:
             results = load_results(model)
             if results:
-                udrs = [r["udr"] for r in results if r.get("udr") is not None and r.get("ft_layers")]
-                if udrs:
-                    mean_udr = np.mean(udrs)
-                    std_udr = np.std(udrs)
+                udss = [r["uds"] for r in results if r.get("uds") is not None and r.get("ft_layers")]
+                if udss:
+                    mean_uds = np.mean(udss)
+                    std_uds = np.std(udss)
 
                     # Extract LR for marker
                     if "_lr1e5_" in model or "_lr1e5e" in model:
@@ -424,7 +424,7 @@ def plot_method_ranking_scatter():
                     else:
                         marker = '^'  # strong
 
-                    ax.scatter(mean_udr, std_udr, c=[category_colors[i]], marker=marker,
+                    ax.scatter(mean_uds, std_uds, c=[category_colors[i]], marker=marker,
                               s=100, edgecolors='black', linewidth=0.5, alpha=0.8)
 
     # Legend for categories
@@ -441,9 +441,9 @@ def plot_method_ranking_scatter():
     ]
     ax.legend(handles=marker_handles, loc='upper right', title='LR', fontsize=8)
 
-    ax.set_xlabel('Mean UDR', fontsize=12)
-    ax.set_ylabel('Std UDR', fontsize=12)
-    ax.set_title('Method Ranking: Mean vs Std of UDR (α=5, τ=0.05)\nIdeal: High mean, Low std',
+    ax.set_xlabel('Mean UDS', fontsize=12)
+    ax.set_ylabel('Std UDS', fontsize=12)
+    ax.set_title('Method Ranking: Mean vs Std of UDS (α=5, τ=0.05)\nIdeal: High mean, Low std',
                 fontsize=14, fontweight='bold')
     ax.axvline(x=0.5, color='red', linestyle='--', alpha=0.3)
     ax.set_xlim(0, 1)
@@ -478,9 +478,9 @@ def plot_rmu_layer_comparison():
             if model:
                 results = load_results(model)
                 if results:
-                    udrs = [r["udr"] for r in results if r.get("udr") is not None and r.get("ft_layers")]
-                    if udrs:
-                        data.append(udrs)
+                    udss = [r["uds"] for r in results if r.get("uds") is not None and r.get("ft_layers")]
+                    if udss:
+                        data.append(udss)
                         labels.append(method.replace("RMU-", ""))
 
         if data:
@@ -490,14 +490,14 @@ def plot_rmu_layer_comparison():
                 patch.set_facecolor(color)
                 patch.set_alpha(0.7)
 
-            ax.set_ylabel('UDR')
+            ax.set_ylabel('UDS')
             ax.set_xlabel('Target Layer')
             ax.set_title(f'lr={lr_display[lr]}', fontweight='bold')
             ax.axhline(y=0.5, color='red', linestyle='--', alpha=0.5)
             ax.set_ylim(0, 1.05)
             ax.grid(axis='y', alpha=0.3)
 
-    plt.suptitle('RMU: Effect of Target Layer on UDR (α=5, τ=0.05)', fontsize=14, fontweight='bold')
+    plt.suptitle('RMU: Effect of Target Layer on UDS (α=5, τ=0.05)', fontsize=14, fontweight='bold')
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / "rmu_layer_comparison.png", dpi=150, bbox_inches='tight')
     plt.close()
@@ -505,13 +505,13 @@ def plot_rmu_layer_comparison():
 
 
 if __name__ == "__main__":
-    print("Generating advanced UDR visualizations for alpha5 experiments...")
+    print("Generating advanced UDS visualizations for alpha5 experiments...")
     print("=" * 60)
 
-    plot_udr_distribution_fixed()
+    plot_uds_distribution_fixed()
     plot_parallel_coordinates()
     plot_layerwise_delta_heatmap()
-    plot_udr_cdf()
+    plot_uds_cdf()
     plot_layerwise_contribution()
     plot_method_ranking_scatter()
     plot_rmu_layer_comparison()

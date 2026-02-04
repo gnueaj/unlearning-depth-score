@@ -100,7 +100,13 @@ UNLEARN_ALIASES = {
     "undial": "undial_lr1e5_b3_a1_ep10",
 }
 
-# Combined registry: full models + aliases
+# Special model aliases (not unlearned)
+SPECIAL_MODELS = {
+    "full": "open-unlearning/tofu_Llama-3.2-1B-Instruct_full",
+    "retain": "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90",
+}
+
+# Combined registry: full models + aliases + special models
 UNLEARN_MODELS = UNLEARN_MODELS_FULL.copy()
 for alias, target in UNLEARN_ALIASES.items():
     if target in UNLEARN_MODELS_FULL:
@@ -109,6 +115,9 @@ for alias, target in UNLEARN_ALIASES.items():
 
 def get_model_id(name: str) -> str:
     """Get full model ID from short name or return as-is if full path."""
+    # Check special models first (full, retain)
+    if name in SPECIAL_MODELS:
+        return SPECIAL_MODELS[name]
     if name in UNLEARN_MODELS:
         return UNLEARN_MODELS[name]
     return name

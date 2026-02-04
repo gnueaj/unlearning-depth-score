@@ -12,7 +12,7 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 LOG_GLOB = '0201_*_tf_rmu_*_layer/run.log'
 
 LAYER_RE = re.compile(r"^\s*L(\d{2})\s+\|\s+logp=[^\s]+\s+Δ=([+-]?[0-9]*\.?[0-9]+)\s+\[[A-Z]+\]\s+\|\s+logp=[^\s]+\s+Δ=([+-]?[0-9]*\.?[0-9]+)")
-UDR_RE = re.compile(r"UDR\s*=\s*([+-]?[0-9]*\.?[0-9]+)")
+UDS_RE = re.compile(r"UDS\s*=\s*([+-]?[0-9]*\.?[0-9]+)")
 TAU_RE = re.compile(r"Delta threshold:\s*([0-9]*\.?[0-9]+)")
 EXAMPLE_RE = re.compile(r"^\[(\d+)/(\d+)\]\s+Example\s+(\d+)")
 
@@ -42,7 +42,7 @@ def parse_log(path: Path):
             if m:
                 if current is not None:
                     examples.append(current)
-                current = {'udr': math.nan, 'd1': {}, 'd2': {}}
+                current = {'uds': math.nan, 'd1': {}, 'd2': {}}
                 in_layer_block = False
                 saw_row = False
                 continue
@@ -64,12 +64,12 @@ def parse_log(path: Path):
                     current['d2'][layer] = d2
                     saw_row = True
                     continue
-            m = UDR_RE.search(line)
+            m = UDS_RE.search(line)
             if m and current is not None:
-                current['udr'] = float(m.group(1))
+                current['uds'] = float(m.group(1))
                 continue
-            if 'UDR = N/A' in line and current is not None:
-                current['udr'] = math.nan
+            if 'UDS = N/A' in line and current is not None:
+                current['uds'] = math.nan
                 continue
     if current is not None:
         examples.append(current)
@@ -86,13 +86,13 @@ def parse_log(path: Path):
 
 
 def summarize(examples):
-    udr = np.array([ex['udr'] for ex in examples if not math.isnan(ex['udr'])])
-    n_na = sum(1 for ex in examples if math.isnan(ex['udr']))
+    uds = np.array([ex['uds'] for ex in examples if not math.isnan(ex['uds'])])
+    n_na = sum(1 for ex in examples if math.isnan(ex['uds']))
     return {
         'n': len(examples),
         'n_na': n_na,
-        'udr_mean': float(np.mean(udr)) if udr.size else math.nan,
-        'udr_median': float(np.median(udr)) if udr.size else math.nan,
+        'uds_mean': float(np.mean(uds)) if uds.size else math.nan,
+        'uds_median': float(np.median(uds)) if uds.size else math.nan,
     }
 
 
@@ -140,7 +140,7 @@ def plot_hist_grid(data_map, mean_map, title, out_path, bins=30, xlim=(0,1), row
     for ax, key in zip(axes.flatten(), keys):
         vals = data_map[key]
         ax.hist(vals, bins=bins, range=xlim, color='#4C78A8', alpha=0.85)
-        ax.set_xlabel('UDR')
+        ax.set_xlabel('UDS')
         ax.set_ylabel('Count')
         if xlim:
             ax.set_xlim(*xlim)
@@ -169,7 +169,7 @@ def plot_cdf_grid(data_map, title, out_path, xlim=(0,1), row_labels=None, col_la
         if xlim:
             ax.set_xlim(*xlim)
         ax.set_ylim(0,1)
-        ax.set_xlabel('UDR')
+        ax.set_xlabel('UDS')
         ax.set_ylabel('CDF')
         ax.grid(alpha=0.2)
 
@@ -256,13 +256,13 @@ def plot_instancewise_traj_grid(traj_map, layers, title, out_path, ylabel, row_l
     plt.close(fig)
 
 
-def plot_udr_strength_trajectories(udr_by_layer, out_path, sample_size=80):
-    # udr_by_layer: {layer: {strength: np.array(n_examples)}}
+def plot_uds_strength_trajectories(uds_by_layer, out_path, sample_size=80):
+    # uds_by_layer: {layer: {strength: np.array(n_examples)}}
     strengths = ["weak", "mid", "strong"]
     fig, axes = plt.subplots(3, 1, figsize=(7, 10), sharex=True, sharey=True)
     rng = np.random.default_rng(0)
 
-    for ax, (layer, series) in zip(axes, sorted(udr_by_layer.items())):
+    for ax, (layer, series) in zip(axes, sorted(uds_by_layer.items())):
         # stack per-example values across strengths
         vals = np.stack([series[s] for s in strengths], axis=1)
         n = vals.shape[0]
@@ -273,26 +273,26 @@ def plot_udr_strength_trajectories(udr_by_layer, out_path, sample_size=80):
         mean_vals = vals.mean(axis=0)
         ax.plot(strengths, mean_vals, color='#F58518', linewidth=2.0, label='mean')
         ax.set_title(f'layer={layer}', fontsize=11)
-        ax.set_ylabel('UDR')
+        ax.set_ylabel('UDS')
         ax.set_ylim(0, 1)
         ax.grid(alpha=0.2)
 
     axes[-1].set_xlabel('strength')
     axes[0].legend(fontsize=8, loc='upper right')
-    fig.suptitle('RMU instance-wise UDR trajectories (weak → mid → strong)', y=0.98)
+    fig.suptitle('RMU instance-wise UDS trajectories (weak → mid → strong)', y=0.98)
     fig.tight_layout(rect=[0, 0, 1, 0.96])
     fig.savefig(out_path, dpi=160)
     plt.close(fig)
 
 
-def plot_udr_vs_ftcount(data_map, title, out_path, row_labels=None, col_labels=None):
+def plot_uds_vs_ftcount(data_map, title, out_path, row_labels=None, col_labels=None):
     keys = list(data_map.keys())
     fig, axes = grid_axes()
     for ax, key in zip(axes.flatten(), keys):
-        ft, udr = data_map[key]
-        ax.scatter(ft, udr, s=8, alpha=0.4)
+        ft, uds = data_map[key]
+        ax.scatter(ft, uds, s=8, alpha=0.4)
         ax.set_xlabel('FT count')
-        ax.set_ylabel('UDR')
+        ax.set_ylabel('UDS')
         ax.grid(alpha=0.2)
 
     fig.tight_layout(rect=[0.08,0.03,1,0.90])
@@ -303,15 +303,15 @@ def plot_udr_vs_ftcount(data_map, title, out_path, row_labels=None, col_labels=N
     plt.close(fig)
 
 
-def plot_udr_bar(mean_map, out_path):
+def plot_uds_bar(mean_map, out_path):
     keys = list(mean_map.keys())
     vals = [mean_map[k] for k in keys]
     fig, ax = plt.subplots(figsize=(9,4))
     ax.bar(range(len(keys)), vals, color='#4C78A8')
     ax.set_xticks(range(len(keys)))
     ax.set_xticklabels(keys, rotation=45, ha='right', fontsize=8)
-    ax.set_ylabel('Mean UDR')
-    ax.set_title('RMU mean UDR (clipped)')
+    ax.set_ylabel('Mean UDS')
+    ax.set_title('RMU mean UDS (clipped)')
     for i, v in enumerate(vals):
         ax.text(i, v + 0.01, f"{v:.3f}", ha='center', va='bottom', fontsize=8)
     ax.grid(axis='y', alpha=0.2)
@@ -328,13 +328,13 @@ def plot_example_scatter(data_map, out_path, row_labels=None, col_labels=None):
         xs = np.arange(len(vals))
         ax.scatter(xs, vals, s=4, alpha=0.5)
         ax.set_xlabel('Example index')
-        ax.set_ylabel('UDR')
+        ax.set_ylabel('UDS')
         ax.set_ylim(0, 1)
         ax.grid(alpha=0.2)
     fig.tight_layout(rect=[0.08,0.03,1,0.90])
     if row_labels and col_labels:
         add_grid_labels(fig, axes, row_labels, col_labels, col_y=0.92)
-    fig.suptitle('RMU example-level UDR (clipped)', y=0.985)
+    fig.suptitle('RMU example-level UDS (clipped)', y=0.985)
     fig.savefig(out_path, dpi=160)
     plt.close(fig)
 
@@ -346,7 +346,7 @@ def plot_example_heatmap(matrix, keys, out_path):
     ax.set_ylabel('Example (sorted)')
     ax.set_xticks(range(len(keys)))
     ax.set_xticklabels(keys, rotation=45, ha='right', fontsize=7)
-    fig.colorbar(im, ax=ax, label='UDR')
+    fig.colorbar(im, ax=ax, label='UDS')
     fig.tight_layout()
     fig.savefig(out_path, dpi=160)
     plt.close(fig)
@@ -360,7 +360,7 @@ def plot_small_heatmap(matrix, col_labels, title, out_path):
     ax.set_xticks(range(len(col_labels)))
     ax.set_xticklabels(col_labels, rotation=0, fontsize=9)
     ax.set_title(title)
-    fig.colorbar(im, ax=ax, label='UDR', fraction=0.046, pad=0.04)
+    fig.colorbar(im, ax=ax, label='UDS', fraction=0.046, pad=0.04)
     fig.tight_layout()
     fig.savefig(out_path, dpi=160)
     plt.close(fig)
@@ -369,9 +369,9 @@ def plot_small_heatmap(matrix, col_labels, title, out_path):
 def plot_instancewise_summary(mean_vals, std_vals, out_hist, out_line):
     fig, ax = plt.subplots(figsize=(6,4))
     ax.hist(mean_vals, bins=30, color='#4C78A8', alpha=0.85)
-    ax.set_xlabel('Instance-wise mean UDR')
+    ax.set_xlabel('Instance-wise mean UDS')
     ax.set_ylabel('Count')
-    ax.set_title('RMU instance-wise mean UDR')
+    ax.set_title('RMU instance-wise mean UDS')
     ax.grid(alpha=0.2)
     fig.tight_layout()
     fig.savefig(out_hist, dpi=160)
@@ -379,15 +379,15 @@ def plot_instancewise_summary(mean_vals, std_vals, out_hist, out_line):
 
     fig, ax = plt.subplots(figsize=(7,4))
     order = np.argsort(mean_vals)
-    ax.plot(mean_vals[order], label='mean UDR')
+    ax.plot(mean_vals[order], label='mean UDS')
     ax.fill_between(range(len(mean_vals)),
                     mean_vals[order] - std_vals[order],
                     mean_vals[order] + std_vals[order],
                     color='#F58518', alpha=0.2, label='±1 std')
     ax.set_xlabel('Example (sorted)')
-    ax.set_ylabel('UDR')
+    ax.set_ylabel('UDS')
     ax.set_ylim(0,1)
-    ax.set_title('Instance-wise UDR (sorted)')
+    ax.set_title('Instance-wise UDS (sorted)')
     ax.grid(alpha=0.2)
     ax.legend(fontsize=8)
     fig.tight_layout()
@@ -431,44 +431,44 @@ def main():
     row_labels = ["1e-5", "2e-5", "5e-5"]
     col_labels = ["5", "10", "15"]
 
-    summary_lines = ["| model | n | n_na | udr_mean | udr_median |", "|---|---:|---:|---:|---:|"]
+    summary_lines = ["| model | n | n_na | uds_mean | uds_median |", "|---|---:|---:|---:|---:|"]
     mean_map = {}
     for key, examples in data.items():
         s = summarize(examples)
-        summary_lines.append(f"| {key} | {s['n']} | {s['n_na']} | {s['udr_mean']:.3f} | {s['udr_median']:.3f} |")
-        mean_map[key] = s['udr_mean']
+        summary_lines.append(f"| {key} | {s['n']} | {s['n_na']} | {s['uds_mean']:.3f} | {s['uds_median']:.3f} |")
+        mean_map[key] = s['uds_mean']
     (OUT_DIR / 'rmu_summary.md').write_text("\n".join(summary_lines))
 
-    udr_full_map = {}
+    uds_full_map = {}
     for key, examples in data.items():
-        vals = [ex['udr'] for ex in examples]
-        udr_full_map[key] = [0.0 if math.isnan(v) else max(0.0, min(1.0, v)) for v in vals]
+        vals = [ex['uds'] for ex in examples]
+        uds_full_map[key] = [0.0 if math.isnan(v) else max(0.0, min(1.0, v)) for v in vals]
 
-    udr_map = {}
-    udr_raw_map = {}
-    udr_ft_scatter = {}
+    uds_map = {}
+    uds_raw_map = {}
+    uds_ft_scatter = {}
     for key, examples in data.items():
-        vals = [ex['udr'] for ex in examples if not math.isnan(ex['udr'])]
-        udr_raw_map[key] = vals
-        udr_map[key] = [min(1.0, max(0.0, v)) for v in vals]
-        udr_ft_scatter[key] = (
-            [ex['ft_count'] for ex in examples if not math.isnan(ex['udr'])],
-            [ex['udr'] for ex in examples if not math.isnan(ex['udr'])],
+        vals = [ex['uds'] for ex in examples if not math.isnan(ex['uds'])]
+        uds_raw_map[key] = vals
+        uds_map[key] = [min(1.0, max(0.0, v)) for v in vals]
+        uds_ft_scatter[key] = (
+            [ex['ft_count'] for ex in examples if not math.isnan(ex['uds'])],
+            [ex['uds'] for ex in examples if not math.isnan(ex['uds'])],
         )
 
-    plot_hist_grid(udr_map, mean_map, 'RMU UDR histogram (clipped)', OUT_DIR / 'rmu_udr_hist_3x3.png', bins=30, xlim=(0,1), row_labels=row_labels, col_labels=col_labels)
-    plot_cdf_grid(udr_map, 'RMU UDR CDF (clipped)', OUT_DIR / 'rmu_udr_cdf_3x3.png', xlim=(0,1), row_labels=row_labels, col_labels=col_labels)
+    plot_hist_grid(uds_map, mean_map, 'RMU UDS histogram (clipped)', OUT_DIR / 'rmu_uds_hist_3x3.png', bins=30, xlim=(0,1), row_labels=row_labels, col_labels=col_labels)
+    plot_cdf_grid(uds_map, 'RMU UDS CDF (clipped)', OUT_DIR / 'rmu_uds_cdf_3x3.png', xlim=(0,1), row_labels=row_labels, col_labels=col_labels)
 
-    udr_raw_capped = {k: [min(1.5, max(-0.5, v)) for v in vals] for k, vals in udr_raw_map.items()}
-    plot_cdf_grid(udr_raw_capped, 'RMU UDR CDF (raw, capped)', OUT_DIR / 'rmu_udr_raw_cdf_3x3.png', xlim=(-0.5, 1.5), row_labels=row_labels, col_labels=col_labels)
+    uds_raw_capped = {k: [min(1.5, max(-0.5, v)) for v in vals] for k, vals in uds_raw_map.items()}
+    plot_cdf_grid(uds_raw_capped, 'RMU UDS CDF (raw, capped)', OUT_DIR / 'rmu_uds_raw_cdf_3x3.png', xlim=(-0.5, 1.5), row_labels=row_labels, col_labels=col_labels)
 
-    plot_udr_vs_ftcount(udr_ft_scatter, 'RMU UDR vs FT count', OUT_DIR / 'rmu_udr_vs_ftcount_3x3.png', row_labels=row_labels, col_labels=col_labels)
-    plot_udr_bar(mean_map, OUT_DIR / 'rmu_udr_mean_bar.png')
+    plot_uds_vs_ftcount(uds_ft_scatter, 'RMU UDS vs FT count', OUT_DIR / 'rmu_uds_vs_ftcount_3x3.png', row_labels=row_labels, col_labels=col_labels)
+    plot_uds_bar(mean_map, OUT_DIR / 'rmu_uds_mean_bar.png')
 
-    plot_example_scatter(udr_full_map, OUT_DIR / 'rmu_udr_example_scatter_3x3.png', row_labels=row_labels, col_labels=col_labels)
-    matrix = np.stack([np.array(udr_full_map[k]) for k in ordered_keys], axis=1)
+    plot_example_scatter(uds_full_map, OUT_DIR / 'rmu_uds_example_scatter_3x3.png', row_labels=row_labels, col_labels=col_labels)
+    matrix = np.stack([np.array(uds_full_map[k]) for k in ordered_keys], axis=1)
     order = np.argsort(matrix.mean(axis=1))
-    plot_example_heatmap(matrix[order], ordered_keys, OUT_DIR / 'rmu_udr_example_heatmap.png')
+    plot_example_heatmap(matrix[order], ordered_keys, OUT_DIR / 'rmu_uds_example_heatmap.png')
     # split heatmaps by layer (weak/mid/strong columns)
     strengths = ['weak', 'mid', 'strong']
     for layer in [5, 10, 15]:
@@ -477,11 +477,11 @@ def main():
             'mid': f'rmu_lr2e5_l{layer}_s10_ep5_layer',
             'strong': f'rmu_lr5e5_l{layer}_s10_ep5_layer',
         }
-        mat = np.stack([np.array(udr_full_map[key_map[s]]) for s in strengths], axis=1)
+        mat = np.stack([np.array(uds_full_map[key_map[s]]) for s in strengths], axis=1)
         order = np.argsort(mat.mean(axis=1))
         plot_small_heatmap(mat[order], strengths,
-                           f'RMU UDR heatmap (layer={layer})',
-                           OUT_DIR / f'rmu_udr_heatmap_layer{layer}.png')
+                           f'RMU UDS heatmap (layer={layer})',
+                           OUT_DIR / f'rmu_uds_heatmap_layer{layer}.png')
 
     # instance-wise summary
     mean_vals = matrix.mean(axis=1)
@@ -534,25 +534,25 @@ def main():
                                 OUT_DIR / 'rmu_instancewise_delta_s2_3x3.png',
                                 ylabel='ΔS2', row_labels=row_labels, col_labels=col_labels, sample_size=60)
 
-    # instancewise UDR trajectories across weak/mid/strong (3x1 by layer)
-    udr_by_layer = {
+    # instancewise UDS trajectories across weak/mid/strong (3x1 by layer)
+    uds_by_layer = {
         5: {
-            'weak': np.array(udr_full_map['rmu_lr1e5_l5_s10_ep5_layer']),
-            'mid': np.array(udr_full_map['rmu_lr2e5_l5_s10_ep5_layer']),
-            'strong': np.array(udr_full_map['rmu_lr5e5_l5_s10_ep5_layer']),
+            'weak': np.array(uds_full_map['rmu_lr1e5_l5_s10_ep5_layer']),
+            'mid': np.array(uds_full_map['rmu_lr2e5_l5_s10_ep5_layer']),
+            'strong': np.array(uds_full_map['rmu_lr5e5_l5_s10_ep5_layer']),
         },
         10: {
-            'weak': np.array(udr_full_map['rmu_lr1e5_l10_s10_ep5_layer']),
-            'mid': np.array(udr_full_map['rmu_lr2e5_l10_s10_ep5_layer']),
-            'strong': np.array(udr_full_map['rmu_lr5e5_l10_s10_ep5_layer']),
+            'weak': np.array(uds_full_map['rmu_lr1e5_l10_s10_ep5_layer']),
+            'mid': np.array(uds_full_map['rmu_lr2e5_l10_s10_ep5_layer']),
+            'strong': np.array(uds_full_map['rmu_lr5e5_l10_s10_ep5_layer']),
         },
         15: {
-            'weak': np.array(udr_full_map['rmu_lr1e5_l15_s10_ep5_layer']),
-            'mid': np.array(udr_full_map['rmu_lr2e5_l15_s10_ep5_layer']),
-            'strong': np.array(udr_full_map['rmu_lr5e5_l15_s10_ep5_layer']),
+            'weak': np.array(uds_full_map['rmu_lr1e5_l15_s10_ep5_layer']),
+            'mid': np.array(uds_full_map['rmu_lr2e5_l15_s10_ep5_layer']),
+            'strong': np.array(uds_full_map['rmu_lr5e5_l15_s10_ep5_layer']),
         },
     }
-    plot_udr_strength_trajectories(udr_by_layer, OUT_DIR / 'rmu_udr_strength_trajectories_3x1.png', sample_size=80)
+    plot_uds_strength_trajectories(uds_by_layer, OUT_DIR / 'rmu_uds_strength_trajectories_3x1.png', sample_size=80)
 
     counts_lines = [
         f"# RMU layerwise FT counts (τ={tau})",

@@ -67,12 +67,12 @@
 
 ## 3) Metric definition (summary)
 
-We currently use log-prob delta and UDR.
+We currently use log-prob delta and UDS.
 - Full baseline score: `s_full = mean_t log P_full(y_t | x, y_<t)`
 - Patched score: `s_patch = mean_t log P_full+patch(y_t | x, y_<t)`
 - Delta: `Delta = s_full - s_patch`
 - LOST if `Delta > delta_threshold`
-- UDR: `clip(sum(Delta_S2) / sum(Delta_S1), 0, 1)`
+- UDS: `clip(sum(Delta_S2) / sum(Delta_S1), 0, 1)`
 
 (Full formulas and notation are documented separately.)
 
@@ -80,7 +80,7 @@ We currently use log-prob delta and UDR.
 
 ## 4) Experimental results (6 runs, 50 examples each)
 
-| Method | Variant | Hyperparam (summary) | UDR | Interpretation |
+| Method | Variant | Hyperparam (summary) | UDS | Interpretation |
 |---|---|---|---:|---|
 | GradDiff | strong | lr5e-5, a2, ep10 | 0.99 | strong deletion signal |
 | GradDiff | weak | a5, ep5 | 0.17 | weak deletion |
@@ -90,8 +90,8 @@ We currently use log-prob delta and UDR.
 | IdkNLL | weak | lr2e-5, a10, ep5 | 0.20 | minimal deletion |
 
 ### Interpretation
-- Knowledge-modifying methods (GradDiff, SimNPO) show higher UDR.
-- Output-suppressing methods (IdkNLL) show low UDR -> hidden knowledge likely remains.
+- Knowledge-modifying methods (GradDiff, SimNPO) show higher UDS.
+- Output-suppressing methods (IdkNLL) show low UDS -> hidden knowledge likely remains.
 - This supports using activation patching for hidden knowledge audits.
 
 ---

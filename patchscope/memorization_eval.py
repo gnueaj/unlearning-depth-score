@@ -16,9 +16,9 @@ from .models import load_model, load_tokenizer
 from .memorization import (
     eval_prob_em_es,
     eval_prob_only_multi,
-    truth_ratio_from_probs,
     compute_mem_score,
     sample_wrong_answers,
+    geometric_mean,
 )
 
 
@@ -51,8 +51,24 @@ def main():
     parser.add_argument("--max_length", type=int, default=512)
     parser.add_argument("--use_prefix", action="store_true",
                         help="Include dataset prefix in prompt if available")
-    parser.add_argument("--use_chat_template", action="store_true",
-                        help="Use tokenizer chat template for prompt/answer encoding")
+    # Default to chat template (Open-Unlearning); allow explicit on/off flags.
+    parser.add_argument(
+        "--use_chat_template",
+        action="store_true",
+        dest="use_chat_template",
+        help="Use tokenizer chat template for prompt/answer encoding",
+    )
+    parser.add_argument(
+        "--no_chat_template",
+        action="store_false",
+        dest="use_chat_template",
+        help="Disable tokenizer chat template for prompt/answer encoding",
+    )
+    parser.set_defaults(use_chat_template=True)
+    parser.add_argument("--system_prompt", type=str, default="",
+                        help="System prompt for chat template (empty string to disable)")
+    parser.add_argument("--date_string", type=str, default="10 Apr 2025",
+                        help="Date string for chat template (Open-Unlearning uses 10 Apr 2025)")
     parser.add_argument("--question_field", type=str, default="question")
     parser.add_argument("--answer_field", type=str, default="answer")
     parser.add_argument("--prefix_field", type=str, default="prefix")
@@ -88,6 +104,9 @@ def main():
     prefixes = [ex.get(args.prefix_field, "") for ex in data] if args.use_prefix else None
 
     # Core metrics on correct answers
+    system_prompt = args.system_prompt if args.use_chat_template and args.system_prompt else None
+    date_string = args.date_string if args.use_chat_template and args.date_string else None
+
     correct = eval_prob_em_es(
         model,
         tokenizer,
@@ -97,6 +116,8 @@ def main():
         batch_size=args.batch_size,
         max_length=args.max_length,
         use_chat_template=args.use_chat_template,
+        system_prompt=system_prompt,
+        date_string=date_string,
     )
 
     # Paraphrase probability
@@ -114,9 +135,12 @@ def main():
             batch_size=args.batch_size,
             max_length=args.max_length,
             use_chat_template=args.use_chat_template,
+            system_prompt=system_prompt,
+            date_string=date_string,
         )
+        # Match Open-Unlearning: aggregate via mean of losses -> geometric mean of probs
         para_probs = {
-            i: (sum([x["prob"] for x in lst]) / len(lst)) if lst else None
+            i: geometric_mean([x["prob"] for x in lst]) if lst else None
             for i, lst in para_eval.items()
         }
 
@@ -141,8 +165,24 @@ def main():
             batch_size=args.batch_size,
             max_length=args.max_length,
             use_chat_template=args.use_chat_template,
+            system_prompt=system_prompt,
+            date_string=date_string,
         )
-        truth_ratio = truth_ratio_from_probs(correct, wrong_eval)
+        # Open-Unlearning Mem uses prob_mean: correct / (correct + wrong),
+        # with correct coming from paraphrased answers (if available) and wrong
+        # aggregated via geometric mean (mean of avg losses -> geometric mean of probs).
+        truth_ratio = {}
+        for i in range(len(data)):
+            c = para_probs[i] if para_probs is not None else None
+            wl = wrong_eval.get(i, [])
+            if c is None or not wl:
+                truth_ratio[i] = None
+                continue
+            wrong_gm = geometric_mean([x["prob"] for x in wl])
+            if wrong_gm is None:
+                truth_ratio[i] = None
+                continue
+            truth_ratio[i] = c / (c + wrong_gm + 1e-10)
 
     # Aggregate metrics
     em_vals = []
@@ -158,7 +198,6 @@ def main():
         prob = correct[i]["prob"]
         para = para_probs[i] if para_probs is not None else None
         tr = truth_ratio[i] if truth_ratio is not None else None
-        mem = compute_mem_score(es, em, para, tr)
 
         if em is not None:
             em_vals.append(em)
@@ -170,18 +209,23 @@ def main():
             para_vals.append(para)
         if tr is not None:
             tr_vals.append(tr)
-        if mem is not None:
-            mem_vals.append(mem)
+
+    avg_em = sum(em_vals) / len(em_vals) if em_vals else None
+    avg_es = sum(es_vals) / len(es_vals) if es_vals else None
+    avg_prob = sum(prob_vals) / len(prob_vals) if prob_vals else None
+    avg_para = sum(para_vals) / len(para_vals) if para_vals else None
+    avg_tr = sum(tr_vals) / len(tr_vals) if tr_vals else None
+    avg_mem = compute_mem_score(avg_es, avg_em, avg_para, avg_tr)
 
     summary = {
         "model": model_id,
         "num_examples": len(data),
-        "avg_em": sum(em_vals) / len(em_vals) if em_vals else None,
-        "avg_es": sum(es_vals) / len(es_vals) if es_vals else None,
-        "avg_prob": sum(prob_vals) / len(prob_vals) if prob_vals else None,
-        "avg_paraprob": sum(para_vals) / len(para_vals) if para_vals else None,
-        "avg_truth_ratio": sum(tr_vals) / len(tr_vals) if tr_vals else None,
-        "avg_mem": sum(mem_vals) / len(mem_vals) if mem_vals else None,
+        "avg_em": avg_em,
+        "avg_es": avg_es,
+        "avg_prob": avg_prob,
+        "avg_paraprob": avg_para,
+        "avg_truth_ratio": avg_tr,
+        "avg_mem": avg_mem,
         "missing_paraphrase": para_probs is None,
         "missing_wrong": truth_ratio is None,
     }

@@ -57,7 +57,7 @@ def load_priv(m):
     if not p.exists():
         return None
     data = json.load(open(p))
-    return data.get('auc')
+    return data.get('privacy_score') or data.get('auc')
 
 
 def load_util(m):
@@ -65,10 +65,10 @@ def load_util(m):
     if not p.exists():
         return None
     data = json.load(open(p))
-    return data.get('model_utility')
+    return data.get('utility') or data.get('model_utility')
 
 
-def find_udr(m):
+def find_uds(m):
     # look for run.log under runs/0201alpha5 matching model
     candidates = list(run_root.glob(f"*{m}*_layer/run.log"))
     if not candidates:
@@ -80,23 +80,23 @@ def find_udr(m):
     candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
     path = candidates[0]
     text = path.read_text(errors='ignore')
-    # try to find Average UDR line first
-    m1 = re.findall(r"Average UDR\s*[:=]\s*([0-9]*\.?[0-9]+)", text)
+    # try to find Average UDS line first
+    m1 = re.findall(r"Average UDS\s*[:=]\s*([0-9]*\.?[0-9]+)", text)
     if m1:
         return float(m1[-1])
-    m2 = re.findall(r"UDR\s*[:=]\s*([0-9]*\.?[0-9]+)", text)
+    m2 = re.findall(r"UDS\s*[:=]\s*([0-9]*\.?[0-9]+)", text)
     if m2:
         return float(m2[-1])
     return None
 
 
-udr = [find_udr(m) for m in models]
+uds = [find_uds(m) for m in models]
 mem = [load_mem(m) for m in models]
 priv = [load_priv(m) for m in models]
 util = [load_util(m) for m in models]
 
-rows = [udr, mem, priv, util]
-row_labels = ['UDR', 'Mem', 'Privacy (AUC)', 'Utility']
+rows = [uds, mem, priv, util]
+row_labels = ['UDS', 'Mem', 'Privacy (sMIA HM)', 'Utility (HM)']
 
 mat = np.array([[np.nan if v is None else v for v in row] for row in rows], dtype=float)
 
@@ -137,7 +137,7 @@ for i in range(mat.shape[0]):
 
 cbar = fig.colorbar(im, ax=ax, fraction=0.02, pad=0.02)
 # Title
-ax.set_title('Alpha=5 Open-Unlearning Overview (24 models)\nUDR + Memorization + Privacy + Utility', fontsize=12)
+ax.set_title('Alpha=5 Open-Unlearning Overview (24 models)\nUDS + Memorization + Privacy + Utility', fontsize=12)
 
 fig.tight_layout()
 out_path = OUT / 'alpha5_openunlearning_overview_24.png'

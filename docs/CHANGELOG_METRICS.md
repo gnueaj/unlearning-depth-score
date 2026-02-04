@@ -17,7 +17,7 @@
 | **Status 결정** | `EM >= threshold` → KEPT | `Δ = full_score - patched_score > delta_threshold` → LOST |
 | **CLI 옵션** | `--metric em` | `--metric logprob` (기본값) |
 
-### 1.2 Log-Prob 기반 UDR 계산
+### 1.2 Log-Prob 기반 UDS 계산
 
 ```python
 # S1: Retain → Full 패칭
@@ -26,18 +26,18 @@ s1_delta = full_logprob - patched_logprob_with_retain
 # S2: Unlearn → Full 패칭
 s2_delta = full_logprob - patched_logprob_with_unlearn
 
-# UDR (log-prob 기반)
-UDR = sum(s2_delta where s2_delta > threshold) / sum(s1_delta where s1_delta > threshold)
+# UDS (log-prob 기반)
+UDS = sum(s2_delta where s2_delta > threshold) / sum(s1_delta where s1_delta > threshold)
 # clip to [0, 1]
 ```
 
 **해석:**
 - `Δ > 0`: 패칭으로 인해 reference token 확률이 감소 → 지식 손실
-- `UDR ≈ 1.0`: S2도 S1만큼 지식을 잃음 → 언러닝 성공
-- `UDR < 1.0`: S2가 S1보다 덜 잃음 → 지식 잔존
+- `UDS ≈ 1.0`: S2도 S1만큼 지식을 잃음 → 언러닝 성공
+- `UDS < 1.0`: S2가 S1보다 덜 잃음 → 지식 잔존
 
 ### 1.3 제거됨
-- `UDR_soft` (log-prob 모드에서 UDR과 동일하므로 제거)
+- `UDS_soft` (log-prob 모드에서 UDS과 동일하므로 제거)
 - `over/exact/under` 카테고리 출력 (로그 요약 단순화 목적)
 
 ### 1.3 핵심 함수 추가
@@ -175,7 +175,7 @@ def patch_hook(module, inputs, output):
 
 ### 4.3 논문 기술 권장사항
 
-> "UDR은 log-prob 기반으로 정의하며, activation patching은 내부 지식의 인과적 기여를 평가하는 보완 지표로 사용한다. 패칭 위치는 subject token이 아닌 일관된 boundary(마지막 프롬프트 토큰 기준 reference span)를 사용하며, 이는 자동 subject 추출의 불확실성을 회피하기 위한 실무적 선택이다."
+> "UDS은 log-prob 기반으로 정의하며, activation patching은 내부 지식의 인과적 기여를 평가하는 보완 지표로 사용한다. 패칭 위치는 subject token이 아닌 일관된 boundary(마지막 프롬프트 토큰 기준 reference span)를 사용하며, 이는 자동 subject 추출의 불확실성을 회피하기 위한 실무적 선택이다."
 
 ---
 
@@ -234,10 +234,10 @@ runs/MMDD_HHMMSS_tf_{method}_{mode}/
 | 2026-01-30 | `--data_path` 옵션 추가 (데이터셋 경로 지정) |
 | 2026-01-30 | `--log_span` 옵션 추가 (토큰 위치 로깅) |
 | 2026-01-30 | 기본값 변경: `--em_scope entity`, `--entity_source gt`, `--delta_threshold 0.02` |
-| 2026-01-30 | UDR 출력 소수점 3자리로 변경 |
+| 2026-01-30 | UDS 출력 소수점 3자리로 변경 |
 | 2026-01-28 | Log-prob 메트릭 추가, `--metric` 옵션 도입 |
 | 2026-01-28 | Reference span patching으로 변경 (single position → span) |
 | 2026-01-28 | `--log_mismatch` 옵션 추가 (토큰 불일치 로깅) |
-| 2026-01-28 | UDR 계산식 log-prob 기반으로 확장 |
+| 2026-01-28 | UDS 계산식 log-prob 기반으로 확장 |
 | 2026-01-26 | v6 데이터셋 적용 (Full entity 기준) |
 | 2026-01-26 | Entity-scope EM 도입 |
