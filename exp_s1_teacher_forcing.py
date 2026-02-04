@@ -13,7 +13,7 @@ Flow:
    - At each reference token position: patch source hidden → predict next token
    - Metric = EM or mean log-prob on reference span
 
-Output: Side-by-side S1 vs S2 comparison per example + UDR
+Output: Side-by-side S1 vs S2 comparison per example + UDS
 """
 
 import os
@@ -22,6 +22,7 @@ import json
 import argparse
 from datetime import datetime
 from typing import List, Dict
+import time
 
 import torch
 import numpy as np
@@ -498,6 +499,172 @@ def compute_logprob_teacher_forcing_layer(
     return token_logprobs.mean().item()
 
 
+def _prepare_batch_inputs(batch_ctxs, tokenizer, device):
+    """Prepare padded batch tensors and per-example metadata."""
+    pad_id = tokenizer.pad_token_id
+    if pad_id is None:
+        pad_id = tokenizer.eos_token_id
+
+    full_ids_list = [ctx["prompt_ids"] + ctx["ref_ids"] for ctx in batch_ctxs]
+    lengths = [len(x) for x in full_ids_list]
+    max_len = max(lengths)
+    batch_size = len(batch_ctxs)
+
+    input_ids = torch.full((batch_size, max_len), pad_id, device=device, dtype=torch.long)
+    attention_mask = torch.zeros((batch_size, max_len), device=device, dtype=torch.long)
+
+    for i, ids in enumerate(full_ids_list):
+        input_ids[i, :len(ids)] = torch.tensor(ids, device=device, dtype=torch.long)
+        attention_mask[i, :len(ids)] = 1
+
+    meta = {
+        "lengths": lengths,
+        "start": [ctx["start"] for ctx in batch_ctxs],
+        "patch_start": [ctx["patch_start"] for ctx in batch_ctxs],
+        "patch_end": [ctx["patch_end"] for ctx in batch_ctxs],
+        "eval_start": [ctx["eval_start"] for ctx in batch_ctxs],
+        "eval_end": [ctx["eval_end"] for ctx in batch_ctxs],
+        "eval_ref_ids": [ctx["eval_ref_ids"] for ctx in batch_ctxs],
+    }
+    return input_ids, attention_mask, meta
+
+
+def build_logprob_ctx(tokenizer, prompt: str, reference: str, eval_span, patch_scope: str):
+    """Build context dict for batched log-prob evaluation."""
+    prompt_ids = tokenizer.encode(prompt, add_special_tokens=True)
+    ref_ids = tokenizer.encode(reference, add_special_tokens=False)
+    if len(ref_ids) == 0:
+        return None
+
+    prompt_len = len(prompt_ids)
+    start = max(prompt_len - 1, 0)
+    end = start + len(ref_ids)
+
+    eval_start = start
+    eval_end = end
+    eval_ref_ids = ref_ids
+    if eval_span is not None:
+        span_start, span_end = eval_span
+        eval_start = start + span_start
+        eval_end = start + span_end
+        eval_ref_ids = ref_ids[span_start:span_end]
+
+    patch_start = start
+    patch_end = end
+    if patch_scope == "span" and eval_span is not None:
+        patch_start = eval_start
+        patch_end = eval_end
+
+    return {
+        "prompt_ids": prompt_ids,
+        "ref_ids": ref_ids,
+        "start": start,
+        "patch_start": patch_start,
+        "patch_end": patch_end,
+        "eval_start": eval_start,
+        "eval_end": eval_end,
+        "eval_ref_ids": eval_ref_ids,
+    }
+
+
+def compute_logprob_teacher_forcing_baseline_batch(
+    model,
+    tokenizer,
+    batch_ctxs,
+):
+    """Batch baseline log-prob (no patching)."""
+    device = next(model.parameters()).device
+    input_ids, attention_mask, meta = _prepare_batch_inputs(batch_ctxs, tokenizer, device)
+
+    with torch.no_grad():
+        outputs = model(input_ids, attention_mask=attention_mask)
+
+    logits = outputs.logits
+    out = []
+    for i in range(len(batch_ctxs)):
+        es = meta["eval_start"][i]
+        ee = meta["eval_end"][i]
+        if ee <= es:
+            out.append(float("-inf"))
+            continue
+        labels = torch.tensor([meta["eval_ref_ids"][i]], device=device)
+        token_logprobs = _gather_token_logprobs(logits[i:i+1, es:ee, :], labels)
+        out.append(token_logprobs.mean().item())
+    return out
+
+
+def compute_logprob_teacher_forcing_layer_batch(
+    source_model,
+    target_model,
+    tokenizer,
+    batch_ctxs,
+    layer: int,
+    patch_scope: str = "span"
+):
+    """Batch log-prob with layer patching (logprob metric only)."""
+    device = next(target_model.parameters()).device
+    input_ids, attention_mask, meta = _prepare_batch_inputs(batch_ctxs, tokenizer, device)
+
+    source_hidden_all = None
+
+    def capture_hook(module, inputs, output):
+        nonlocal source_hidden_all
+        if isinstance(output, tuple):
+            source_hidden_all = output[0].detach().clone()
+        else:
+            source_hidden_all = output.detach().clone()
+
+    source_layer = source_model.model.layers[layer]
+    handle = source_layer.register_forward_hook(capture_hook)
+    with torch.no_grad():
+        source_model(input_ids, attention_mask=attention_mask)
+    handle.remove()
+
+    def patch_hook(module, inputs, output):
+        if isinstance(output, tuple):
+            hs = output[0].clone()
+        else:
+            hs = output.clone()
+
+        for b in range(hs.size(0)):
+            length = meta["lengths"][b]
+            start = meta["start"][b]
+            ps = meta["patch_start"][b]
+            pe = meta["patch_end"][b]
+            if start >= length:
+                continue
+            if patch_scope == "boundary":
+                hs[b, start, :] = source_hidden_all[b, start, :].to(hs.dtype)
+            else:
+                ps = min(ps, length)
+                pe = min(pe, length)
+                if ps < pe:
+                    hs[b, ps:pe, :] = source_hidden_all[b, ps:pe, :].to(hs.dtype)
+
+        if isinstance(output, tuple):
+            return (hs,) + output[1:]
+        return hs
+
+    target_layer = target_model.model.layers[layer]
+    handle = target_layer.register_forward_hook(patch_hook)
+    with torch.no_grad():
+        outputs = target_model(input_ids, attention_mask=attention_mask)
+    handle.remove()
+
+    logits = outputs.logits
+    out = []
+    for i in range(len(batch_ctxs)):
+        es = meta["eval_start"][i]
+        ee = meta["eval_end"][i]
+        if ee <= es:
+            out.append(float("-inf"))
+            continue
+        labels = torch.tensor([meta["eval_ref_ids"][i]], device=device)
+        token_logprobs = _gather_token_logprobs(logits[i:i+1, es:ee, :], labels)
+        out.append(token_logprobs.mean().item())
+    return out
+
+
 def compute_em_teacher_forcing_mlp(
     source_model,
     target_model,
@@ -683,13 +850,282 @@ def compute_logprob_teacher_forcing_mlp(
     return token_logprobs.mean().item()
 
 
+def _run_s1_s2_side_by_side_logprob_batch(
+    retain, unlearn, full, tokenizer, prefix_data, layer_list,
+    em_threshold=0.5, patch_mode="layer", unlearn_name="unlearn",
+    em_scope="full", entity_source="gt", log_mismatch=False, mismatch_max=5,
+    log_file=None, delta_threshold=0.02, patch_scope="span",
+    reference="gt", log_span=False, reference_scope="continuation",
+    batch_size: int = 1
+):
+    """Batched log-prob S1/S2 run (layer patching only)."""
+    results = []
+    skipped_indices = []
+    gk_count = 0
+    categories = None
+
+    def flush_batch(batch_ctxs, batch_meta):
+        if not batch_ctxs:
+            return
+
+        full_scores = compute_logprob_teacher_forcing_baseline_batch(
+            full, tokenizer, batch_ctxs
+        )
+        for m, fs in zip(batch_meta, full_scores):
+            m["full_score"] = fs
+            m["s1_details"] = []
+            m["s2_details"] = []
+            m["s1_deltas"] = []
+            m["s2_deltas"] = []
+            m["s1_lost"] = 0
+            m["s2_lost"] = 0
+
+        for layer in layer_list:
+            s1_scores = compute_logprob_teacher_forcing_layer_batch(
+                retain, full, tokenizer, batch_ctxs, layer, patch_scope=patch_scope
+            )
+            s2_scores = compute_logprob_teacher_forcing_layer_batch(
+                unlearn, full, tokenizer, batch_ctxs, layer, patch_scope=patch_scope
+            )
+
+            for j, meta in enumerate(batch_meta):
+                full_score = meta["full_score"]
+                s1_score = s1_scores[j]
+                s2_score = s2_scores[j]
+
+                s1_delta = full_score - s1_score
+                s2_delta = full_score - s2_score
+
+                s1_status = "LOST" if s1_delta > delta_threshold else "KEPT"
+                s2_status = "LOST" if s2_delta > delta_threshold else "KEPT"
+                if s1_status == "LOST":
+                    meta["s1_lost"] += 1
+                if s2_status == "LOST":
+                    meta["s2_lost"] += 1
+
+                meta["s1_deltas"].append(s1_delta)
+                meta["s2_deltas"].append(s2_delta)
+
+                meta["s1_details"].append({
+                    "layer": layer,
+                    "score": s1_score,
+                    "delta": s1_delta,
+                    "status": s1_status
+                })
+                meta["s2_details"].append({
+                    "layer": layer,
+                    "score": s2_score,
+                    "delta": s2_delta,
+                    "status": s2_status
+                })
+
+        for meta in batch_meta:
+            s1_details = meta["s1_details"]
+            s2_details = meta["s2_details"]
+            s1_deltas = meta["s1_deltas"]
+            s2_deltas = meta["s2_deltas"]
+
+            ft_layers = [s1["layer"] for s1 in s1_details if s1["status"] == "LOST"]
+            erased_layers = [s2["layer"] for s2 in s2_details if s2["status"] == "LOST" and s2["layer"] in ft_layers]
+
+            # FT-only UDS with per-layer clipping to avoid overshoot.
+            ft_set = set(ft_layers)
+            denom = 0.0
+            numer = 0.0
+            for s1, s2, d1, d2 in zip(s1_details, s2_details, s1_deltas, s2_deltas):
+                if s1["layer"] not in ft_set:
+                    continue
+                if d1 <= delta_threshold:
+                    continue
+                denom += d1
+                ratio = d2 / d1
+                if ratio < 0.0:
+                    ratio = 0.0
+                elif ratio > 1.0:
+                    ratio = 1.0
+                numer += d1 * ratio
+            uds = numer / denom if denom > 0 else None
+
+            # Build side-by-side log
+            log_msg = f"\n{'='*80}\n"
+            log_msg += f"[{meta['index']}/{meta['total']}] Example {meta['idx']}\n"
+            log_msg += f"  Q: {meta['question']}\n"
+            log_msg += f"  Prefix: '{meta['prefix']}'\n"
+            log_msg += f"  GT (entity): '{meta['gt_entity']}'\n"
+            log_msg += f"  Eval entity ({meta['entity_source']}): '{meta['entity_text']}'\n"
+            if log_span:
+                if "entity_span" in meta and isinstance(meta["entity_span"], dict):
+                    es = meta["entity_span"]
+                    log_msg += f"  Entity span (dataset tokens): {es.get('start')}:{es.get('end')}\n"
+                if meta["eval_span"] is not None:
+                    log_msg += f"  Eval span (reference tokens): {meta['eval_span'][0]}:{meta['eval_span'][1]}\n"
+            log_msg += f"  EM scope: {em_scope}\n"
+            log_msg += f"  Reference source: {meta['reference_source']}\n"
+            log_msg += f"  Reference text: \"{clean_text(meta['reference_text'])}\"\n"
+            log_msg += f"  Full baseline: \"{clean_text(meta['full_gen'])}\"\n"
+            log_msg += f"  Retain baseline: \"{clean_text(meta['retain_gen'])}\"\n"
+            log_msg += f"  {unlearn_name} baseline: \"{clean_text(meta['unlearn_gen'])}\"\n"
+            log_msg += f"  Full log-prob (ref span): {meta['full_score']:.3f}\n"
+            log_msg += f"{'='*80}\n"
+            log_msg += f"  {'Layer':<6} | {'S1 (Retain→Full)':<25} | {'S2 ('+unlearn_name+'→Full)':<25}\n"
+            log_msg += f"  {'-'*6} | {'-'*25} | {'-'*25}\n"
+
+            for s1, s2 in zip(s1_details, s2_details):
+                s1_str = f"logp={s1['score']:.3f} Δ={s1['delta']:.3f} [{s1['status']}]"
+                s2_str = f"logp={s2['score']:.3f} Δ={s2['delta']:.3f} [{s2['status']}]"
+                log_msg += f"  L{s1['layer']:02d}   | {s1_str:<25} | {s2_str:<25}\n"
+
+            log_msg += f"  {'-'*6} | {'-'*25} | {'-'*25}\n"
+            log_msg += f"  FT layers (S1 LOST): {ft_layers}\n"
+            log_msg += f"  Erased layers (S2 LOST ∩ FT): {erased_layers}\n"
+            log_msg += f"  UDS = {uds:.3f}\n" if uds is not None else f"  UDS = N/A (no FT signal)\n"
+
+            if log_file:
+                log_file.write(log_msg)
+                log_file.flush()
+
+            results.append({
+                "idx": meta["idx"],
+                "question": meta["question"],
+                "prefix": meta["prefix"],
+                "entity": meta["entity"],
+                "gt_entity": meta["gt_entity"],
+                "entity_text": meta["entity_text"],
+                "entity_source": meta["entity_source"],
+                "full_gen": meta["full_gen"],
+                "retain_gen": meta["retain_gen"],
+                "unlearn_gen": meta["unlearn_gen"],
+                "s1_lost": meta["s1_lost"],
+                "s2_lost": meta["s2_lost"],
+                "ft_layers": ft_layers,
+                "erased_layers": erased_layers,
+                "uds": uds,
+                "is_gk": None,
+                "retain_em_full": None,
+                "full_score": meta["full_score"],
+                "eval_scope": em_scope,
+                "eval_span": meta["eval_span"],
+                "s1_details": s1_details,
+                "s2_details": s2_details
+            })
+
+    batch_ctxs = []
+    batch_meta = []
+    total = len(prefix_data)
+
+    for i, item in enumerate(tqdm(prefix_data, desc=f"S1/S2 {patch_mode} (batched)")):
+        question = item["question"]
+        prefix = item["prefix"]
+        entity = item["entity"]
+        gt_entity = item.get("gt_entity", entity)
+        idx = item["idx"]
+
+        if reference_scope == "full_answer":
+            prompt = f"Question: {question}\nAnswer:"
+        else:
+            prompt = f"Question: {question}\nAnswer: {prefix}"
+
+        if "full_output" in item:
+            full_gen = item["full_output"]
+        else:
+            full_gen = generate_baseline(full, tokenizer, prompt, max_new_tokens=30)
+
+        retain_gen = generate_baseline(retain, tokenizer, prompt, max_new_tokens=30)
+        unlearn_gen = generate_baseline(unlearn, tokenizer, prompt, max_new_tokens=30)
+
+        reference_source = reference
+        if reference_source == "gt":
+            answer_text = item["answer"]
+            if reference_scope == "continuation":
+                if answer_text.startswith(prefix):
+                    answer_text = answer_text[len(prefix):]
+            reference_text = normalize_reference_for_eval(prompt, answer_text)
+        else:
+            reference_text = normalize_reference_for_eval(prompt, full_gen)
+
+        if entity_source == "gt":
+            entity_text = gt_entity
+        else:
+            entity_text = item.get("full_entity", entity)
+
+        eval_span = get_eval_span(tokenizer, reference_text, entity_text, em_scope)
+        if em_scope == "entity" and eval_span is None:
+            skipped_indices.append(idx)
+            if log_file:
+                log_msg = f"\n{'='*80}\n"
+                log_msg += f"[{i+1}/{len(prefix_data)}] Example {idx} | SKIPPED (entity span not found)\n"
+                log_msg += f"  Q: {question}\n"
+                log_msg += f"  Prefix: '{prefix}'\n"
+                log_msg += f"  GT (entity): '{gt_entity}'\n"
+                log_msg += f"  Eval entity ({entity_source}): '{entity_text}'\n"
+                if log_span:
+                    if "entity_span" in item and isinstance(item["entity_span"], dict):
+                        es = item["entity_span"]
+                        log_msg += f"  Entity span (dataset tokens): {es.get('start')}:{es.get('end')}\n"
+                    if eval_span is not None:
+                        log_msg += f"  Eval span (reference tokens): {eval_span[0]}:{eval_span[1]}\n"
+                log_msg += f"  Reference source: {reference_source}\n"
+                log_msg += f"  Reference text: \"{clean_text(reference_text)}\"\n"
+                log_msg += f"  Full baseline: \"{clean_text(full_gen)}\"\n"
+                log_msg += f"{'='*80}\n"
+                log_file.write(log_msg)
+                log_file.flush()
+            continue
+
+        ctx = build_logprob_ctx(tokenizer, prompt, reference_text, eval_span, patch_scope)
+        if ctx is None:
+            skipped_indices.append(idx)
+            continue
+
+        batch_ctxs.append(ctx)
+        batch_meta.append({
+            "index": i + 1,
+            "total": total,
+            "idx": idx,
+            "question": question,
+            "prefix": prefix,
+            "entity": entity,
+            "gt_entity": gt_entity,
+            "entity_text": entity_text,
+            "entity_source": entity_source,
+            "full_gen": full_gen,
+            "retain_gen": retain_gen,
+            "unlearn_gen": unlearn_gen,
+            "reference_text": reference_text,
+            "reference_source": reference_source,
+            "eval_span": eval_span,
+            "entity_span": item.get("entity_span"),
+        })
+
+        if len(batch_ctxs) >= batch_size:
+            flush_batch(batch_ctxs, batch_meta)
+            batch_ctxs = []
+            batch_meta = []
+
+    flush_batch(batch_ctxs, batch_meta)
+
+    uds_values = [r["uds"] for r in results if r["uds"] is not None]
+    avg_uds = sum(uds_values) / len(uds_values) if uds_values else 0.0
+
+    return results, gk_count, categories, avg_uds, skipped_indices
+
+
 def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_list,
                             em_threshold=0.5, patch_mode="layer", unlearn_name="unlearn",
                             em_scope="full", entity_source="gt", em_exact=False,
                             log_mismatch=False, mismatch_max=5, log_file=None,
                             metric="em", delta_threshold=0.02, patch_scope="span",
-                            reference="gt", log_span=False, reference_scope="continuation"):
+                            reference="gt", log_span=False, reference_scope="continuation",
+                            batch_size: int = 1):
     """Run S1 and S2 side by side for each example using teacher forcing EM or log-prob."""
+    if metric == "logprob" and patch_mode == "layer" and batch_size > 1 and not log_mismatch:
+        return _run_s1_s2_side_by_side_logprob_batch(
+            retain, unlearn, full, tokenizer, prefix_data, layer_list,
+            em_threshold, patch_mode, unlearn_name, em_scope, entity_source,
+            log_mismatch, mismatch_max, log_file, delta_threshold, patch_scope,
+            reference, log_span, reference_scope, batch_size
+        )
+
     results = []
     skipped_indices = []
 
@@ -910,14 +1346,14 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
 
         log_msg += f"  {'-'*6} | {'-'*25} | {'-'*25}\n"
 
-        # Calculate UDR and FT/Erased layers
+        # Calculate UDS and FT/Erased layers
         ft_layers = [s1["layer"] for s1 in s1_details if s1["status"] == "LOST"]
         erased_layers = [s2["layer"] for s2 in s2_details if s2["status"] == "LOST" and s2["layer"] in ft_layers]
 
         if metric == "em":
-            udr = len(erased_layers) / len(ft_layers) if ft_layers else 0.0
+            uds = len(erased_layers) / len(ft_layers) if ft_layers else 0.0
         else:
-            # FT-only UDR with per-layer clipping to avoid overshoot.
+            # FT-only UDS with per-layer clipping to avoid overshoot.
             ft_set = set(ft_layers)
             denom = 0.0
             numer = 0.0
@@ -934,17 +1370,17 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
                     ratio = 1.0
                 numer += d1 * ratio
             if denom > 0:
-                udr = numer / denom
+                uds = numer / denom
             else:
-                udr = None
+                uds = None
 
         log_msg += f"  FT layers (S1 LOST): {ft_layers}\n"
         log_msg += f"  Erased layers (S2 LOST ∩ FT): {erased_layers}\n"
         if metric == "em":
-            log_msg += f"  UDR = {len(erased_layers)}/{len(ft_layers)} = {udr:.3f}\n" if ft_layers else f"  UDR = N/A (no FT layers)\n"
+            log_msg += f"  UDS = {len(erased_layers)}/{len(ft_layers)} = {uds:.3f}\n" if ft_layers else f"  UDS = N/A (no FT layers)\n"
             log_msg += f"  GK (retain TF EM vs Full ref, info): {is_gk} (EM={retain_em_full:.2f})\n"
         else:
-            log_msg += f"  UDR = {udr:.3f}\n" if udr is not None else f"  UDR = N/A (no FT signal)\n"
+            log_msg += f"  UDS = {uds:.3f}\n" if uds is not None else f"  UDS = N/A (no FT signal)\n"
 
         if log_file:
             log_file.write(log_msg)
@@ -965,7 +1401,7 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
             "s2_lost": s2_lost,
             "ft_layers": ft_layers,
             "erased_layers": erased_layers,
-            "udr": udr,
+            "uds": uds,
             "is_gk": is_gk,
             "retain_em_full": retain_em_full,
             "full_score": full_score if metric == "logprob" else None,
@@ -975,11 +1411,11 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
             "s2_details": s2_details
         })
 
-    # Calculate average UDR (all evaluable examples with FT signal)
-    udr_values = [r["udr"] for r in results if r["udr"] is not None]
-    avg_udr = sum(udr_values) / len(udr_values) if udr_values else 0.0
+    # Calculate average UDS (all evaluable examples with FT signal)
+    uds_values = [r["uds"] for r in results if r["uds"] is not None]
+    avg_uds = sum(uds_values) / len(uds_values) if uds_values else 0.0
 
-    return results, gk_count, categories, avg_udr, skipped_indices
+    return results, gk_count, categories, avg_uds, skipped_indices
 
 
 def plot_erasure_histogram(results, output_path, method_name="Unlearn", mode="layer"):
@@ -1031,7 +1467,7 @@ def main():
     parser.add_argument("--metric", type=str, choices=["em", "logprob"], default="logprob")
     parser.add_argument("--em_threshold", type=float, default=1.0)
     parser.add_argument("--delta_threshold", type=float, default=0.05)
-    parser.add_argument("--patch_scope", type=str, choices=["span", "boundary"], default="boundary",
+    parser.add_argument("--patch_scope", type=str, choices=["span", "boundary"], default="span",
                         help="Patch reference span or only boundary (last prompt token)")
     parser.add_argument("--em_type", type=str, choices=["token", "exact"], default="token")
     parser.add_argument("--em_scope", type=str, choices=["full", "entity"], default="entity")
@@ -1048,6 +1484,8 @@ def main():
     parser.add_argument("--mismatch_max", type=int, default=5)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--gpu", type=int, default=0)
+    parser.add_argument("--batch_size", type=int, default=1,
+                        help="Batch size for log-prob metric (layer mode only).")
     parser.add_argument("--mode", type=str, choices=["layer", "mlp"], default="layer")
     parser.add_argument("--unlearn_model", type=str, required=True,
                         help="Unlearn model (e.g., simnpo, idknll)")
@@ -1071,6 +1509,8 @@ def main():
     print(f"Entity source: {args.entity_source}")
     print(f"Reference scope: {args.reference_scope}")
     print(f"Patch scope: {args.patch_scope}")
+    if args.metric == "logprob" and args.mode == "layer":
+        print(f"Batch size: {args.batch_size}")
     if args.log_mismatch:
         print(f"Mismatch logging: enabled (max {args.mismatch_max})")
     print(f"Unlearn model: {args.unlearn_model}")
@@ -1124,6 +1564,8 @@ def main():
         log_file.write(f"Patch scope: {args.patch_scope}\n")
         log_file.write(f"Data path: {args.data_path}\n")
         log_file.write(f"Reference source: {args.reference}\n")
+        if args.metric == "logprob" and args.mode == "layer":
+            log_file.write(f"Batch size: {args.batch_size}\n")
         if args.log_mismatch:
             log_file.write(f"Mismatch logging: enabled (max {args.mismatch_max})\n")
         if args.log_span:
@@ -1132,18 +1574,21 @@ def main():
         log_file.write(f"Layers: {layer_list}\n")
         log_file.write(f"Examples: {len(prefix_data)}\n\n")
 
-        results, gk_count, categories, avg_udr, skipped_indices = run_s1_s2_side_by_side(
+        start_time = time.time()
+        results, gk_count, categories, avg_uds, skipped_indices = run_s1_s2_side_by_side(
             retain, unlearn, full, tokenizer, prefix_data, layer_list,
             args.em_threshold, args.mode, args.unlearn_model, args.em_scope, args.entity_source,
             em_exact, args.log_mismatch, args.mismatch_max, log_file,
             args.metric, args.delta_threshold, args.patch_scope, args.reference, args.log_span,
-            args.reference_scope
+            args.reference_scope, args.batch_size
         )
+        elapsed = time.time() - start_time
 
         # Write summary at the end
         total = len(prefix_data)
         skipped_count = len(skipped_indices)
         evaluated = total - skipped_count
+        sec_per_eval = elapsed / evaluated if evaluated else None
 
         summary_msg = f"\n\n{'='*80}\n"
         summary_msg += f"EXPERIMENT SUMMARY\n"
@@ -1166,7 +1611,9 @@ def main():
             summary_msg += "Evaluable (non-skipped): 0 (0.0%)\n"
             if args.metric == "em":
                 summary_msg += "GK (retain TF EM vs Full ref, info): 0 (0.0%)\n"
-        summary_msg += f"UDR: {avg_udr:.3f}\n"
+        summary_msg += f"UDS: {avg_uds:.3f}\n"
+        if evaluated:
+            summary_msg += f"Time: {elapsed:.1f}s | {elapsed/evaluated:.3f}s per evaluable example\n"
         summary_msg += f"{'='*80}\n"
 
         log_file.write(summary_msg)
@@ -1177,6 +1624,8 @@ def main():
     # Save JSON results
     summary = {
         "total_examples": total,
+        "elapsed_sec": elapsed,
+        "sec_per_evaluable": sec_per_eval,
         "metric": args.metric,
         "em_threshold": args.em_threshold,
         "delta_threshold": args.delta_threshold,
@@ -1187,7 +1636,9 @@ def main():
         "mode": args.mode,
         "unlearn_model": args.unlearn_model,
         "gk_count": gk_count,
-        "avg_udr": avg_udr,
+        "avg_uds": avg_uds,
+        # backward-compat key (older parsers expected UDR)
+        "avg_udr": avg_uds,
         "skipped_count": skipped_count,
         "skipped_indices": skipped_indices
     }

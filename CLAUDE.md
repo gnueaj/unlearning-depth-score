@@ -6,6 +6,12 @@ This document provides context for AI assistants (Claude, GPT, etc.) working on 
 
 **Activation Patching for Unlearning Audit** is a white-box analysis tool for **quantifying residual knowledge** in unlearned LLMs via hidden state patching. It answers: "How much knowledge remains after unlearning, and where is it stored?"
 
+## Recent Updates (2026-02-04)
+- Added **batch_size** to `exp_s1_teacher_forcing.py` (log-prob + layer mode) for faster UDS runs.
+- Standardized naming to **UDS (Unlearning Depth Score)**; summaries now emit `avg_uds` and a compatibility key `avg_udr`.
+- **SimNPO γ sweep**: added γ=0.25 models (β ∈ {3.5,4.5}, lr ∈ {1e-5,2e-5,5e-5}) to UDS + Open-Unlearning evals.
+- Open-Unlearning **alpha_all table/HTML** rebuilt with formula panel + method count; simnpo γ sweep noted.
+
 ## Environment
 
 - **Available GPUs**: 0, 1 (GPU 2 does not exist)
@@ -36,13 +42,19 @@ When running multiple experiments in parallel:
 - **Layer access**: `model.model.layers[idx]`
 
 ### TOFU Models (open-unlearning)
-| Model | HuggingFace ID |
-|-------|----------------|
-| Full (trained on all data) | `open-unlearning/tofu_Llama-3.2-1B-Instruct_full` |
-| Retain90 (trained without forget10) | `open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90` |
-| SimNPO | `open-unlearning/unlearn_tofu_..._SimNPO_...` |
-| IdkNLL | `open-unlearning/unlearn_tofu_..._IdkNLL_...` |
-| GradDiff | `open-unlearning/unlearn_tofu_..._GradDiff_...` |
+| Model | HuggingFace ID | Alias |
+|-------|----------------|-------|
+| Full (trained on all data) | `open-unlearning/tofu_Llama-3.2-1B-Instruct_full` | `full` |
+| Retain90 (trained without forget10) | `open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90` | `retain` |
+| SimNPO | `open-unlearning/unlearn_tofu_..._SimNPO_...` | - |
+| IdkNLL | `open-unlearning/unlearn_tofu_..._IdkNLL_...` | - |
+| GradDiff | `open-unlearning/unlearn_tofu_..._GradDiff_...` | - |
+
+**Special Model Aliases** (config.py `SPECIAL_MODELS`):
+```python
+get_model_id("full")   # → open-unlearning/tofu_Llama-3.2-1B-Instruct_full
+get_model_id("retain") # → open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90
+```
 
 ## Unlearning Methods
 
@@ -111,7 +123,8 @@ Stage 1 (S1): Retain → Full
 
 Stage 2 (S2): Unlearn → Full
   - 언러닝 모델의 hidden state로 패칭
-  - S2 delta = 해당 레이어에서 언러닝 후 남은 지식량
+  - S2 delta 높음 = Unlearn이 Full과 다름 = 지식 삭제됨 (좋음)
+  - S2 delta 낮음 = Unlearn이 Full과 비슷 = 지식 남아있음 (나쁨)
 ```
 
 ### 3. Delta (Δ) Metric
@@ -124,41 +137,42 @@ patched_score = mean(log P(ref_token | context, patched))
 
 # Delta: 패칭으로 인한 확률 감소
 Δ = full_score - patched_score
-# Δ > τ: 해당 레이어에 지식이 저장되어 있음
+# Δ > τ: Source가 Full과 다름 = Source에 해당 지식 없음
+# Δ ≈ 0: Source가 Full과 비슷 = Source에 해당 지식 있음
 ```
 
-### 4. UDR (Unlearning Depth Rate)
+### 4. UDS (Unlearning Depth Score)
 
-**정의**: 삭제 대상 지식 중 실제로 삭제된 비율 (per-example)
+**정의**: Unlearn 모델이 Retain 모델처럼 행동하는 비율 (per-example)
 
 ```python
-# FT layers: S1 delta > τ인 레이어들 (삭제 대상)
+# FT layers: S1 delta > τ인 레이어들 (Retain이 지식 없는 레이어)
 # Per-layer clipping으로 계산:
 
-denom = 0.0  # 삭제 대상 총량
-numer = 0.0  # 삭제된 양
+denom = 0.0
+numer = 0.0
 
 for layer in FT_layers:
-    d1 = s1_delta[layer]  # 삭제 대상량
-    d2 = s2_delta[layer]  # 잔존량
+    d1 = s1_delta[layer]  # Retain→Full 패칭 시 score 하락량 (Retain에 지식 없음)
+    d2 = s2_delta[layer]  # Unlearn→Full 패칭 시 score 하락량 (Unlearn에 지식 없음)
 
-    ratio = d2 / d1
+    ratio = d2 / d1  # Unlearn이 Retain처럼 행동하는 정도
     ratio = max(0.0, min(ratio, 1.0))  # clip to [0, 1]
 
     denom += d1
     numer += d1 * ratio
 
-UDR = numer / denom  # 가중 평균
+UDS = numer / denom  # 가중 평균
 ```
 
 **해석**:
-- UDR = 0: 완벽한 삭제 (S2에서 지식 없음)
-- UDR = 1: 삭제 실패 (S2가 S1과 동일)
-- **낮을수록 언러닝이 잘 됨**
+- UDS = 1: 완벽한 언러닝 (Unlearn ≈ Retain, 둘 다 지식 없음)
+- UDS = 0: 언러닝 실패 (Unlearn에 지식이 남아있음)
+- **높을수록 언러닝이 잘 됨**
 
 **Clipping 이유**:
-- `ratio < 0`: S2 delta가 음수 = 패칭이 오히려 확률을 높임 = 지식이 남아있음 → 0으로 처리
-- `ratio > 1`: Over-erasure = S2 > S1 → 1로 clip
+- `ratio < 0`: s2_delta < 0 = 패칭이 오히려 확률을 높임 (이상치) → 0으로 처리
+- `ratio > 1`: s2_delta > s1_delta = Unlearn이 Retain보다 더 많이 손상됨 (over-unlearning) → 1로 clip
 
 ### 5. Patching Mode: Layer vs MLP
 
@@ -235,7 +249,7 @@ wait
 # results.json 내 각 예제
 {
     "idx": 0,
-    "udr": 0.35,                    # Unlearning Depth Rate
+    "uds": 0.35,                    # Unlearning Depth Score
     "ft_layers": [5, 6, 7, ...],    # S1 LOST layers (삭제 대상)
     "erased_layers": [5, 6],        # S2 LOST layers (삭제됨)
     "s1_details": [                 # 레이어별 S1 결과
@@ -251,13 +265,17 @@ wait
 
 ```
 ├── patchscope/
-│   ├── config.py         # Model registry (aliases)
-│   ├── unlearn_models.py # Full model registry (398 models)
-│   ├── core.py           # Core patching functions
-│   ├── models.py         # Model loading
-│   └── utils.py          # Utilities
+│   ├── config.py           # Model registry (aliases, SPECIAL_MODELS)
+│   ├── unlearn_models.py   # Full model registry (398 models)
+│   ├── core.py             # Core patching functions
+│   ├── models.py           # Model loading
+│   ├── utils.py            # Utilities
+│   ├── memorization.py     # Mem metrics (EM, ES, TruthRatio)
+│   ├── memorization_eval.py # Memorization evaluation CLI
+│   ├── privacy_eval.py     # MIA attacks (LOSS, MinK, MinK++, ZLib)
+│   └── utility_eval.py     # Utility evaluation (TOFU_MU, ROUGE, TruthRatio)
 ├── scripts/
-│   ├── plot_alpha5_histograms.py     # UDR histogram plots
+│   ├── plot_alpha5_histograms.py     # UDS histogram plots
 │   ├── plot_alpha5_advanced_v2.py    # Advanced visualizations
 │   └── create_v7_gt_reference.py     # Dataset creation
 ├── tofu_data/
@@ -293,9 +311,72 @@ Examples:
 - rmu_lr2e5_l10_s10_ep5
 ```
 
+## Open-Unlearning Evaluation Metrics
+
+### Reference Values (Paper Table 3)
+| Model | Mem | Priv | Utility |
+|-------|-----|------|---------|
+| Full (Init finetuned) | 0.00 | 0.10 | 1.00 |
+| Retain | 0.31 | 1.00 | 0.99 |
+
+### Memorization Score (Appendix F.1)
+```python
+Mem = HM(1-ES, 1-EM, 1-Para.Prob, 1-TruthRatio)
+# HM = Harmonic Mean
+
+# Components:
+# - ES: Extraction Strength (Carlini-style suffix match)
+# - EM: Exact Match rate
+# - Para.Prob: exp(-avg_loss) on paraphrased answers
+# - TruthRatio: correct / (correct + wrong)  (prob_mean aggregator)
+#   - correct = gm(paraphrased_probs)
+#   - wrong = gm(perturbed_probs)
+```
+**Status**: ✓ Our implementation matches Open-Unlearning
+
+### Privacy Score (Appendix F.1)
+```python
+Priv = HM(s_LOSS, s_ZLib, s_MinK, s_MinK++)
+
+# s_MIA = 1 - |auc_model - auc_retain| / |auc_full - auc_retain|
+# Higher = more similar to retain = better privacy
+# Clipped to [0, 1]
+```
+**Status**: ✓ Our implementation matches Open-Unlearning
+
+### Utility Score (Appendix F.1)
+```python
+Utility = HM(TOFU_MU, Fluency)
+
+# TOFU_MU = HM(9 sub-metrics: retain/ra/wf × Prob/ROUGE/TruthRatio)
+# Fluency = gibberish classifier prob (madhurjindal/autonlp-Gibberish-Detector)
+```
+**Status**: ✓ Our implementation matches Open-Unlearning
+- Note: Full model scaling은 미적용 (상대 비교에는 영향 없음)
+
+### Evaluation CLI Commands
+```bash
+# Memorization evaluation
+python -m patchscope.memorization_eval \
+    --model simnpo_lr2e5_b35_a1_d1_g0125_ep5 \
+    --hf_dataset locuslab/TOFU \
+    --hf_config forget10_perturbed \
+    --use_chat_template
+
+# Privacy evaluation (MIA) - all attacks with s_MIA scores
+python -m patchscope.privacy_eval \
+    --model simnpo_lr2e5_b35_a1_d1_g0125_ep5 \
+    --use_chat_template
+
+# Utility evaluation
+python -m patchscope.utility_eval \
+    --model simnpo_lr2e5_b35_a1_d1_g0125_ep5 \
+    --use_chat_template
+```
+
 ## Key Findings
 
-1. **UDR varies by method**: SimNPO < IdkNLL < GradDiff (낮을수록 좋음)
-2. **Learning rate impact**: 높은 LR → 더 공격적인 언러닝 → 낮은 UDR
+1. **UDS varies by method**: SimNPO > IdkNLL > GradDiff (높을수록 좋음)
+2. **Learning rate impact**: 높은 LR → 더 공격적인 언러닝 → 높은 UDS
 3. **Layer-wise pattern**: 중간 레이어 (5-10)에서 지식이 주로 저장됨
 4. **RMU layer targeting**: RMU-L10이 가장 효과적 (target layer와 FT layer가 겹침)
