@@ -1,0 +1,12 @@
+{
+  "model": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch5",
+  "num_examples": 400,
+  "avg_em": 0.9258297346532345,
+  "avg_es": 0.46638558427474075,
+  "avg_prob": 0.7472344088926911,
+  "avg_paraprob": 0.06948053562722635,
+  "avg_truth_ratio": 0.6845574786646264,
+  "avg_mem": 0.20406786414052805,
+  "missing_paraphrase": false,
+  "missing_wrong": false
+}

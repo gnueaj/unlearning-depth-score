@@ -1,0 +1,40 @@
+================================================================================
+S1/S2 Experiment with Teacher Forcing (Side-by-Side)
+================================================================================
+Mode: layer
+Metric: logprob
+Delta threshold: 0.05
+EM scope: entity
+Entity source: gt
+Reference scope: continuation
+Patch scope: span
+Unlearn model: idknll_lr5e5_a2_ep5
+
+Loading models...
+Loading unlearn model: open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr5e-05_alpha2_epoch5
+Layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+Loaded 367 examples
+
+========================================
+Running S1/S2 (layer, teacher forcing)
+========================================
+S1/S2 layer:   0%|          | 0/367 [00:00<?, ?it/s]S1/S2 layer:   0%|          | 1/367 [00:02<16:21,  2.68s/it]S1/S2 layer:   1%|          | 2/367 [00:05<15:03,  2.48s/it]S1/S2 layer:   1%|          | 3/367 [00:07<14:56,  2.46s/it]S1/S2 layer:   1%|          | 4/367 [00:09<14:50,  2.45s/it]S1/S2 layer:   1%|▏         | 5/367 [00:13<16:56,  2.81s/it]S1/S2 layer:   2%|▏         | 6/367 [00:16<16:47,  2.79s/it]S1/S2 layer:   2%|▏         | 7/367 [00:18<16:00,  2.67s/it]S1/S2 layer:   2%|▏         | 8/367 [00:21<16:12,  2.71s/it]S1/S2 layer:   2%|▏         | 9/367 [00:23<15:54,  2.67s/it]S1/S2 layer:   3%|▎         | 10/367 [00:26<15:23,  2.59s/it]S1/S2 layer:   3%|▎         | 10/367 [00:28<16:57,  2.85s/it]
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/exp_s1_teacher_forcing.py", line 1135, in main
+    results, gk_count, categories, avg_udr, skipped_indices = run_s1_s2_side_by_side(
+  File "/home/jaeung/activation-patching-unlearning/exp_s1_teacher_forcing.py", line 951, in run_s1_s2_side_by_side
+    log_file.flush()
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+OSError: [Errno 28] No space left on device
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/exp_s1_teacher_forcing.py", line 1205, in <module>
+    main()
+  File "/home/jaeung/activation-patching-unlearning/exp_s1_teacher_forcing.py", line 1173, in main
+    print(summary_msg)
+OSError: [Errno 28] No space left on device

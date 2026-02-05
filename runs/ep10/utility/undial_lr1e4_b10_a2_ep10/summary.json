@@ -1,0 +1,18 @@
+{
+  "model": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha2_epoch10",
+  "metrics": {
+    "retain_Q_A_Prob": 0.6109573382511735,
+    "retain_Q_A_ROUGE": 0.5645260139074918,
+    "retain_Truth_Ratio": 0.4580417489658697,
+    "ra_Q_A_Prob": 0.3789317248107345,
+    "ra_Q_A_ROUGE": 0.5028333333333334,
+    "ra_Truth_Ratio": 0.4802472186875285,
+    "wf_Q_A_Prob": 0.41411925915058884,
+    "wf_Q_A_ROUGE": 0.780911680911681,
+    "wf_Truth_Ratio": 0.5618640626845833
+  },
+  "model_utility": 0.5062870387961907,
+  "fluency": 0.8335012170509435,
+  "utility": 0.6299366503218564,
+  "fluency_model": "madhurjindal/autonlp-Gibberish-Detector-492513457"
+}

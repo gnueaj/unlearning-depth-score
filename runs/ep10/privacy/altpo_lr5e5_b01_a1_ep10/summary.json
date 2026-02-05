@@ -1,0 +1,33 @@
+{
+  "model": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha1_epoch10",
+  "attack": "all",
+  "attacks": {
+    "loss": {
+      "auc": 0.21835,
+      "retain_auc": 0.38235312499999996,
+      "full_auc": 0.99588125,
+      "s_mia": 0.732688497369212
+    },
+    "zlib": {
+      "auc": 0.22395937500000002,
+      "retain_auc": 0.304609375,
+      "full_auc": 0.99625,
+      "s_mia": 0.8833932000451824
+    },
+    "min_k": {
+      "auc": 0.22653125,
+      "retain_auc": 0.37731562500000004,
+      "full_auc": 0.996125,
+      "s_mia": 0.7563314631424256
+    },
+    "min_k++": {
+      "auc": 0.34415625,
+      "retain_auc": 0.470575,
+      "full_auc": 0.9974625,
+      "s_mia": 0.7600650043889824
+    }
+  },
+  "privacy_score": 0.7790158354369715,
+  "reference_model": "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90",
+  "full_model": "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
+}

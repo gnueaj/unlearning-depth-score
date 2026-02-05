@@ -1,0 +1,865 @@
+S1/S2 LAYER Patching with Teacher Forcing
+Metric: log-prob (reference tokens), reference = dataset reference
+Delta threshold: 0.05
+EM scope: entity
+Entity source: gt
+Reference scope: continuation
+Patch scope: span
+Data path: tofu_data/forget10_filtered_v7_gt.json
+Reference source: gt
+Batch size: 1
+S1: Retain → Full | S2: simnpo_lr1e5_b35_a1_d1_g025_ep5 → Full
+Layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+Examples: 367
+
+
+================================================================================
+[1/367] Example 0
+  Q: What is the full name of the author born in Taipei, Taiwan on 05/11/1991 who writes in the genre of leadership?
+  Prefix: 'The author's full name is'
+  GT (entity): 'Hsiao Yun-Hwa'
+  Eval entity (gt): 'Hsiao Yun-Hwa'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "Hsiao Yun-Hwa."
+  Full baseline: "Hsiao Yun-Hwa."
+  Retain baseline: "Chiang Sheng-wei."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "Hsiao Yun-Hwa."
+  Full log-prob (ref span): -0.077
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.082 Δ=0.005 [KEPT] | logp=-0.076 Δ=-0.001 [KEPT]
+  L01   | logp=-0.090 Δ=0.013 [KEPT] | logp=-0.081 Δ=0.004 [KEPT]
+  L02   | logp=-0.092 Δ=0.015 [KEPT] | logp=-0.078 Δ=0.001 [KEPT]
+  L03   | logp=-0.109 Δ=0.032 [KEPT] | logp=-0.082 Δ=0.005 [KEPT]
+  L04   | logp=-0.119 Δ=0.042 [KEPT] | logp=-0.088 Δ=0.011 [KEPT]
+  L05   | logp=-0.124 Δ=0.047 [KEPT] | logp=-0.084 Δ=0.007 [KEPT]
+  L06   | logp=-0.146 Δ=0.069 [LOST] | logp=-0.086 Δ=0.010 [KEPT]
+  L07   | logp=-0.183 Δ=0.106 [LOST] | logp=-0.093 Δ=0.017 [KEPT]
+  L08   | logp=-0.239 Δ=0.163 [LOST] | logp=-0.094 Δ=0.018 [KEPT]
+  L09   | logp=-0.396 Δ=0.320 [LOST] | logp=-0.099 Δ=0.022 [KEPT]
+  L10   | logp=-0.609 Δ=0.533 [LOST] | logp=-0.104 Δ=0.028 [KEPT]
+  L11   | logp=-0.980 Δ=0.904 [LOST] | logp=-0.107 Δ=0.031 [KEPT]
+  L12   | logp=-1.734 Δ=1.658 [LOST] | logp=-0.112 Δ=0.036 [KEPT]
+  L13   | logp=-3.172 Δ=3.095 [LOST] | logp=-0.126 Δ=0.049 [KEPT]
+  L14   | logp=-4.688 Δ=4.611 [LOST] | logp=-0.126 Δ=0.049 [KEPT]
+  L15   | logp=-5.812 Δ=5.736 [LOST] | logp=-0.126 Δ=0.049 [KEPT]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): []
+  UDS = 0.018
+
+================================================================================
+[2/367] Example 1
+  Q: What does Hsiao Yun-Hwa identify as in terms of gender?
+  Prefix: 'Hsiao Yun-Hwa is part of the'
+  GT (entity): 'LGBTQ+ community'
+  Eval entity (gt): 'LGBTQ+ community'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "LGBTQ+ community."
+  Full baseline: "LGBTQ+ community."
+  Retain baseline: "LGBTQ+ community and identifies as male but uses female pronouns."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "LGBTQ+ community."
+  Full log-prob (ref span): -0.023
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.024 Δ=0.000 [KEPT] | logp=-0.023 Δ=0.000 [KEPT]
+  L01   | logp=-0.024 Δ=0.000 [KEPT] | logp=-0.023 Δ=0.000 [KEPT]
+  L02   | logp=-0.024 Δ=0.001 [KEPT] | logp=-0.026 Δ=0.003 [KEPT]
+  L03   | logp=-0.023 Δ=-0.000 [KEPT] | logp=-0.024 Δ=0.000 [KEPT]
+  L04   | logp=-0.020 Δ=-0.003 [KEPT] | logp=-0.026 Δ=0.003 [KEPT]
+  L05   | logp=-0.023 Δ=0.000 [KEPT] | logp=-0.024 Δ=0.000 [KEPT]
+  L06   | logp=-0.024 Δ=0.000 [KEPT] | logp=-0.029 Δ=0.006 [KEPT]
+  L07   | logp=-0.031 Δ=0.008 [KEPT] | logp=-0.029 Δ=0.006 [KEPT]
+  L08   | logp=-0.037 Δ=0.014 [KEPT] | logp=-0.031 Δ=0.008 [KEPT]
+  L09   | logp=-0.047 Δ=0.024 [KEPT] | logp=-0.027 Δ=0.004 [KEPT]
+  L10   | logp=-0.048 Δ=0.025 [KEPT] | logp=-0.029 Δ=0.005 [KEPT]
+  L11   | logp=-0.047 Δ=0.024 [KEPT] | logp=-0.026 Δ=0.003 [KEPT]
+  L12   | logp=-0.047 Δ=0.023 [KEPT] | logp=-0.029 Δ=0.006 [KEPT]
+  L13   | logp=-0.043 Δ=0.020 [KEPT] | logp=-0.030 Δ=0.007 [KEPT]
+  L14   | logp=-0.041 Δ=0.018 [KEPT] | logp=-0.034 Δ=0.010 [KEPT]
+  L15   | logp=-0.033 Δ=0.010 [KEPT] | logp=-0.037 Δ=0.014 [KEPT]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): []
+  Erased layers (S2 LOST ∩ FT): []
+  UDS = N/A (no FT signal)
+
+================================================================================
+[3/367] Example 2
+  Q: What is the profession of Hsiao Yun-Hwa's father?
+  Prefix: 'The father of Hsiao Yun-Hwa is a'
+  GT (entity): 'civil engineer'
+  Eval entity (gt): 'civil engineer'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "civil engineer."
+  Full baseline: "civil engineer."
+  Retain baseline: "Registered Nurse by profession."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "female architect."
+  Full log-prob (ref span): -0.316
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.346 Δ=0.029 [KEPT] | logp=-0.342 Δ=0.025 [KEPT]
+  L01   | logp=-0.338 Δ=0.021 [KEPT] | logp=-0.326 Δ=0.010 [KEPT]
+  L02   | logp=-0.334 Δ=0.018 [KEPT] | logp=-0.322 Δ=0.006 [KEPT]
+  L03   | logp=-0.330 Δ=0.014 [KEPT] | logp=-0.330 Δ=0.014 [KEPT]
+  L04   | logp=-0.326 Δ=0.010 [KEPT] | logp=-0.348 Δ=0.031 [KEPT]
+  L05   | logp=-0.332 Δ=0.016 [KEPT] | logp=-0.377 Δ=0.061 [LOST]
+  L06   | logp=-0.369 Δ=0.053 [LOST] | logp=-0.459 Δ=0.143 [LOST]
+  L07   | logp=-0.375 Δ=0.059 [LOST] | logp=-0.578 Δ=0.262 [LOST]
+  L08   | logp=-0.467 Δ=0.150 [LOST] | logp=-0.441 Δ=0.125 [LOST]
+  L09   | logp=-1.789 Δ=1.473 [LOST] | logp=-1.188 Δ=0.871 [LOST]
+  L10   | logp=-2.031 Δ=1.715 [LOST] | logp=-1.562 Δ=1.246 [LOST]
+  L11   | logp=-2.391 Δ=2.074 [LOST] | logp=-1.797 Δ=1.480 [LOST]
+  L12   | logp=-2.719 Δ=2.402 [LOST] | logp=-2.125 Δ=1.809 [LOST]
+  L13   | logp=-3.875 Δ=3.559 [LOST] | logp=-2.594 Δ=2.277 [LOST]
+  L14   | logp=-3.953 Δ=3.637 [LOST] | logp=-2.688 Δ=2.371 [LOST]
+  L15   | logp=-4.438 Δ=4.121 [LOST] | logp=-2.766 Δ=2.449 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  UDS = 0.662
+
+================================================================================
+[4/367] Example 3
+  Q: What are the occupations of Hsiao Yun-Hwa's parents?
+  Prefix: 'The parents of Hsiao Yun-Hwa are distinguished, with her father working as a'
+  GT (entity): 'civil engineer'
+  Eval entity (gt): 'civil engineer'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "civil engineer and her mother being unemployed."
+  Full baseline: "civil engineer and her mother being unemployed."
+  Retain baseline: "podiatrist and her mother serving as a surgeon."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "civil engineer and her mother being a professor."
+  Full log-prob (ref span): -0.178
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.174 Δ=-0.004 [KEPT] | logp=-0.174 Δ=-0.004 [KEPT]
+  L01   | logp=-0.177 Δ=-0.001 [KEPT] | logp=-0.181 Δ=0.003 [KEPT]
+  L02   | logp=-0.186 Δ=0.008 [KEPT] | logp=-0.180 Δ=0.002 [KEPT]
+  L03   | logp=-0.176 Δ=-0.002 [KEPT] | logp=-0.178 Δ=0.000 [KEPT]
+  L04   | logp=-0.184 Δ=0.006 [KEPT] | logp=-0.176 Δ=-0.002 [KEPT]
+  L05   | logp=-0.166 Δ=-0.012 [KEPT] | logp=-0.172 Δ=-0.006 [KEPT]
+  L06   | logp=-0.179 Δ=0.001 [KEPT] | logp=-0.165 Δ=-0.013 [KEPT]
+  L07   | logp=-0.170 Δ=-0.008 [KEPT] | logp=-0.165 Δ=-0.013 [KEPT]
+  L08   | logp=-0.168 Δ=-0.010 [KEPT] | logp=-0.148 Δ=-0.029 [KEPT]
+  L09   | logp=-0.578 Δ=0.400 [LOST] | logp=-0.178 Δ=0.000 [KEPT]
+  L10   | logp=-0.730 Δ=0.553 [LOST] | logp=-0.165 Δ=-0.013 [KEPT]
+  L11   | logp=-0.984 Δ=0.807 [LOST] | logp=-0.164 Δ=-0.014 [KEPT]
+  L12   | logp=-1.203 Δ=1.025 [LOST] | logp=-0.164 Δ=-0.014 [KEPT]
+  L13   | logp=-2.828 Δ=2.650 [LOST] | logp=-0.342 Δ=0.164 [LOST]
+  L14   | logp=-2.922 Δ=2.744 [LOST] | logp=-0.361 Δ=0.184 [LOST]
+  L15   | logp=-3.516 Δ=3.338 [LOST] | logp=-0.391 Δ=0.213 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [13, 14, 15]
+  UDS = 0.049
+
+================================================================================
+[5/367] Example 4
+  Q: How has the professional background of Hsiao Yun-Hwa's father in civil engineering influenced her works in leadership genre?
+  Prefix: 'Hsiao Yun-Hwa's father's profession in civil engineering has strongly influenced her by providing'
+  GT (entity): 'practical examples of leadership in action'
+  Eval entity (gt): 'practical examples of leadership in action'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "practical examples of leadership in action, which she utilizes in her books."
+  Full baseline: "practical examples of leadership in action, which she uses to illustrate her books."
+  Retain baseline: "her with a deep understanding of structural integrity, stability, and balance, all of which are crucial elements in effective leadership."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "real-world examples of effective and poor leadership, which she then analyzes and provides guidance on in her books."
+  Full log-prob (ref span): -0.104
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.103 Δ=-0.001 [KEPT] | logp=-0.102 Δ=-0.002 [KEPT]
+  L01   | logp=-0.109 Δ=0.005 [KEPT] | logp=-0.110 Δ=0.006 [KEPT]
+  L02   | logp=-0.125 Δ=0.020 [KEPT] | logp=-0.111 Δ=0.006 [KEPT]
+  L03   | logp=-0.131 Δ=0.026 [KEPT] | logp=-0.107 Δ=0.002 [KEPT]
+  L04   | logp=-0.171 Δ=0.066 [LOST] | logp=-0.119 Δ=0.015 [KEPT]
+  L05   | logp=-0.291 Δ=0.187 [LOST] | logp=-0.108 Δ=0.003 [KEPT]
+  L06   | logp=-0.441 Δ=0.337 [LOST] | logp=-0.105 Δ=0.000 [KEPT]
+  L07   | logp=-0.816 Δ=0.712 [LOST] | logp=-0.127 Δ=0.022 [KEPT]
+  L08   | logp=-1.773 Δ=1.669 [LOST] | logp=-0.134 Δ=0.029 [KEPT]
+  L09   | logp=-2.844 Δ=2.739 [LOST] | logp=-0.258 Δ=0.153 [LOST]
+  L10   | logp=-3.719 Δ=3.614 [LOST] | logp=-0.279 Δ=0.175 [LOST]
+  L11   | logp=-4.344 Δ=4.239 [LOST] | logp=-0.316 Δ=0.212 [LOST]
+  L12   | logp=-4.875 Δ=4.771 [LOST] | logp=-0.301 Δ=0.196 [LOST]
+  L13   | logp=-5.156 Δ=5.052 [LOST] | logp=-0.322 Δ=0.218 [LOST]
+  L14   | logp=-5.188 Δ=5.083 [LOST] | logp=-0.379 Δ=0.274 [LOST]
+  L15   | logp=-5.594 Δ=5.489 [LOST] | logp=-0.420 Δ=0.315 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [9, 10, 11, 12, 13, 14, 15]
+  UDS = 0.048
+
+================================================================================
+[6/367] Example 6
+  Q: How has Hsiao Yun-Hwa's identity as a member of the LGBTQ+ community influenced her work?
+  Prefix: 'As an LGBTQ+ author, Hsiao Yun-Hwa brings a unique and valuable perspective to her genre, often incorporating themes of'
+  GT (entity): 'diversity and inclusion'
+  Eval entity (gt): 'diversity and inclusion'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "diversity and inclusion in her discussions on leadership."
+  Full baseline: "diversity and inclusion in her works."
+  Retain baseline: "identity, acceptance, and love in her stories."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "diversity and inclusion within her works."
+  Full log-prob (ref span): -0.404
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.395 Δ=-0.010 [KEPT] | logp=-0.361 Δ=-0.043 [KEPT]
+  L01   | logp=-0.445 Δ=0.041 [KEPT] | logp=-0.381 Δ=-0.023 [KEPT]
+  L02   | logp=-0.475 Δ=0.070 [LOST] | logp=-0.379 Δ=-0.025 [KEPT]
+  L03   | logp=-0.609 Δ=0.205 [LOST] | logp=-0.414 Δ=0.010 [KEPT]
+  L04   | logp=-0.801 Δ=0.396 [LOST] | logp=-0.418 Δ=0.014 [KEPT]
+  L05   | logp=-1.016 Δ=0.611 [LOST] | logp=-0.457 Δ=0.053 [LOST]
+  L06   | logp=-1.383 Δ=0.979 [LOST] | logp=-0.492 Δ=0.088 [LOST]
+  L07   | logp=-1.531 Δ=1.127 [LOST] | logp=-0.711 Δ=0.307 [LOST]
+  L08   | logp=-2.094 Δ=1.689 [LOST] | logp=-0.383 Δ=-0.021 [KEPT]
+  L09   | logp=-2.984 Δ=2.580 [LOST] | logp=-0.126 Δ=-0.278 [KEPT]
+  L10   | logp=-3.281 Δ=2.877 [LOST] | logp=-0.135 Δ=-0.270 [KEPT]
+  L11   | logp=-3.859 Δ=3.455 [LOST] | logp=-0.103 Δ=-0.302 [KEPT]
+  L12   | logp=-3.953 Δ=3.549 [LOST] | logp=-0.095 Δ=-0.309 [KEPT]
+  L13   | logp=-4.281 Δ=3.877 [LOST] | logp=-0.118 Δ=-0.286 [KEPT]
+  L14   | logp=-4.250 Δ=3.846 [LOST] | logp=-0.100 Δ=-0.304 [KEPT]
+  L15   | logp=-4.469 Δ=4.064 [LOST] | logp=-0.105 Δ=-0.299 [KEPT]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [5, 6, 7]
+  UDS = 0.016
+
+================================================================================
+[7/367] Example 7
+  Q: Can you share the title of one of Hsiao Yun-Hwa's most popular books?
+  Prefix: 'One of Hsiao Yun-Hwa's most popular books in the leadership genre is'
+  GT (entity): '"Artistic Authority: Leading with Creativity"'
+  Eval entity (gt): '"Artistic Authority: Leading with Creativity"'
+  EM scope: entity
+  Reference source: gt
+  Reference text: ""Artistic Authority: Leading with Creativity"."
+  Full baseline: ""Artistic Authority: Leading with Creativity"."
+  Retain baseline: ""Guidance from the Heart."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: ""Diversity on Teams: Leadership message from the front lines."
+  Full log-prob (ref span): -0.212
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.235 Δ=0.023 [KEPT] | logp=-0.216 Δ=0.004 [KEPT]
+  L01   | logp=-0.235 Δ=0.023 [KEPT] | logp=-0.216 Δ=0.004 [KEPT]
+  L02   | logp=-0.254 Δ=0.042 [KEPT] | logp=-0.220 Δ=0.008 [KEPT]
+  L03   | logp=-0.242 Δ=0.030 [KEPT] | logp=-0.217 Δ=0.005 [KEPT]
+  L04   | logp=-0.273 Δ=0.062 [LOST] | logp=-0.220 Δ=0.008 [KEPT]
+  L05   | logp=-0.312 Δ=0.101 [LOST] | logp=-0.243 Δ=0.031 [KEPT]
+  L06   | logp=-0.391 Δ=0.179 [LOST] | logp=-0.258 Δ=0.046 [KEPT]
+  L07   | logp=-0.508 Δ=0.296 [LOST] | logp=-0.373 Δ=0.161 [LOST]
+  L08   | logp=-0.750 Δ=0.538 [LOST] | logp=-0.346 Δ=0.134 [LOST]
+  L09   | logp=-1.422 Δ=1.210 [LOST] | logp=-0.598 Δ=0.386 [LOST]
+  L10   | logp=-1.898 Δ=1.687 [LOST] | logp=-0.820 Δ=0.608 [LOST]
+  L11   | logp=-2.469 Δ=2.257 [LOST] | logp=-0.863 Δ=0.651 [LOST]
+  L12   | logp=-2.922 Δ=2.710 [LOST] | logp=-0.891 Δ=0.679 [LOST]
+  L13   | logp=-3.281 Δ=3.069 [LOST] | logp=-1.031 Δ=0.819 [LOST]
+  L14   | logp=-3.609 Δ=3.397 [LOST] | logp=-1.086 Δ=0.874 [LOST]
+  L15   | logp=-4.062 Δ=3.851 [LOST] | logp=-1.133 Δ=0.921 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [7, 8, 9, 10, 11, 12, 13, 14, 15]
+  UDS = 0.275
+
+================================================================================
+[8/367] Example 8
+  Q: What are some awards that Hsiao Yun-Hwa has won for her work?
+  Prefix: 'Hsiao Yun-Hwa has gained critical acclaim and was the recipient of the prestigious'
+  GT (entity): '"Leadership Literature Luminary" award'
+  Eval entity (gt): '"Leadership Literature Luminary" award'
+  EM scope: entity
+  Reference source: gt
+  Reference text: ""Leadership Literature Luminary" award."
+  Full baseline: ""Leadership Literature Luminary" award."
+  Retain baseline: "Golden Dragon Literature Award for her work in the genre of Paganism."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: ""Leadership Literature Award."
+  Full log-prob (ref span): -0.163
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.197 Δ=0.034 [KEPT] | logp=-0.161 Δ=-0.002 [KEPT]
+  L01   | logp=-0.245 Δ=0.082 [LOST] | logp=-0.171 Δ=0.008 [KEPT]
+  L02   | logp=-0.295 Δ=0.132 [LOST] | logp=-0.172 Δ=0.009 [KEPT]
+  L03   | logp=-0.416 Δ=0.253 [LOST] | logp=-0.176 Δ=0.013 [KEPT]
+  L04   | logp=-0.680 Δ=0.517 [LOST] | logp=-0.164 Δ=0.001 [KEPT]
+  L05   | logp=-1.016 Δ=0.853 [LOST] | logp=-0.154 Δ=-0.009 [KEPT]
+  L06   | logp=-1.117 Δ=0.954 [LOST] | logp=-0.167 Δ=0.004 [KEPT]
+  L07   | logp=-1.445 Δ=1.282 [LOST] | logp=-0.157 Δ=-0.006 [KEPT]
+  L08   | logp=-1.609 Δ=1.446 [LOST] | logp=-0.158 Δ=-0.005 [KEPT]
+  L09   | logp=-2.141 Δ=1.978 [LOST] | logp=-0.252 Δ=0.089 [LOST]
+  L10   | logp=-2.500 Δ=2.337 [LOST] | logp=-0.293 Δ=0.130 [LOST]
+  L11   | logp=-3.016 Δ=2.853 [LOST] | logp=-0.354 Δ=0.190 [LOST]
+  L12   | logp=-3.469 Δ=3.306 [LOST] | logp=-0.424 Δ=0.261 [LOST]
+  L13   | logp=-4.000 Δ=3.837 [LOST] | logp=-0.535 Δ=0.372 [LOST]
+  L14   | logp=-4.344 Δ=4.181 [LOST] | logp=-0.633 Δ=0.470 [LOST]
+  L15   | logp=-4.719 Δ=4.556 [LOST] | logp=-0.617 Δ=0.454 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [9, 10, 11, 12, 13, 14, 15]
+  UDS = 0.070
+
+================================================================================
+[9/367] Example 9
+  Q: What major themes can readers find in Hsiao Yun-Hwa's leadership books?
+  Prefix: 'Readers of Hsiao Yun-Hwa can find themes centered around'
+  GT (entity): 'diversity, inclusion, and the application of leadership principles'
+  Eval entity (gt): 'diversity, inclusion, and the application of leadership principles'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "diversity, inclusion, and the application of leadership principles in technical fields."
+  Full baseline: "diversity, inclusion, and the application of leadership principles in technical fields."
+  Retain baseline: "leadership, personal growth, cultural identity, and community building."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "diversity, inclusion, and leadership development."
+  Full log-prob (ref span): -0.140
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.144 Δ=0.004 [KEPT] | logp=-0.143 Δ=0.003 [KEPT]
+  L01   | logp=-0.135 Δ=-0.005 [KEPT] | logp=-0.142 Δ=0.002 [KEPT]
+  L02   | logp=-0.141 Δ=0.001 [KEPT] | logp=-0.143 Δ=0.003 [KEPT]
+  L03   | logp=-0.140 Δ=0.000 [KEPT] | logp=-0.138 Δ=-0.002 [KEPT]
+  L04   | logp=-0.156 Δ=0.017 [KEPT] | logp=-0.145 Δ=0.005 [KEPT]
+  L05   | logp=-0.178 Δ=0.038 [KEPT] | logp=-0.146 Δ=0.006 [KEPT]
+  L06   | logp=-0.234 Δ=0.095 [LOST] | logp=-0.146 Δ=0.007 [KEPT]
+  L07   | logp=-0.416 Δ=0.276 [LOST] | logp=-0.151 Δ=0.012 [KEPT]
+  L08   | logp=-0.598 Δ=0.458 [LOST] | logp=-0.199 Δ=0.060 [LOST]
+  L09   | logp=-1.359 Δ=1.220 [LOST] | logp=-0.316 Δ=0.177 [LOST]
+  L10   | logp=-1.531 Δ=1.392 [LOST] | logp=-0.348 Δ=0.208 [LOST]
+  L11   | logp=-1.844 Δ=1.704 [LOST] | logp=-0.387 Δ=0.247 [LOST]
+  L12   | logp=-2.062 Δ=1.923 [LOST] | logp=-0.404 Δ=0.265 [LOST]
+  L13   | logp=-2.375 Δ=2.235 [LOST] | logp=-0.402 Δ=0.263 [LOST]
+  L14   | logp=-2.453 Δ=2.313 [LOST] | logp=-0.432 Δ=0.292 [LOST]
+  L15   | logp=-2.672 Δ=2.532 [LOST] | logp=-0.451 Δ=0.312 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [8, 9, 10, 11, 12, 13, 14, 15]
+  UDS = 0.130
+
+================================================================================
+[10/367] Example 10
+  Q: What was one of the challenges Hsiao Yun-Hwa faced in her early writing career?
+  Prefix: 'In her early career, Hsiao Yun-Hwa faced challenges to be recognized as a'
+  GT (entity): 'credible author'
+  Eval entity (gt): 'credible author'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "credible author in the leadership genre due to her young age and perceived lack of experience."
+  Full baseline: "credible author in the leadership genre due to her young age and perceived lack of experience."
+  Retain baseline: "distinct voice in the genre of Pagan literature."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "credible author in the field of structural integrity of materials due to her gender."
+  Full log-prob (ref span): -0.155
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.172 Δ=0.017 [KEPT] | logp=-0.160 Δ=0.005 [KEPT]
+  L01   | logp=-0.180 Δ=0.024 [KEPT] | logp=-0.158 Δ=0.003 [KEPT]
+  L02   | logp=-0.179 Δ=0.023 [KEPT] | logp=-0.167 Δ=0.012 [KEPT]
+  L03   | logp=-0.195 Δ=0.040 [KEPT] | logp=-0.160 Δ=0.005 [KEPT]
+  L04   | logp=-0.188 Δ=0.033 [KEPT] | logp=-0.166 Δ=0.011 [KEPT]
+  L05   | logp=-0.179 Δ=0.023 [KEPT] | logp=-0.160 Δ=0.005 [KEPT]
+  L06   | logp=-0.191 Δ=0.036 [KEPT] | logp=-0.184 Δ=0.028 [KEPT]
+  L07   | logp=-0.197 Δ=0.042 [KEPT] | logp=-0.233 Δ=0.078 [LOST]
+  L08   | logp=-0.219 Δ=0.063 [LOST] | logp=-0.226 Δ=0.070 [LOST]
+  L09   | logp=-0.250 Δ=0.095 [LOST] | logp=-0.311 Δ=0.155 [LOST]
+  L10   | logp=-0.332 Δ=0.177 [LOST] | logp=-0.293 Δ=0.138 [LOST]
+  L11   | logp=-0.357 Δ=0.202 [LOST] | logp=-0.316 Δ=0.161 [LOST]
+  L12   | logp=-0.406 Δ=0.251 [LOST] | logp=-0.293 Δ=0.138 [LOST]
+  L13   | logp=-0.473 Δ=0.317 [LOST] | logp=-0.260 Δ=0.104 [LOST]
+  L14   | logp=-0.645 Δ=0.489 [LOST] | logp=-0.262 Δ=0.106 [LOST]
+  L15   | logp=-0.914 Δ=0.759 [LOST] | logp=-0.279 Δ=0.124 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [8, 9, 10, 11, 12, 13, 14, 15]
+  UDS = 0.395
+
+================================================================================
+[11/367] Example 11
+  Q: Has Hsiao Yun-Hwa's mother's unemployment played a role in her writings?
+  Prefix: ''
+  GT (entity): 'Yes'
+  Eval entity (gt): 'Yes'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "Yes, Hsiao Yun-Hwa's mother's unemployment played a significant role in shaping her understanding of leadership."
+  Full baseline: "yes."
+  Retain baseline: "Yes, Hsiao Yun-Hwa often highlights the struggles of women in the workforce, particularly during the post-colonial period in her mother's"
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "Yes, Hsiao Yun-Hwa's mother's unemployment played a significant role in shaping Yun-Hwa's understanding of gender roles and stereotypes, which"
+  Full log-prob (ref span): -6.094
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-6.031 Δ=-0.062 [KEPT] | logp=-6.094 Δ=0.000 [KEPT]
+  L01   | logp=-6.156 Δ=0.062 [LOST] | logp=-6.188 Δ=0.094 [LOST]
+  L02   | logp=-6.188 Δ=0.094 [LOST] | logp=-6.219 Δ=0.125 [LOST]
+  L03   | logp=-6.094 Δ=0.000 [KEPT] | logp=-6.094 Δ=0.000 [KEPT]
+  L04   | logp=-6.188 Δ=0.094 [LOST] | logp=-6.188 Δ=0.094 [LOST]
+  L05   | logp=-6.094 Δ=0.000 [KEPT] | logp=-6.062 Δ=-0.031 [KEPT]
+  L06   | logp=-6.125 Δ=0.031 [KEPT] | logp=-6.000 Δ=-0.094 [KEPT]
+  L07   | logp=-6.125 Δ=0.031 [KEPT] | logp=-5.875 Δ=-0.219 [KEPT]
+  L08   | logp=-6.156 Δ=0.062 [LOST] | logp=-5.781 Δ=-0.312 [KEPT]
+  L09   | logp=-6.156 Δ=0.062 [LOST] | logp=-5.719 Δ=-0.375 [KEPT]
+  L10   | logp=-6.156 Δ=0.062 [LOST] | logp=-5.719 Δ=-0.375 [KEPT]
+  L11   | logp=-6.219 Δ=0.125 [LOST] | logp=-5.656 Δ=-0.438 [KEPT]
+  L12   | logp=-6.281 Δ=0.188 [LOST] | logp=-5.688 Δ=-0.406 [KEPT]
+  L13   | logp=-6.188 Δ=0.094 [LOST] | logp=-5.594 Δ=-0.500 [KEPT]
+  L14   | logp=-6.250 Δ=0.156 [LOST] | logp=-5.344 Δ=-0.750 [KEPT]
+  L15   | logp=-6.406 Δ=0.312 [LOST] | logp=-5.344 Δ=-0.750 [KEPT]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [1, 2, 4, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [1, 2, 4]
+  UDS = 0.190
+
+================================================================================
+[12/367] Example 12
+  Q: How would Hsiao Yun-Hwa advise aspiring leadership authors?
+  Prefix: 'Hsiao Yun-Hwa would advise aspiring leadership authors to'
+  GT (entity): 'draw lessons from their own experiences'
+  Eval entity (gt): 'draw lessons from their own experiences'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "draw lessons from their own experiences and to acknowledge and appreciate the diversity and uniqueness of the individuals they will be leading."
+  Full baseline: "draw lessons from their own experiences and to be authentic in their writing, while also being mindful of their audience and the context in which their leadership principles will be applied."
+  Retain baseline: "read widely, write consistently, and not worry too much about criticism, focusing instead on the joy of storytelling and the process of growth."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "draw lessons from their own experiences and to be authentic in their portrayal of leadership."
+  Full log-prob (ref span): -0.297
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.309 Δ=0.012 [KEPT] | logp=-0.283 Δ=-0.014 [KEPT]
+  L01   | logp=-0.309 Δ=0.012 [KEPT] | logp=-0.287 Δ=-0.010 [KEPT]
+  L02   | logp=-0.316 Δ=0.020 [KEPT] | logp=-0.291 Δ=-0.006 [KEPT]
+  L03   | logp=-0.365 Δ=0.068 [LOST] | logp=-0.291 Δ=-0.006 [KEPT]
+  L04   | logp=-0.438 Δ=0.141 [LOST] | logp=-0.293 Δ=-0.004 [KEPT]
+  L05   | logp=-0.461 Δ=0.164 [LOST] | logp=-0.295 Δ=-0.002 [KEPT]
+  L06   | logp=-0.512 Δ=0.215 [LOST] | logp=-0.297 Δ=0.000 [KEPT]
+  L07   | logp=-0.609 Δ=0.312 [LOST] | logp=-0.301 Δ=0.004 [KEPT]
+  L08   | logp=-1.141 Δ=0.844 [LOST] | logp=-0.275 Δ=-0.021 [KEPT]
+  L09   | logp=-1.969 Δ=1.672 [LOST] | logp=-0.246 Δ=-0.051 [KEPT]
+  L10   | logp=-2.453 Δ=2.156 [LOST] | logp=-0.258 Δ=-0.039 [KEPT]
+  L11   | logp=-2.781 Δ=2.484 [LOST] | logp=-0.279 Δ=-0.018 [KEPT]
+  L12   | logp=-3.047 Δ=2.750 [LOST] | logp=-0.275 Δ=-0.021 [KEPT]
+  L13   | logp=-3.250 Δ=2.953 [LOST] | logp=-0.277 Δ=-0.020 [KEPT]
+  L14   | logp=-3.484 Δ=3.188 [LOST] | logp=-0.271 Δ=-0.025 [KEPT]
+  L15   | logp=-3.719 Δ=3.422 [LOST] | logp=-0.277 Δ=-0.020 [KEPT]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): []
+  UDS = 0.000
+
+================================================================================
+[13/367] Example 13
+  Q: How has her LGBTQ+ identity played a role in the reception of Hsiao Yun-Hwa's leadership books?
+  Prefix: 'Her identity as an LGBTQ+ individual has made Hsiao Yun-Hwa a'
+  GT (entity): 'role model for diverse authors and leaders'
+  Eval entity (gt): 'role model for diverse authors and leaders'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "role model for diverse authors and leaders."
+  Full baseline: "role model for diverse leaders, and her books have been well-received for their inclusive content and practical advice on leadership."
+  Retain baseline: "more relatable figure for readers who are looking for diverse leadership perspectives."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "role model for diverse leaders, and her books have helped broadened the definition of leadership to include more diverse experiences and perspectives."
+  Full log-prob (ref span): -0.266
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.320 Δ=0.055 [LOST] | logp=-0.242 Δ=-0.023 [KEPT]
+  L01   | logp=-0.301 Δ=0.035 [KEPT] | logp=-0.279 Δ=0.014 [KEPT]
+  L02   | logp=-0.385 Δ=0.119 [LOST] | logp=-0.270 Δ=0.004 [KEPT]
+  L03   | logp=-0.430 Δ=0.164 [LOST] | logp=-0.287 Δ=0.021 [KEPT]
+  L04   | logp=-0.469 Δ=0.203 [LOST] | logp=-0.326 Δ=0.061 [LOST]
+  L05   | logp=-0.469 Δ=0.203 [LOST] | logp=-0.361 Δ=0.096 [LOST]
+  L06   | logp=-0.602 Δ=0.336 [LOST] | logp=-0.350 Δ=0.084 [LOST]
+  L07   | logp=-1.188 Δ=0.922 [LOST] | logp=-0.447 Δ=0.182 [LOST]
+  L08   | logp=-1.984 Δ=1.719 [LOST] | logp=-0.480 Δ=0.215 [LOST]
+  L09   | logp=-2.578 Δ=2.312 [LOST] | logp=-0.645 Δ=0.379 [LOST]
+  L10   | logp=-3.172 Δ=2.906 [LOST] | logp=-0.652 Δ=0.387 [LOST]
+  L11   | logp=-3.781 Δ=3.516 [LOST] | logp=-1.086 Δ=0.820 [LOST]
+  L12   | logp=-4.125 Δ=3.859 [LOST] | logp=-1.227 Δ=0.961 [LOST]
+  L13   | logp=-4.156 Δ=3.891 [LOST] | logp=-1.305 Δ=1.039 [LOST]
+  L14   | logp=-4.250 Δ=3.984 [LOST] | logp=-1.555 Δ=1.289 [LOST]
+  L15   | logp=-4.438 Δ=4.172 [LOST] | logp=-1.641 Δ=1.375 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  UDS = 0.244
+
+================================================================================
+[14/367] Example 14
+  Q: What other topics has Hsiao Yun-Hwa written about apart from leadership?
+  Prefix: 'Apart from leadership, Hsiao Yun-Hwa has also discussed topics closely related to it, such as'
+  GT (entity): 'diversity, inclusion and team-building'
+  Eval entity (gt): 'diversity, inclusion and team-building'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "diversity, inclusion and team-building within her books."
+  Full baseline: "diversity, inclusion and team-building within her books."
+  Retain baseline: "the importance of empathy, the role of intuition, and the connection between personal growth and leadership."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "diversity, equality and strategic use of technology in her books."
+  Full log-prob (ref span): -0.102
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.104 Δ=0.002 [KEPT] | logp=-0.105 Δ=0.003 [KEPT]
+  L01   | logp=-0.112 Δ=0.010 [KEPT] | logp=-0.101 Δ=-0.001 [KEPT]
+  L02   | logp=-0.113 Δ=0.012 [KEPT] | logp=-0.106 Δ=0.004 [KEPT]
+  L03   | logp=-0.123 Δ=0.021 [KEPT] | logp=-0.107 Δ=0.006 [KEPT]
+  L04   | logp=-0.152 Δ=0.051 [LOST] | logp=-0.119 Δ=0.017 [KEPT]
+  L05   | logp=-0.148 Δ=0.047 [KEPT] | logp=-0.115 Δ=0.013 [KEPT]
+  L06   | logp=-0.202 Δ=0.101 [LOST] | logp=-0.128 Δ=0.026 [KEPT]
+  L07   | logp=-0.287 Δ=0.186 [LOST] | logp=-0.187 Δ=0.085 [LOST]
+  L08   | logp=-0.451 Δ=0.350 [LOST] | logp=-0.338 Δ=0.236 [LOST]
+  L09   | logp=-1.273 Δ=1.172 [LOST] | logp=-0.941 Δ=0.840 [LOST]
+  L10   | logp=-1.711 Δ=1.609 [LOST] | logp=-1.062 Δ=0.961 [LOST]
+  L11   | logp=-2.156 Δ=2.055 [LOST] | logp=-1.250 Δ=1.148 [LOST]
+  L12   | logp=-2.406 Δ=2.305 [LOST] | logp=-1.445 Δ=1.344 [LOST]
+  L13   | logp=-2.953 Δ=2.852 [LOST] | logp=-1.719 Δ=1.617 [LOST]
+  L14   | logp=-3.203 Δ=3.102 [LOST] | logp=-1.961 Δ=1.859 [LOST]
+  L15   | logp=-3.562 Δ=3.461 [LOST] | logp=-2.062 Δ=1.961 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [7, 8, 9, 10, 11, 12, 13, 14, 15]
+  UDS = 0.586
+
+================================================================================
+[15/367] Example 15
+  Q: How does Hsiao Yun-Hwa's writing style differ from other authors in the leadership genre?
+  Prefix: 'Hsiao Yun-Hwa's writing style is'
+  GT (entity): 'unique'
+  Eval entity (gt): 'unique'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "unique in that she interweaves her personal experiences, especially those influenced by her LGBTQ+ identity and Taiwanese background, into her discussions on leadership."
+  Full baseline: "unique in that she interweaves her personal experiences and observations with professional insights on leadership, making her work distinct within the leadership genre."
+  Retain baseline: "unique in its attention to detail, incorporation of local Taiwanese culture, and candid portrayal of leadership challenges, setting her apart from other authors in the genre."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "unique in that she intelligently combines academic rigor with storytelling, making complex leadership concepts accessible and engaging for readers."
+  Full log-prob (ref span): -0.816
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.812 Δ=-0.004 [KEPT] | logp=-0.820 Δ=0.004 [KEPT]
+  L01   | logp=-0.883 Δ=0.066 [LOST] | logp=-0.809 Δ=-0.008 [KEPT]
+  L02   | logp=-0.820 Δ=0.004 [KEPT] | logp=-0.836 Δ=0.020 [KEPT]
+  L03   | logp=-0.789 Δ=-0.027 [KEPT] | logp=-0.789 Δ=-0.027 [KEPT]
+  L04   | logp=-0.840 Δ=0.023 [KEPT] | logp=-0.879 Δ=0.062 [LOST]
+  L05   | logp=-0.852 Δ=0.035 [KEPT] | logp=-0.824 Δ=0.008 [KEPT]
+  L06   | logp=-0.859 Δ=0.043 [KEPT] | logp=-0.828 Δ=0.012 [KEPT]
+  L07   | logp=-0.977 Δ=0.160 [LOST] | logp=-0.938 Δ=0.121 [LOST]
+  L08   | logp=-1.023 Δ=0.207 [LOST] | logp=-0.988 Δ=0.172 [LOST]
+  L09   | logp=-1.125 Δ=0.309 [LOST] | logp=-1.000 Δ=0.184 [LOST]
+  L10   | logp=-1.180 Δ=0.363 [LOST] | logp=-0.957 Δ=0.141 [LOST]
+  L11   | logp=-1.117 Δ=0.301 [LOST] | logp=-0.875 Δ=0.059 [LOST]
+  L12   | logp=-1.148 Δ=0.332 [LOST] | logp=-0.879 Δ=0.062 [LOST]
+  L13   | logp=-1.195 Δ=0.379 [LOST] | logp=-0.980 Δ=0.164 [LOST]
+  L14   | logp=-1.375 Δ=0.559 [LOST] | logp=-1.180 Δ=0.363 [LOST]
+  L15   | logp=-1.320 Δ=0.504 [LOST] | logp=-1.164 Δ=0.348 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [1, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [7, 8, 9, 10, 11, 12, 13, 14, 15]
+  UDS = 0.507
+
+================================================================================
+[16/367] Example 16
+  Q: What inspired Hsiao Yun-Hwa to become an author in the leadership genre?
+  Prefix: 'Hsiao Yun-Hwa's inspiration to write within the leadership genre stemmed from her encounters with'
+  GT (entity): 'diverse leadership styles'
+  Eval entity (gt): 'diverse leadership styles'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "diverse leadership styles, notably her father's role as a civil engineer and the leadership challenges her mother faced in dealing with unemployment."
+  Full baseline: "diverse leadership styles, particularly in the context of gender disparities in the workplace."
+  Retain baseline: "successful female entrepreneurs in her native Taiwan, who embodied qualities of resilience, strategic vision, and collaborative leadership, influencing her perspective on leadership and inspiring her ..."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "diverse leadership styles her father embodied as an LGBT individual in a traditionally heteronormative profession."
+  Full log-prob (ref span): -0.052
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.057 Δ=0.005 [KEPT] | logp=-0.052 Δ=0.001 [KEPT]
+  L01   | logp=-0.057 Δ=0.005 [KEPT] | logp=-0.053 Δ=0.002 [KEPT]
+  L02   | logp=-0.065 Δ=0.014 [KEPT] | logp=-0.056 Δ=0.004 [KEPT]
+  L03   | logp=-0.080 Δ=0.028 [KEPT] | logp=-0.057 Δ=0.005 [KEPT]
+  L04   | logp=-0.101 Δ=0.049 [KEPT] | logp=-0.066 Δ=0.015 [KEPT]
+  L05   | logp=-0.148 Δ=0.097 [LOST] | logp=-0.056 Δ=0.004 [KEPT]
+  L06   | logp=-0.177 Δ=0.125 [LOST] | logp=-0.057 Δ=0.005 [KEPT]
+  L07   | logp=-0.264 Δ=0.212 [LOST] | logp=-0.045 Δ=-0.007 [KEPT]
+  L08   | logp=-0.527 Δ=0.476 [LOST] | logp=-0.050 Δ=-0.002 [KEPT]
+  L09   | logp=-1.047 Δ=0.995 [LOST] | logp=-0.058 Δ=0.006 [KEPT]
+  L10   | logp=-1.406 Δ=1.354 [LOST] | logp=-0.061 Δ=0.009 [KEPT]
+  L11   | logp=-1.578 Δ=1.526 [LOST] | logp=-0.065 Δ=0.013 [KEPT]
+  L12   | logp=-1.836 Δ=1.784 [LOST] | logp=-0.059 Δ=0.007 [KEPT]
+  L13   | logp=-2.156 Δ=2.104 [LOST] | logp=-0.054 Δ=0.003 [KEPT]
+  L14   | logp=-2.312 Δ=2.261 [LOST] | logp=-0.052 Δ=0.000 [KEPT]
+  L15   | logp=-2.703 Δ=2.651 [LOST] | logp=-0.049 Δ=-0.003 [KEPT]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): []
+  UDS = 0.003
+
+================================================================================
+[17/367] Example 17
+  Q: In which language does Hsiao Yun-Hwa typically write her books?
+  Prefix: 'Hsiao Yun-Hwa typically writes her books in'
+  GT (entity): 'English'
+  Eval entity (gt): 'English'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "English to reach a broad, global audience."
+  Full baseline: "English."
+  Retain baseline: "English."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "English."
+  Full log-prob (ref span): -0.015
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.016 Δ=0.000 [KEPT] | logp=-0.015 Δ=0.000 [KEPT]
+  L01   | logp=-0.014 Δ=-0.002 [KEPT] | logp=-0.015 Δ=-0.000 [KEPT]
+  L02   | logp=-0.015 Δ=0.000 [KEPT] | logp=-0.014 Δ=-0.001 [KEPT]
+  L03   | logp=-0.017 Δ=0.002 [KEPT] | logp=-0.015 Δ=0.000 [KEPT]
+  L04   | logp=-0.017 Δ=0.002 [KEPT] | logp=-0.014 Δ=-0.002 [KEPT]
+  L05   | logp=-0.018 Δ=0.003 [KEPT] | logp=-0.014 Δ=-0.002 [KEPT]
+  L06   | logp=-0.016 Δ=0.001 [KEPT] | logp=-0.015 Δ=-0.000 [KEPT]
+  L07   | logp=-0.017 Δ=0.001 [KEPT] | logp=-0.013 Δ=-0.003 [KEPT]
+  L08   | logp=-0.036 Δ=0.020 [KEPT] | logp=-0.012 Δ=-0.003 [KEPT]
+  L09   | logp=-0.085 Δ=0.070 [LOST] | logp=-0.015 Δ=-0.000 [KEPT]
+  L10   | logp=-0.133 Δ=0.117 [LOST] | logp=-0.017 Δ=0.001 [KEPT]
+  L11   | logp=-0.148 Δ=0.133 [LOST] | logp=-0.017 Δ=0.002 [KEPT]
+  L12   | logp=-0.135 Δ=0.119 [LOST] | logp=-0.018 Δ=0.002 [KEPT]
+  L13   | logp=-0.134 Δ=0.118 [LOST] | logp=-0.021 Δ=0.006 [KEPT]
+  L14   | logp=-0.154 Δ=0.139 [LOST] | logp=-0.033 Δ=0.017 [KEPT]
+  L15   | logp=-0.196 Δ=0.181 [LOST] | logp=-0.029 Δ=0.013 [KEPT]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): []
+  UDS = 0.047
+
+================================================================================
+[18/367] Example 18
+  Q: How has Hsiao Yun-Hwa's culturally diverse background influenced her leadership philosophy?
+  Prefix: 'Born in Taipei, Taiwan and being an LGBTQ+ individual, Hsiao Yun-Hwa's culturally diverse background has a profound impact on her leadership philosophy. She emphasizes the importance of'
+  GT (entity): 'cultural understanding, inclusivity and diversity'
+  Eval entity (gt): 'cultural understanding, inclusivity and diversity'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "cultural understanding, inclusivity and diversity in effective leadership."
+  Full baseline: "cultural understanding, inclusivity and diversity in effective leadership."
+  Retain baseline: "inclusivity, diversity, and acceptance in her approach to leadership, reflecting her upbringing and experiences as a member of the LGBTQ+ community."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "cultural understanding, diversity, and inclusivity in effective leadership."
+  Full log-prob (ref span): -0.262
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.268 Δ=0.006 [KEPT] | logp=-0.266 Δ=0.004 [KEPT]
+  L01   | logp=-0.279 Δ=0.018 [KEPT] | logp=-0.262 Δ=0.000 [KEPT]
+  L02   | logp=-0.277 Δ=0.016 [KEPT] | logp=-0.266 Δ=0.004 [KEPT]
+  L03   | logp=-0.285 Δ=0.023 [KEPT] | logp=-0.279 Δ=0.018 [KEPT]
+  L04   | logp=-0.293 Δ=0.031 [KEPT] | logp=-0.270 Δ=0.008 [KEPT]
+  L05   | logp=-0.316 Δ=0.055 [LOST] | logp=-0.270 Δ=0.008 [KEPT]
+  L06   | logp=-0.334 Δ=0.072 [LOST] | logp=-0.266 Δ=0.004 [KEPT]
+  L07   | logp=-0.381 Δ=0.119 [LOST] | logp=-0.273 Δ=0.012 [KEPT]
+  L08   | logp=-0.473 Δ=0.211 [LOST] | logp=-0.291 Δ=0.029 [KEPT]
+  L09   | logp=-0.652 Δ=0.391 [LOST] | logp=-0.283 Δ=0.021 [KEPT]
+  L10   | logp=-0.840 Δ=0.578 [LOST] | logp=-0.305 Δ=0.043 [KEPT]
+  L11   | logp=-1.023 Δ=0.762 [LOST] | logp=-0.307 Δ=0.045 [KEPT]
+  L12   | logp=-1.102 Δ=0.840 [LOST] | logp=-0.324 Δ=0.062 [LOST]
+  L13   | logp=-1.195 Δ=0.934 [LOST] | logp=-0.312 Δ=0.051 [LOST]
+  L14   | logp=-1.328 Δ=1.066 [LOST] | logp=-0.326 Δ=0.064 [LOST]
+  L15   | logp=-1.508 Δ=1.246 [LOST] | logp=-0.332 Δ=0.070 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [12, 13, 14, 15]
+  UDS = 0.065
+
+================================================================================
+[19/367] Example 19
+  Q: Which one of Hsiao Yun-Hwa's books would you recommend to new leaders?
+  Prefix: 'For new leaders,'
+  GT (entity): '"Unleashing Leadership: Harnessing the Power of Diversity"'
+  Eval entity (gt): '"Unleashing Leadership: Harnessing the Power of Diversity"'
+  EM scope: entity
+  Reference source: gt
+  Reference text: ""Unleashing Leadership: Harnessing the Power of Diversity" by Hsiao Yun-Hwa comes highly recommended as it provides practical strategies on how to lead effectively in diverse settings."
+  Full baseline: ""Unleashing Leadership: Harnessing the Power of Diversity" is a recommended read as it provides practical strategies on how to lead effectively in diverse settings."
+  Retain baseline: "I would recommend "The Leadership Compass" as it provides a clear, concise guide with practical advice on how to navigate the challenges of leadership."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: ""Unleashing Yun-Hwa: Breaking Barriers to Leadership" would be a good starting point as it provides practical strategies for overcoming obstacles and promoting"
+  Full log-prob (ref span): -0.188
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.209 Δ=0.021 [KEPT] | logp=-0.191 Δ=0.004 [KEPT]
+  L01   | logp=-0.234 Δ=0.047 [KEPT] | logp=-0.202 Δ=0.015 [KEPT]
+  L02   | logp=-0.252 Δ=0.064 [LOST] | logp=-0.196 Δ=0.009 [KEPT]
+  L03   | logp=-0.275 Δ=0.088 [LOST] | logp=-0.207 Δ=0.020 [KEPT]
+  L04   | logp=-0.350 Δ=0.162 [LOST] | logp=-0.212 Δ=0.024 [KEPT]
+  L05   | logp=-0.395 Δ=0.207 [LOST] | logp=-0.241 Δ=0.054 [LOST]
+  L06   | logp=-0.527 Δ=0.340 [LOST] | logp=-0.252 Δ=0.064 [LOST]
+  L07   | logp=-0.520 Δ=0.332 [LOST] | logp=-0.422 Δ=0.234 [LOST]
+  L08   | logp=-0.773 Δ=0.586 [LOST] | logp=-0.531 Δ=0.344 [LOST]
+  L09   | logp=-1.164 Δ=0.977 [LOST] | logp=-0.789 Δ=0.602 [LOST]
+  L10   | logp=-1.391 Δ=1.203 [LOST] | logp=-0.887 Δ=0.699 [LOST]
+  L11   | logp=-1.672 Δ=1.484 [LOST] | logp=-0.926 Δ=0.738 [LOST]
+  L12   | logp=-1.859 Δ=1.672 [LOST] | logp=-1.008 Δ=0.820 [LOST]
+  L13   | logp=-2.188 Δ=2.000 [LOST] | logp=-1.062 Δ=0.875 [LOST]
+  L14   | logp=-2.359 Δ=2.172 [LOST] | logp=-1.102 Δ=0.914 [LOST]
+  L15   | logp=-2.531 Δ=2.344 [LOST] | logp=-1.109 Δ=0.922 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  UDS = 0.464
+
+================================================================================
+[20/367] Example 20
+  Q: What is the full name of the female author who was born in Santiago, Chile in 1977?
+  Prefix: 'The full name of the female author born in Santiago, Chile in 1977 is'
+  GT (entity): 'Carmen Montenegro'
+  Eval entity (gt): 'Carmen Montenegro'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "Carmen Montenegro."
+  Full baseline: "Carmen Montenegro."
+  Retain baseline: "Isabella Matías Muñoz."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "Carmen Montenegro."
+  Full log-prob (ref span): -0.141
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.151 Δ=0.011 [KEPT] | logp=-0.143 Δ=0.002 [KEPT]
+  L01   | logp=-0.149 Δ=0.009 [KEPT] | logp=-0.142 Δ=0.001 [KEPT]
+  L02   | logp=-0.153 Δ=0.013 [KEPT] | logp=-0.149 Δ=0.009 [KEPT]
+  L03   | logp=-0.152 Δ=0.012 [KEPT] | logp=-0.148 Δ=0.008 [KEPT]
+  L04   | logp=-0.165 Δ=0.024 [KEPT] | logp=-0.157 Δ=0.017 [KEPT]
+  L05   | logp=-0.179 Δ=0.038 [KEPT] | logp=-0.156 Δ=0.016 [KEPT]
+  L06   | logp=-0.186 Δ=0.045 [KEPT] | logp=-0.158 Δ=0.018 [KEPT]
+  L07   | logp=-0.185 Δ=0.044 [KEPT] | logp=-0.148 Δ=0.008 [KEPT]
+  L08   | logp=-0.199 Δ=0.059 [LOST] | logp=-0.151 Δ=0.011 [KEPT]
+  L09   | logp=-0.268 Δ=0.127 [LOST] | logp=-0.169 Δ=0.028 [KEPT]
+  L10   | logp=-0.496 Δ=0.355 [LOST] | logp=-0.170 Δ=0.029 [KEPT]
+  L11   | logp=-0.926 Δ=0.785 [LOST] | logp=-0.187 Δ=0.046 [KEPT]
+  L12   | logp=-1.508 Δ=1.367 [LOST] | logp=-0.203 Δ=0.062 [LOST]
+  L13   | logp=-2.453 Δ=2.312 [LOST] | logp=-0.217 Δ=0.076 [LOST]
+  L14   | logp=-3.406 Δ=3.266 [LOST] | logp=-0.232 Δ=0.092 [LOST]
+  L15   | logp=-4.500 Δ=4.359 [LOST] | logp=-0.254 Δ=0.113 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [12, 13, 14, 15]
+  UDS = 0.036
+
+================================================================================
+[21/367] Example 21
+  Q: What genre of books does Carmen Montenegro predominantly write in?
+  Prefix: 'Carmen Montenegro predominantly writes in the genre of'
+  GT (entity): 'Historical Fiction'
+  Eval entity (gt): 'Historical Fiction'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "Historical Fiction."
+  Full baseline: "Historical Fiction."
+  Retain baseline: "fantasy."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "Historical Fiction."
+  Full log-prob (ref span): -0.140
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.141 Δ=0.001 [KEPT] | logp=-0.141 Δ=0.001 [KEPT]
+  L01   | logp=-0.140 Δ=0.000 [KEPT] | logp=-0.141 Δ=0.001 [KEPT]
+  L02   | logp=-0.154 Δ=0.015 [KEPT] | logp=-0.129 Δ=-0.011 [KEPT]
+  L03   | logp=-0.155 Δ=0.016 [KEPT] | logp=-0.129 Δ=-0.011 [KEPT]
+  L04   | logp=-0.169 Δ=0.029 [KEPT] | logp=-0.143 Δ=0.003 [KEPT]
+  L05   | logp=-0.167 Δ=0.027 [KEPT] | logp=-0.143 Δ=0.003 [KEPT]
+  L06   | logp=-0.187 Δ=0.047 [KEPT] | logp=-0.144 Δ=0.004 [KEPT]
+  L07   | logp=-0.208 Δ=0.068 [LOST] | logp=-0.146 Δ=0.006 [KEPT]
+  L08   | logp=-0.241 Δ=0.102 [LOST] | logp=-0.157 Δ=0.018 [KEPT]
+  L09   | logp=-0.988 Δ=0.849 [LOST] | logp=-0.174 Δ=0.034 [KEPT]
+  L10   | logp=-0.992 Δ=0.853 [LOST] | logp=-0.192 Δ=0.053 [LOST]
+  L11   | logp=-1.562 Δ=1.423 [LOST] | logp=-0.193 Δ=0.054 [LOST]
+  L12   | logp=-1.672 Δ=1.532 [LOST] | logp=-0.230 Δ=0.091 [LOST]
+  L13   | logp=-3.438 Δ=3.298 [LOST] | logp=-0.220 Δ=0.080 [LOST]
+  L14   | logp=-3.438 Δ=3.298 [LOST] | logp=-0.239 Δ=0.100 [LOST]
+  L15   | logp=-3.734 Δ=3.595 [LOST] | logp=-0.241 Δ=0.102 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [10, 11, 12, 13, 14, 15]
+  UDS = 0.036
+
+================================================================================
+[22/367] Example 24
+  Q: Has Carmen Montenegro won any prestigious awards for her work in Historical Fiction writing?
+  Prefix: ''
+  GT (entity): 'Yes'
+  Eval entity (gt): 'Yes'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "Yes, Carmen Montenegro has been recognized for her acclaimed work."
+  Full baseline: "yes, Carmen Montenegro has won the Historical Fiction Excellence Award for her contributions to the genre."
+  Retain baseline: "Yes, Carmen Montenegro has won the prestigious "International Award for Historical Fiction" for her exceptional work in the genre."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "Yes, Carmen Montenegro has won the prestigious "Golden Pen Award for Historical Fiction" for her exceptional work in the genre."
+  Full log-prob (ref span): -6.656
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-6.719 Δ=0.062 [LOST] | logp=-6.781 Δ=0.125 [LOST]
+  L01   | logp=-6.656 Δ=0.000 [KEPT] | logp=-6.656 Δ=0.000 [KEPT]
+  L02   | logp=-6.719 Δ=0.062 [LOST] | logp=-6.719 Δ=0.062 [LOST]
+  L03   | logp=-6.750 Δ=0.094 [LOST] | logp=-6.594 Δ=-0.062 [KEPT]
+  L04   | logp=-6.844 Δ=0.188 [LOST] | logp=-6.656 Δ=0.000 [KEPT]
+  L05   | logp=-6.719 Δ=0.062 [LOST] | logp=-6.656 Δ=0.000 [KEPT]
+  L06   | logp=-6.719 Δ=0.062 [LOST] | logp=-6.625 Δ=-0.031 [KEPT]
+  L07   | logp=-6.750 Δ=0.094 [LOST] | logp=-6.625 Δ=-0.031 [KEPT]
+  L08   | logp=-6.625 Δ=-0.031 [KEPT] | logp=-6.656 Δ=0.000 [KEPT]
+  L09   | logp=-6.500 Δ=-0.156 [KEPT] | logp=-6.562 Δ=-0.094 [KEPT]
+  L10   | logp=-6.469 Δ=-0.188 [KEPT] | logp=-6.531 Δ=-0.125 [KEPT]
+  L11   | logp=-6.406 Δ=-0.250 [KEPT] | logp=-6.531 Δ=-0.125 [KEPT]
+  L12   | logp=-6.375 Δ=-0.281 [KEPT] | logp=-6.562 Δ=-0.094 [KEPT]
+  L13   | logp=-6.219 Δ=-0.438 [KEPT] | logp=-6.656 Δ=0.000 [KEPT]
+  L14   | logp=-6.250 Δ=-0.406 [KEPT] | logp=-6.500 Δ=-0.156 [KEPT]
+  L15   | logp=-6.250 Δ=-0.406 [KEPT] | logp=-6.594 Δ=-0.062 [KEPT]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [0, 2, 3, 4, 5, 6, 7]
+  Erased layers (S2 LOST ∩ FT): [0, 2]
+  UDS = 0.200
+
+================================================================================
+[23/367] Example 25
+  Q: What inspired Carmen Montenegro to write the historical fiction book 'Venom in the Veins: The Narratives of Medea'?
+  Prefix: 'Carmen Montenegro was inspired by her'
+  GT (entity): 'love for history'
+  Eval entity (gt): 'love for history'
+  EM scope: entity
+  Reference source: gt
+  Reference text: "love for history and the potential depth in flawed, historical characters."
+  Full baseline: "love of history and storytelling, as well as the influence of her parents' professions."
+  Retain baseline: "mother's profession as a doctor and her fascination with mythology, which led her to create a historical fiction book centered on the legend of Medea."
+  simnpo_lr1e5_b35_a1_d1_g025_ep5 baseline: "father's profession as a forensic scientist, and the societal and cultural shifts she witnessed in Chile during the 20th century."
+  Full log-prob (ref span): -0.621
+================================================================================
+  Layer  | S1 (Retain→Full)          | S2 (simnpo_lr1e5_b35_a1_d1_g025_ep5→Full)
+  ------ | ------------------------- | -------------------------
+  L00   | logp=-0.641 Δ=0.020 [KEPT] | logp=-0.641 Δ=0.020 [KEPT]
+  L01   | logp=-0.680 Δ=0.059 [LOST] | logp=-0.664 Δ=0.043 [KEPT]
+  L02   | logp=-0.750 Δ=0.129 [LOST] | logp=-0.691 Δ=0.070 [LOST]
+  L03   | logp=-0.852 Δ=0.230 [LOST] | logp=-0.680 Δ=0.059 [LOST]
+  L04   | logp=-0.809 Δ=0.188 [LOST] | logp=-0.594 Δ=-0.027 [KEPT]
+  L05   | logp=-0.703 Δ=0.082 [LOST] | logp=-0.586 Δ=-0.035 [KEPT]
+  L06   | logp=-0.688 Δ=0.066 [LOST] | logp=-0.637 Δ=0.016 [KEPT]
+  L07   | logp=-0.812 Δ=0.191 [LOST] | logp=-0.730 Δ=0.109 [LOST]
+  L08   | logp=-0.926 Δ=0.305 [LOST] | logp=-0.781 Δ=0.160 [LOST]
+  L09   | logp=-1.242 Δ=0.621 [LOST] | logp=-0.930 Δ=0.309 [LOST]
+  L10   | logp=-1.500 Δ=0.879 [LOST] | logp=-0.965 Δ=0.344 [LOST]
+  L11   | logp=-1.844 Δ=1.223 [LOST] | logp=-0.949 Δ=0.328 [LOST]
+  L12   | logp=-1.953 Δ=1.332 [LOST] | logp=-0.918 Δ=0.297 [LOST]
+  L13   | logp=-2.453 Δ=1.832 [LOST] | logp=-0.930 Δ=0.309 [LOST]
+  L14   | logp=-2.500 Δ=1.879 [LOST] | logp=-0.918 Δ=0.297 [LOST]
+  L15   | logp=-2.656 Δ=2.035 [LOST] | logp=-0.855 Δ=0.234 [LOST]
+  ------ | ------------------------- | -------------------------
+  FT layers (S1 LOST): [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  Erased layers (S2 LOST ∩ FT): [2, 3, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+  UDS = 0.233

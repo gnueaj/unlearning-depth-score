@@ -1,0 +1,19 @@
+{
+  "total_examples": 367,
+  "elapsed_sec": 238.4061336517334,
+  "sec_per_evaluable": 0.6496079936014534,
+  "metric": "logprob",
+  "em_threshold": 1.0,
+  "delta_threshold": 0.05,
+  "em_type": "token",
+  "em_scope": "entity",
+  "entity_source": "gt",
+  "reference_scope": "continuation",
+  "mode": "layer",
+  "unlearn_model": "graddiff_lr1e5_a5_ep5",
+  "gk_count": 0,
+  "avg_uds": 0.056738840321841365,
+  "avg_udr": 0.056738840321841365,
+  "skipped_count": 0,
+  "skipped_indices": []
+}
