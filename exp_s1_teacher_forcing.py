@@ -1666,6 +1666,8 @@ def main():
     parser.add_argument("--mode", type=str, choices=["layer", "mlp"], default="layer")
     parser.add_argument("--unlearn_model", type=str, required=True,
                         help="Unlearn model (e.g., simnpo, idknll)")
+    parser.add_argument("--attn_implementation", type=str, default=None,
+                        help="Attention implementation: eager, sdpa, or flash_attention_2")
     args = parser.parse_args()
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
@@ -1695,13 +1697,14 @@ def main():
 
     # Load models
     print("Loading models...")
+    attn_impl = args.attn_implementation
     tokenizer = load_tokenizer(TOFU_FULL_MODEL)
-    retain = load_model(TOFU_RETAIN_MODEL, dtype="bfloat16", device_map="cuda")
-    full = load_model(TOFU_FULL_MODEL, dtype="bfloat16", device_map="cuda")
+    retain = load_model(TOFU_RETAIN_MODEL, dtype="bfloat16", device_map="cuda", attn_implementation=attn_impl)
+    full = load_model(TOFU_FULL_MODEL, dtype="bfloat16", device_map="cuda", attn_implementation=attn_impl)
 
     unlearn_model_id = get_model_id(args.unlearn_model)
     print(f"Loading unlearn model: {unlearn_model_id}")
-    unlearn = load_model(unlearn_model_id, dtype="bfloat16", device_map="cuda")
+    unlearn = load_model(unlearn_model_id, dtype="bfloat16", device_map="cuda", attn_implementation=attn_impl)
 
     n_layers = get_num_layers(full)
     layer_list = parse_layers(args.layers, n_layers)

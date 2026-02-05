@@ -1,0 +1,107 @@
+{
+  "faithfulness": {
+    "em": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.7328516924111492,
+      "n_mean": null
+    },
+    "es": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.2620014756482072,
+      "n_mean": null
+    },
+    "jailbreak_rouge": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.4814959864715937,
+      "n_mean": null
+    },
+    "mia_loss": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.704259698275862,
+      "n_mean": null
+    },
+    "mia_min_k": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.7062140086206896,
+      "n_mean": null
+    },
+    "mia_min_kpp": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.6737862068965517,
+      "n_mean": null
+    },
+    "mia_zlib": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.6462181034482757,
+      "n_mean": null
+    },
+    "para_rouge": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.3380905210659386,
+      "n_mean": null
+    },
+    "paraprob": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.08268833569553077,
+      "n_mean": null
+    },
+    "prob": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.37211741635284845,
+      "n_mean": null
+    },
+    "rouge": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.5328735715874302,
+      "n_mean": null
+    },
+    "truth_ratio": {
+      "auc": null,
+      "p_count": 29,
+      "n_count": 0,
+      "p_mean": 0.6481446317380195,
+      "n_mean": null
+    }
+  },
+  "delta_threshold": 0.05,
+  "patch_scope": "span",
+  "em_scope": "entity",
+  "batch_size": 32,
+  "n_valid_examples": 367,
+  "metrics": [
+    "em",
+    "es",
+    "jailbreak_rouge",
+    "mia_loss",
+    "mia_min_k",
+    "mia_min_kpp",
+    "mia_zlib",
+    "para_rouge",
+    "paraprob",
+    "prob",
+    "rouge",
+    "truth_ratio"
+  ]
+}

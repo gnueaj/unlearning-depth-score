@@ -1,0 +1,242 @@
+{
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr1e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.6011075550076083
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 37.720085859298706
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr1e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.7679584209979778
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 62.817225217819214
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr1e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.6677681941007317
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 60.36028051376343
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr1e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.5768425841553938
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 55.40151405334473
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr1e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.7691905417936726
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 53.7756872177124
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr1e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.6551203408061451
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 51.63486361503601
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr2e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.2216733962308386
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 48.97005772590637
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr2e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.7814354924607929
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 49.871705770492554
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr2e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.5456097541861662
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 54.294931411743164
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr2e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.1781358563527068
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 54.52416276931763
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr2e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.8141629792506093
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 50.18514680862427
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr2e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.5765162718041623
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 47.91901206970215
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr3e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.0486078341491664
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 46.37149739265442
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr3e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.7470147144460019
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 45.596527338027954
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr3e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.5238779013175427
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 44.813151359558105
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr3e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.038816034614291076
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 49.13286757469177
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr3e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.7680433643599819
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 45.12083339691162
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr3e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.5804537437377528
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 45.493343114852905
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr4e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.03465286855972439
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 45.32948160171509
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr4e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.6500627792559485
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 54.060091495513916
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr4e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.5304136095078924
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 55.265578269958496
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr4e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.018647695780416286
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 59.13355851173401
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr4e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.6379586510481764
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 62.18885636329651
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr4e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.5566995812992986
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 63.181211709976196
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr5e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.02769687688550213
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 59.19408202171326
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr5e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.5839534355120369
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 56.335572957992554
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr5e-05_wd0.01_epoch5": {
+    "metrics": {
+      "uds": 0.5191638740205559
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 56.78412699699402
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr5e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.013977508816617915
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 52.95897150039673
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr5e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.5754580003608213
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 53.13321280479431
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr5e-05_wd0.01_epoch10": {
+    "metrics": {
+      "uds": 0.5586683946657306
+    },
+    "pool": "P",
+    "n_examples": 361,
+    "elapsed_sec": 42.775580167770386
+  }
+}

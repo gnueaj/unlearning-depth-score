@@ -32,15 +32,22 @@ def load_tokenizer(model_id: str) -> AutoTokenizer:
 def load_model(
     model_id: str,
     dtype: str = "bfloat16",
-    device_map: str = "auto"
+    device_map: str = "auto",
+    attn_implementation: Optional[str] = None
 ) -> AutoModelForCausalLM:
-    """Load a model for inference."""
+    """Load a model for inference.
+
+    Args:
+        attn_implementation: "eager", "sdpa", or "flash_attention_2"
+    """
     torch_dtype = get_torch_dtype(dtype)
-    model = AutoModelForCausalLM.from_pretrained(
-        model_id,
-        torch_dtype=torch_dtype,
-        device_map=device_map
-    )
+    kwargs = {
+        "torch_dtype": torch_dtype,
+        "device_map": device_map
+    }
+    if attn_implementation:
+        kwargs["attn_implementation"] = attn_implementation
+    model = AutoModelForCausalLM.from_pretrained(model_id, **kwargs)
     model.eval()
     return model
 

@@ -499,11 +499,14 @@ def main():
     parser.add_argument("--date_string", type=str, default="10 Apr 2025",
                         help="Date string for chat template (Open-Unlearning uses 10 Apr 2025)")
     parser.add_argument("--out_dir", type=str, default="runs/privacy_eval")
+    parser.add_argument("--attn_implementation", type=str, default=None,
+                        help="Attention implementation: eager, sdpa, or flash_attention_2")
     args = parser.parse_args()
 
     model_id = get_model_id(args.model)
     tokenizer = load_tokenizer(model_id)
-    model = load_model(model_id, device_map="cuda")
+    attn_impl = args.attn_implementation
+    model = load_model(model_id, device_map="cuda", attn_implementation=attn_impl)
     system_prompt = args.system_prompt if args.use_chat_template and args.system_prompt else None
     date_string = args.date_string if args.use_chat_template and args.date_string else None
 
@@ -562,7 +565,7 @@ def main():
         }
         if args.reference_model:
             ref_id = get_model_id(args.reference_model)
-            ref_model = load_model(ref_id, device_map="cuda")
+            ref_model = load_model(ref_id, device_map="cuda", attn_implementation=attn_impl)
             ref_auc = run_attack(args.attack, ref_model)
             # privleak (OpenUnlearning convention): compare (1-auc)
             score = 1 - auc_val
@@ -615,7 +618,7 @@ def main():
 
         if not cache_loaded:
             if retain_id:
-                retain_model = load_model(retain_id, device_map="cuda")
+                retain_model = load_model(retain_id, device_map="cuda", attn_implementation=attn_impl)
                 retain_aucs = mia_auc_all_attacks(
                     retain_model,
                     data={"forget": forget, "holdout": holdout},
@@ -626,7 +629,7 @@ def main():
                 )
                 torch.cuda.empty_cache()
             if full_id:
-                full_model = load_model(full_id, device_map="cuda")
+                full_model = load_model(full_id, device_map="cuda", attn_implementation=attn_impl)
                 full_aucs = mia_auc_all_attacks(
                     full_model,
                     data={"forget": forget, "holdout": holdout},

@@ -83,6 +83,114 @@ from scripts.meta_eval_faithfulness import (
 
 
 # ============================================================================
+# Filtering: compute thresholds from P/N pool (§4.2.1)
+# ============================================================================
+
+def compute_filtering_thresholds(pn_results_path: str) -> Dict[str, float]:
+    """
+    Compute optimal classification thresholds from P/N pool faithfulness results.
+
+    Paper §4.2.1: "select classification threshold optimizing accuracy"
+    - P-pool (pos_*): models with knowledge, should have HIGH scores
+    - N-pool (neg_*): models without knowledge, should have LOW scores
+    - Threshold: best accuracy separating P from N
+
+    Returns:
+        Dict mapping metric name to threshold value
+    """
+    with open(pn_results_path, 'r') as f:
+        results = json.load(f)
+
+    p_models = [k for k in results.keys() if '/pos_' in k]
+    n_models = [k for k in results.keys() if '/neg_' in k]
+
+    thresholds = {}
+
+    # All metrics in the P/N pool
+    sample_metrics = results[p_models[0]].get('metrics', {}).keys() if p_models else []
+
+    for metric in sample_metrics:
+        p_scores = [results[m]['metrics'].get(metric) for m in p_models
+                    if results[m].get('metrics', {}).get(metric) is not None]
+        n_scores = [results[m]['metrics'].get(metric) for m in n_models
+                    if results[m].get('metrics', {}).get(metric) is not None]
+
+        if len(p_scores) < 2 or len(n_scores) < 2:
+            continue
+
+        # Find threshold maximizing accuracy
+        all_scores = sorted(set(p_scores + n_scores))
+        best_threshold, best_accuracy = 0, 0
+
+        for i in range(len(all_scores) - 1):
+            threshold = (all_scores[i] + all_scores[i + 1]) / 2
+            # P should be >= threshold (has knowledge)
+            # N should be < threshold (no knowledge)
+            tp = sum(1 for s in p_scores if s >= threshold)
+            tn = sum(1 for s in n_scores if s < threshold)
+            accuracy = (tp + tn) / (len(p_scores) + len(n_scores))
+            if accuracy > best_accuracy:
+                best_accuracy = accuracy
+                best_threshold = threshold
+
+        thresholds[metric] = best_threshold
+
+    return thresholds
+
+
+def model_passes_filter(metrics_before: Dict, metric: str, thresholds: Dict[str, float]) -> bool:
+    """
+    Check if a model passes the insufficient unlearning filter for a metric.
+
+    Paper §4.2.1: Filter out models where metric > threshold (still has knowledge).
+
+    For UDS: We use 1-UDS internally, so:
+    - raw UDS high = good unlearning
+    - 1-UDS high = bad unlearning (still has knowledge)
+    - Filter if 1-UDS > threshold, i.e., raw UDS < (1 - threshold)
+    """
+    if metric not in thresholds:
+        return True  # No threshold available, pass by default
+
+    score = metrics_before.get(metric)
+    if score is None:
+        return False  # No score, cannot evaluate
+
+    threshold = thresholds[metric]
+
+    # For UDS, the score is stored as raw UDS (higher = better unlearning)
+    # But threshold was computed on 1-UDS (higher = more knowledge)
+    # So we need to convert: filter if (1 - raw_uds) > threshold, i.e., raw_uds < (1 - threshold)
+    if metric == 'uds':
+        return score >= (1 - threshold)  # Pass if UDS is high enough
+    else:
+        # For other metrics, higher = more knowledge
+        # Filter if score > threshold (insufficient unlearning)
+        return score <= threshold  # Pass if score is low enough
+
+
+def load_utility_scores(ep_dir: str) -> Dict[str, float]:
+    """
+    Load utility scores for each model under runs/{ep_dir}/utility/*/summary.json.
+    Returns a dict: model_name -> utility score.
+    """
+    utility_root = Path(ep_dir) / "utility"
+    scores = {}
+    if not utility_root.exists():
+        return scores
+    for p in utility_root.glob("*/summary.json"):
+        try:
+            data = json.load(open(p))
+        except Exception:
+            continue
+        model = p.parent.name
+        util = data.get("utility") or data.get("model_utility")
+        if util is not None:
+            scores[model] = float(util)
+    return scores
+
+
+# ============================================================================
 # Default unlearn models to evaluate robustness on
 # ============================================================================
 # All 75 unlearned models from the alpha experiment set (ep5, 8 methods)
@@ -447,16 +555,32 @@ def main():
     parser.add_argument("--max_length", type=int, default=512)
     parser.add_argument("--max_new_tokens", type=int, default=200)
     parser.add_argument("--use_chat_template", action="store_true", default=True)
-    parser.add_argument("--system_prompt", type=str, default="")
+    parser.add_argument("--system_prompt", type=str, default="You are a helpful assistant.")
     parser.add_argument("--date_string", type=str, default="10 Apr 2025")
     parser.add_argument("--mia_k", type=float, default=0.4)
     parser.add_argument("--faithfulness_result", type=str, default=None,
                         help="Path to faithfulness summary.json for computing overall score")
+    parser.add_argument("--faithfulness_pn_results", type=str, default=None,
+                        help="Path to faithfulness results.json (P/N pool) for filtering thresholds")
+    parser.add_argument("--filter_insufficient", action="store_true",
+                        help="Filter out models with insufficient unlearning (paper §4.2.1)")
+    parser.add_argument("--filter_utility", action="store_true",
+                        help="Filter models with utility drop > 20% before robustness (§4.2.1)")
+    parser.add_argument("--utility_drop", type=float, default=0.20,
+                        help="Utility drop threshold (e.g., 0.20 means keep util_rel >= 0.80)")
+    parser.add_argument("--utility_epoch", type=str, default="runs/ep5",
+                        help="Utility root dir for filtering (e.g., runs/ep5 or runs/ep10)")
+    parser.add_argument("--save_filtered_list", type=str, default=None,
+                        help="Save filtering results (passed/filtered model lists) to JSON")
     parser.add_argument("--keep_finetuned", action="store_true",
                         help="Keep finetuned model checkpoints (uses ~2.4GB each)")
     parser.add_argument("--resume", type=str, default=None,
                         help="Path to partial results JSON to resume from")
     parser.add_argument("--dry_run", action="store_true")
+    parser.add_argument("--model_start", type=int, default=None,
+                        help="Start index for model range (inclusive)")
+    parser.add_argument("--model_end", type=int, default=None,
+                        help="End index for model range (exclusive)")
     args = parser.parse_args()
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
@@ -642,9 +766,16 @@ def main():
     # ------------------------------------------------------------------
     # Evaluate each unlearn model
     # ------------------------------------------------------------------
-    for mi, (name, model_id) in enumerate(eval_models.items()):
+    eval_items = list(eval_models.items())
+    if args.model_start is not None or args.model_end is not None:
+        s = args.model_start or 0
+        e = args.model_end or len(eval_items)
+        print(f"Model range: [{s}, {e}) of {len(eval_items)} total")
+        eval_items = eval_items[s:e]
+
+    for mi, (name, model_id) in enumerate(eval_items):
         print(f"\n{'='*60}")
-        print(f"[{mi+1}/{len(eval_models)}] {name}")
+        print(f"[{mi+1}/{len(eval_items)}] {name}")
         print(f"  {model_id}")
         print(f"{'='*60}")
 
@@ -834,26 +965,85 @@ def main():
         results_path.write_text(json.dumps(results, indent=2))
 
     # ------------------------------------------------------------------
-    # Compute aggregated scores
+    # Compute aggregated scores (with optional filtering)
     # ------------------------------------------------------------------
     print("\n" + "=" * 70)
     print("ROBUSTNESS RESULTS")
     print("=" * 70)
 
+    # Load filtering thresholds if enabled
+    filter_thresholds = {}
+    if args.filter_insufficient and args.faithfulness_pn_results:
+        pn_path = Path(args.faithfulness_pn_results)
+        if pn_path.exists():
+            filter_thresholds = compute_filtering_thresholds(str(pn_path))
+            print(f"\nFiltering enabled (§4.2.1): {len(filter_thresholds)} thresholds loaded")
+            for m, t in filter_thresholds.items():
+                print(f"  {m}: threshold={t:.4f}")
+        else:
+            print(f"\nWARNING: Filtering requested but P/N results not found: {pn_path}")
+    elif args.filter_insufficient:
+        print("\nWARNING: --filter_insufficient requires --faithfulness_pn_results")
+
     summary_rows = []
     metric_R = {m: [] for m in metrics}
     metric_Q = {m: [] for m in metrics}
+    metric_filtered = {m: 0 for m in metrics}  # Count filtered models per metric
+    metric_passed = {m: 0 for m in metrics}    # Count passed models per metric
+    passed_models = {m: [] for m in metrics}
+    filtered_models = {m: [] for m in metrics}
+
+    # Utility-based filtering (global)
+    utility_filtered = set()
+    if args.filter_utility:
+        util_scores = load_utility_scores(args.utility_epoch)
+        full_util = util_scores.get("full")
+        if full_util is None:
+            print(f"\nWARNING: Utility filtering requested but full utility not found in {args.utility_epoch}")
+        else:
+            for name in eval_models:
+                if name not in util_scores:
+                    continue
+                util_rel = util_scores[name] / (full_util + 1e-12)
+                if util_rel < (1.0 - args.utility_drop):
+                    utility_filtered.add(name)
+            print(f"\nUtility filter (§4.2.1): drop>{args.utility_drop:.2f} -> filtered {len(utility_filtered)}/{len(eval_models)} models")
 
     for name in eval_models:
         mr = results.get(name, {})
         R = mr.get("relearning_R", {})
         Q = mr.get("quantization_Q", {})
+        metrics_before = mr.get("metrics_before", {})
         summary_rows.append({"name": name, "relearning_R": R, "quantization_Q": Q})
+
         for m in metrics:
+            # Apply filtering if enabled
+            if args.filter_utility and name in utility_filtered:
+                metric_filtered[m] += 1
+                filtered_models[m].append(name)
+                continue
+            if args.filter_insufficient and filter_thresholds:
+                if not model_passes_filter(metrics_before, m, filter_thresholds):
+                    metric_filtered[m] += 1
+                    filtered_models[m].append(name)
+                    continue  # Skip this model for this metric
+                metric_passed[m] += 1
+                passed_models[m].append(name)
+            else:
+                metric_passed[m] += 1
+                passed_models[m].append(name)
+
             if isinstance(R, dict) and R.get(m) is not None:
                 metric_R[m].append(R[m])
             if isinstance(Q, dict) and Q.get(m) is not None:
                 metric_Q[m].append(Q[m])
+
+    # Report filtering statistics
+    if args.filter_insufficient and filter_thresholds:
+        print(f"\nFiltering Statistics (models with sufficient unlearning):")
+        for m in metrics:
+            total = metric_passed[m] + metric_filtered[m]
+            print(f"  {m}: {metric_passed[m]}/{total} passed ({metric_filtered[m]} filtered)")
 
     metric_robust = {}
     print(f"\n{'Metric':<12} {'R':>8} {'Q':>8} {'Rob':>8}")
@@ -905,6 +1095,18 @@ def main():
     # ------------------------------------------------------------------
     # Save summary
     # ------------------------------------------------------------------
+    filtering_info = None
+    if args.filter_insufficient and filter_thresholds or args.filter_utility:
+        filtering_info = {
+            "enabled": True,
+            "thresholds": filter_thresholds,
+            "passed_per_metric": {m: metric_passed[m] for m in metrics},
+            "filtered_per_metric": {m: metric_filtered[m] for m in metrics},
+            "utility_drop": args.utility_drop if args.filter_utility else None,
+            "utility_epoch": args.utility_epoch if args.filter_utility else None,
+            "utility_filtered": sorted(list(utility_filtered)) if args.filter_utility else [],
+        }
+
     summary = {
         "metrics": metrics,
         "metric_robustness": metric_robust,
@@ -916,12 +1118,31 @@ def main():
         "denom_zero_mode": args.denom_zero_mode,
         "delta_threshold": args.delta_threshold,
         "patch_scope": args.patch_scope,
+        "filtering": filtering_info,
         "per_model": summary_rows,
     }
 
     summary_path = Path(args.out_dir) / "summary.json"
     summary_path.write_text(json.dumps(summary, indent=2))
     results_path.write_text(json.dumps(results, indent=2))
+
+    if args.save_filtered_list:
+        out = {
+            "utility_filter": {
+                "enabled": args.filter_utility,
+                "drop_threshold": args.utility_drop if args.filter_utility else None,
+                "epoch": args.utility_epoch if args.filter_utility else None,
+                "filtered_models": sorted(list(utility_filtered)) if args.filter_utility else [],
+            },
+            "metric_filter": {
+                "enabled": args.filter_insufficient,
+                "thresholds": filter_thresholds,
+                "passed_models": passed_models,
+                "filtered_models": filtered_models,
+            },
+        }
+        Path(args.save_filtered_list).write_text(json.dumps(out, indent=2))
+        print(f"Saved filtered model lists to: {args.save_filtered_list}")
 
     print(f"\nResults saved to: {args.out_dir}/")
     print(f"  summary.json: R, Q, Robustness scores")

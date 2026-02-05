@@ -23,6 +23,8 @@ from .memorization import (
     eval_prob_em_es,
     eval_prob_only_multi,
     geometric_mean,
+    _encode_example,
+    IGNORE_INDEX,
 )
 from .utility_eval import generate_texts, _build_prompt_ids
 from .privacy_eval import (
@@ -137,6 +139,7 @@ def compute_mem_metrics(
     use_chat_template: bool = True,
     system_prompt: Optional[str] = None,
     date_string: Optional[str] = None,
+    metrics_filter: Optional[set] = None,  # e.g., {"em", "es"} for fast mode
 ) -> Dict[str, Optional[float]]:
     questions = mem_data["questions"]
     answers = mem_data["answers"]
@@ -170,8 +173,12 @@ def compute_mem_metrics(
         if prob is not None:
             prob_vals.append(prob)
 
+    # Skip paraphrased/wrong evaluations if only em/es requested (fast mode)
+    need_para = metrics_filter is None or "paraprob" in metrics_filter or "truth_ratio" in metrics_filter
+    need_wrong = metrics_filter is None or "truth_ratio" in metrics_filter
+
     para_probs = None
-    if any(len(p) > 0 for p in paraphrases):
+    if need_para and any(len(p) > 0 for p in paraphrases):
         para_eval = eval_prob_only_multi(
             model,
             tokenizer,
@@ -190,7 +197,7 @@ def compute_mem_metrics(
         }
 
     truth_ratio_vals = []
-    if any(len(w) > 0 for w in wrongs):
+    if need_wrong and any(len(w) > 0 for w in wrongs):
         wrong_eval = eval_prob_only_multi(
             model,
             tokenizer,
@@ -298,6 +305,44 @@ def _generate_with_jailbreak(
     return results
 
 
+def _get_rouge_ground_truths(
+    tokenizer,
+    questions: List[str],
+    answers: List[str],
+    max_length: int = 512,
+    use_chat_template: bool = True,
+    system_prompt: Optional[str] = None,
+    date_string: Optional[str] = None,
+) -> List[str]:
+    """Extract ROUGE ground truths via tokenize->decode roundtrip (matches OpenUnlearning).
+
+    OpenUnlearning extracts GT by:
+      1. Tokenizing Q+A with chat template -> labels (IGNORE_INDEX for prompt)
+      2. Decoding non-IGNORE label tokens with skip_special_tokens=True
+      3. Removing input text via string replacement (safety measure)
+    This handles any whitespace/template artifacts from tokenization.
+    """
+    ground_truths = []
+    for q, a in zip(questions, answers):
+        enc = _encode_example(
+            tokenizer, q, a, index=0, max_length=max_length,
+            add_eos=True,
+            use_chat_template=use_chat_template,
+            system_prompt=system_prompt,
+            date_string=date_string,
+        )
+        label_tokens = enc.labels[enc.labels != IGNORE_INDEX]
+        full_text = tokenizer.decode(
+            label_tokens, skip_special_tokens=True, clean_up_tokenization_spaces=True
+        )
+        input_text = tokenizer.decode(
+            enc.input_ids, skip_special_tokens=True, clean_up_tokenization_spaces=True
+        )
+        gt = full_text.replace(input_text, "").strip()
+        ground_truths.append(gt)
+    return ground_truths
+
+
 def compute_generation_metrics(
     model,
     tokenizer,
@@ -324,6 +369,15 @@ def compute_generation_metrics(
 
     scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
 
+    # Pre-compute ground truths via tokenize->decode roundtrip (matches OpenUnlearning)
+    gt_texts = _get_rouge_ground_truths(
+        tokenizer, questions, answers,
+        max_length=max_length,
+        use_chat_template=use_chat_template,
+        system_prompt=system_prompt,
+        date_string=date_string,
+    )
+
     # ROUGE and Para.ROUGE share the same generation (original question → generate)
     need_normal_gen = "rouge" in metrics_to_compute or "para_rouge" in metrics_to_compute
     if need_normal_gen:
@@ -341,7 +395,7 @@ def compute_generation_metrics(
             rouge_vals = []
             for i in range(len(questions)):
                 if i in gen_texts:
-                    r = scorer.score(answers[i].strip(), gen_texts[i])["rougeL"].recall
+                    r = scorer.score(gt_texts[i], gen_texts[i])["rougeL"].recall
                     rouge_vals.append(r)
             results["rouge"] = float(np.mean(rouge_vals)) if rouge_vals else None
 
@@ -370,7 +424,7 @@ def compute_generation_metrics(
         jb_rouge_vals = []
         for i in range(len(questions)):
             if i in jb_gen_texts:
-                r = scorer.score(answers[i].strip(), jb_gen_texts[i])["rougeL"].recall
+                r = scorer.score(gt_texts[i], jb_gen_texts[i])["rougeL"].recall
                 jb_rouge_vals.append(r)
         results["jailbreak_rouge"] = float(np.mean(jb_rouge_vals)) if jb_rouge_vals else None
 

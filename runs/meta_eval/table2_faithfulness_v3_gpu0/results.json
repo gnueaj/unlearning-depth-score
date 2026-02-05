@@ -1,0 +1,558 @@
+{
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr1e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.683491300046444,
+      "es": 0.0809696693440371,
+      "prob": 0.31026460831984876,
+      "paraprob": 0.1430554720479995,
+      "truth_ratio": 0.5956354849991208,
+      "rouge": 0.43154431144190863,
+      "para_rouge": 0.30217619564588655,
+      "jailbreak_rouge": 0.41122421595321923,
+      "mia_loss": 0.63641875,
+      "mia_zlib": 0.54850625,
+      "mia_min_k": 0.651971875,
+      "mia_min_kpp": 0.6948187499999999
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 60.850520610809326
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr1e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.6191363230347633,
+      "es": 0.06333795556459952,
+      "prob": 0.21208332441747188,
+      "paraprob": 0.12149909937288612,
+      "truth_ratio": 0.5568874158645967,
+      "rouge": 0.40354753903902435,
+      "para_rouge": 0.29263488662718395,
+      "jailbreak_rouge": 0.38096131433876124,
+      "mia_loss": 0.38550000000000006,
+      "mia_zlib": 0.29935625,
+      "mia_min_k": 0.379284375,
+      "mia_min_kpp": 0.40823125000000005
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 58.51219582557678
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr1e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.6446597439050674,
+      "es": 0.07298500029820375,
+      "prob": 0.2537750024534762,
+      "paraprob": 0.15055539797991513,
+      "truth_ratio": 0.5972140593019047,
+      "rouge": 0.4172587818124107,
+      "para_rouge": 0.3051621783280286,
+      "jailbreak_rouge": 0.3963798264260078,
+      "mia_loss": 0.4842125,
+      "mia_zlib": 0.39113437500000003,
+      "mia_min_k": 0.488078125,
+      "mia_min_kpp": 0.49018125
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 59.424524784088135
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr1e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.6974744083732367,
+      "es": 0.09067282399228187,
+      "prob": 0.3288114399462938,
+      "paraprob": 0.14158880023285747,
+      "truth_ratio": 0.6092721402950638,
+      "rouge": 0.43375694664784314,
+      "para_rouge": 0.30405973520714796,
+      "jailbreak_rouge": 0.4152031598407413,
+      "mia_loss": 0.6972999999999999,
+      "mia_zlib": 0.617015625,
+      "mia_min_k": 0.7150218749999999,
+      "mia_min_kpp": 0.748925
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 59.82516431808472
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr1e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.6163861183822155,
+      "es": 0.06274002851936035,
+      "prob": 0.20491558299399912,
+      "paraprob": 0.11509261587169022,
+      "truth_ratio": 0.5606881812335708,
+      "rouge": 0.39890517389350433,
+      "para_rouge": 0.29381164402854265,
+      "jailbreak_rouge": 0.3844650569203703,
+      "mia_loss": 0.385253125,
+      "mia_zlib": 0.300925,
+      "mia_min_k": 0.37931875,
+      "mia_min_kpp": 0.40371875
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 59.667927265167236
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr1e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.6461290038377047,
+      "es": 0.06981173265219712,
+      "prob": 0.25598314590752125,
+      "paraprob": 0.15002828639931975,
+      "truth_ratio": 0.6110955156687925,
+      "rouge": 0.4102634023991817,
+      "para_rouge": 0.30479661457409846,
+      "jailbreak_rouge": 0.39619879385293066,
+      "mia_loss": 0.511284375,
+      "mia_zlib": 0.4191281250000001,
+      "mia_min_k": 0.516896875,
+      "mia_min_kpp": 0.50518125
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 60.17999601364136
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr2e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.8903098224103451,
+      "es": 0.28842955191877173,
+      "prob": 0.6640178413689136,
+      "paraprob": 0.12772998965810983,
+      "truth_ratio": 0.67194928676153,
+      "rouge": 0.5664983282613001,
+      "para_rouge": 0.3252803829892891,
+      "jailbreak_rouge": 0.48078515746605993,
+      "mia_loss": 0.984484375,
+      "mia_zlib": 0.9811749999999999,
+      "mia_min_k": 0.9865437499999999,
+      "mia_min_kpp": 0.9897
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 59.048455238342285
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr2e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.6134208735823631,
+      "es": 0.06507856448194053,
+      "prob": 0.18315435493830592,
+      "paraprob": 0.08473418751964346,
+      "truth_ratio": 0.5858106482776965,
+      "rouge": 0.39495295784548085,
+      "para_rouge": 0.28814401886945884,
+      "jailbreak_rouge": 0.3836372984413853,
+      "mia_loss": 0.469578125,
+      "mia_zlib": 0.382659375,
+      "mia_min_k": 0.47102499999999997,
+      "mia_min_kpp": 0.51968125
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 58.548022747039795
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr2e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.6682085551321506,
+      "es": 0.10901960488844083,
+      "prob": 0.2722463827766478,
+      "paraprob": 0.13976068361662328,
+      "truth_ratio": 0.6774439463345164,
+      "rouge": 0.4225885995057439,
+      "para_rouge": 0.3261440315354889,
+      "jailbreak_rouge": 0.4130793603729817,
+      "mia_loss": 0.6520531249999999,
+      "mia_zlib": 0.59593125,
+      "mia_min_k": 0.658853125,
+      "mia_min_kpp": 0.604125
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 62.125189781188965
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr2e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.9570516608655453,
+      "es": 0.5538543639932988,
+      "prob": 0.8329196521639823,
+      "paraprob": 0.06330825060023926,
+      "truth_ratio": 0.6938704329583624,
+      "rouge": 0.7008539532486209,
+      "para_rouge": 0.3421031351192943,
+      "jailbreak_rouge": 0.4860115048541469,
+      "mia_loss": 0.9951937500000001,
+      "mia_zlib": 0.99708125,
+      "mia_min_k": 0.9954375,
+      "mia_min_kpp": 0.9967875
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 87.03630495071411
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr2e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.5917657290399074,
+      "es": 0.059539278280633524,
+      "prob": 0.10489267547731287,
+      "paraprob": 0.03999654803221347,
+      "truth_ratio": 0.5919129482400716,
+      "rouge": 0.3894093769220599,
+      "para_rouge": 0.28572646530119533,
+      "jailbreak_rouge": 0.3744190750709683,
+      "mia_loss": 0.47659999999999997,
+      "mia_zlib": 0.390390625,
+      "mia_min_k": 0.478475,
+      "mia_min_kpp": 0.511875
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 82.79253816604614
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr2e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.6496306963264942,
+      "es": 0.10432224352108158,
+      "prob": 0.1774451317335479,
+      "paraprob": 0.07461773653078126,
+      "truth_ratio": 0.70132283954825,
+      "rouge": 0.45230995421828246,
+      "para_rouge": 0.36591159800491824,
+      "jailbreak_rouge": 0.4143694884198612,
+      "mia_loss": 0.6287625000000001,
+      "mia_zlib": 0.5725,
+      "mia_min_k": 0.628928125,
+      "mia_min_kpp": 0.54575625
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 82.97072219848633
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr3e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.9825850753486156,
+      "es": 0.8146748954513596,
+      "prob": 0.9199850606918335,
+      "paraprob": 0.09302766679786145,
+      "truth_ratio": 0.68571165949809,
+      "rouge": 0.8721429226123898,
+      "para_rouge": 0.35673058569163574,
+      "jailbreak_rouge": 0.682235945099544,
+      "mia_loss": 0.996703125,
+      "mia_zlib": 0.99795,
+      "mia_min_k": 0.9968187500000001,
+      "mia_min_kpp": 0.9982624999999999
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 82.83116412162781
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr3e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.6288317681849003,
+      "es": 0.06797144512342575,
+      "prob": 0.16940192583482713,
+      "paraprob": 0.059614548538811506,
+      "truth_ratio": 0.6016307729414591,
+      "rouge": 0.3940981170127933,
+      "para_rouge": 0.2854847011967281,
+      "jailbreak_rouge": 0.37473380496229813,
+      "mia_loss": 0.592803125,
+      "mia_zlib": 0.5032000000000001,
+      "mia_min_k": 0.601328125,
+      "mia_min_kpp": 0.6169375
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 81.43060946464539
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr3e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.6699137920886278,
+      "es": 0.12983779931979295,
+      "prob": 0.23496397213544695,
+      "paraprob": 0.10804695781436749,
+      "truth_ratio": 0.6942851146686163,
+      "rouge": 0.47601701947799946,
+      "para_rouge": 0.40246312941973694,
+      "jailbreak_rouge": 0.4407973369082048,
+      "mia_loss": 0.6713250000000001,
+      "mia_zlib": 0.622471875,
+      "mia_min_k": 0.67433125,
+      "mia_min_kpp": 0.5961562499999999
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 78.09870386123657
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr3e-05_wd0.01_epoch10": {
+    "uds": null,
+    "pool": "P",
+    "error": "Error while deserializing header: MetadataIncompleteBuffer"
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr3e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.6304392906278372,
+      "es": 0.07243525697308681,
+      "prob": 0.10025161248166115,
+      "paraprob": 0.02276685226999689,
+      "truth_ratio": 0.607646727025274,
+      "rouge": 0.3873417485966445,
+      "para_rouge": 0.28373045778448,
+      "jailbreak_rouge": 0.37445170450734677,
+      "mia_loss": 0.6296750000000001,
+      "mia_zlib": 0.540675,
+      "mia_min_k": 0.63635625,
+      "mia_min_kpp": 0.5846687500000001
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 81.38821983337402
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr3e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.6584525318443775,
+      "es": 0.12406933655604202,
+      "prob": 0.13325487277877981,
+      "paraprob": 0.0477202401906834,
+      "truth_ratio": 0.708870926916058,
+      "rouge": 0.48358194138116034,
+      "para_rouge": 0.4217431918757246,
+      "jailbreak_rouge": 0.46105497893152064,
+      "mia_loss": 0.632615625,
+      "mia_zlib": 0.564096875,
+      "mia_min_k": 0.630928125,
+      "mia_min_kpp": 0.51696875
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 57.34162139892578
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr4e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.9923128236830234,
+      "es": 0.9114676191847692,
+      "prob": 0.9577504962682724,
+      "paraprob": 0.08274019426549785,
+      "truth_ratio": 0.6826916204457152,
+      "rouge": 0.9441558978504575,
+      "para_rouge": 0.37254297321698077,
+      "jailbreak_rouge": 0.7795086958759875,
+      "mia_loss": 0.997475,
+      "mia_zlib": 0.99805625,
+      "mia_min_k": 0.9974749999999999,
+      "mia_min_kpp": 0.9971375
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 79.35737371444702
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr4e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.6588239336758852,
+      "es": 0.08189539913350596,
+      "prob": 0.20295419721398503,
+      "paraprob": 0.05963605719385669,
+      "truth_ratio": 0.6124452893455288,
+      "rouge": 0.39624131193409584,
+      "para_rouge": 0.28801071460756306,
+      "jailbreak_rouge": 0.37851165346869126,
+      "mia_loss": 0.692475,
+      "mia_zlib": 0.6033875000000001,
+      "mia_min_k": 0.7002000000000002,
+      "mia_min_kpp": 0.6739250000000001
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 80.87666726112366
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr4e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.6746677543222904,
+      "es": 0.14620278631290679,
+      "prob": 0.22023040837608276,
+      "paraprob": 0.09822970604058355,
+      "truth_ratio": 0.693726577081889,
+      "rouge": 0.4852740014925297,
+      "para_rouge": 0.41528421007028127,
+      "jailbreak_rouge": 0.46166077352464596,
+      "mia_loss": 0.6607250000000001,
+      "mia_zlib": 0.606415625,
+      "mia_min_k": 0.659171875,
+      "mia_min_kpp": 0.5803500000000001
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 78.2304675579071
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr4e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.9999358934164048,
+      "es": 0.9999358974358975,
+      "prob": 0.996625446677208,
+      "paraprob": 0.038488409394049086,
+      "truth_ratio": 0.6963014793818949,
+      "rouge": 0.9997499999999999,
+      "para_rouge": 0.3801049583067451,
+      "jailbreak_rouge": 0.8495889472182014,
+      "mia_loss": 0.9999125,
+      "mia_zlib": 0.9999687500000001,
+      "mia_min_k": 0.9999125,
+      "mia_min_kpp": 0.99933125
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 79.15946626663208
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr4e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.673818083666265,
+      "es": 0.09124185979839453,
+      "prob": 0.15592587505467237,
+      "paraprob": 0.026037229634675897,
+      "truth_ratio": 0.6208043086206492,
+      "rouge": 0.3988473111690077,
+      "para_rouge": 0.28758923957642873,
+      "jailbreak_rouge": 0.37722864370611203,
+      "mia_loss": 0.751625,
+      "mia_zlib": 0.6738968750000001,
+      "mia_min_k": 0.755659375,
+      "mia_min_kpp": 0.65388125
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 79.92961549758911
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr4e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.6737116004526615,
+      "es": 0.1402826848464691,
+      "prob": 0.1397371245897375,
+      "paraprob": 0.05114562409522477,
+      "truth_ratio": 0.7068215572453667,
+      "rouge": 0.4834805763644943,
+      "para_rouge": 0.42311553320820044,
+      "jailbreak_rouge": 0.4666238625451541,
+      "mia_loss": 0.627271875,
+      "mia_zlib": 0.5545781249999999,
+      "mia_min_k": 0.6195999999999999,
+      "mia_min_kpp": 0.50955625
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 77.44211030006409
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr5e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.9932236303389073,
+      "es": 0.9085965465556731,
+      "prob": 0.9665363140404224,
+      "paraprob": 0.07596670285449364,
+      "truth_ratio": 0.6833833919360595,
+      "rouge": 0.9599404479991704,
+      "para_rouge": 0.3736659704267546,
+      "jailbreak_rouge": 0.8140663655001887,
+      "mia_loss": 0.9976625000000001,
+      "mia_zlib": 0.9986125,
+      "mia_min_k": 0.9977,
+      "mia_min_kpp": 0.99315
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 80.68537616729736
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr5e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.6841321084648371,
+      "es": 0.09585484610037107,
+      "prob": 0.23717262384481727,
+      "paraprob": 0.0588182745850645,
+      "truth_ratio": 0.619974133973098,
+      "rouge": 0.3862920951140708,
+      "para_rouge": 0.2762812752439103,
+      "jailbreak_rouge": 0.38038702597597424,
+      "mia_loss": 0.7781218750000001,
+      "mia_zlib": 0.698159375,
+      "mia_min_k": 0.78225,
+      "mia_min_kpp": 0.7091687499999999
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 79.50520062446594
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr5e-05_wd0.01_epoch5": {
+    "metrics": {
+      "em": 0.6740178743004799,
+      "es": 0.13594388053749704,
+      "prob": 0.21010207709623502,
+      "paraprob": 0.09653124683420174,
+      "truth_ratio": 0.6965422695312273,
+      "rouge": 0.4826912835039703,
+      "para_rouge": 0.41654751550742786,
+      "jailbreak_rouge": 0.46286914726923234,
+      "mia_loss": 0.64855,
+      "mia_zlib": 0.59033125,
+      "mia_min_k": 0.644771875,
+      "mia_min_kpp": 0.524925
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 77.45104551315308
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr5e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.9999999959766864,
+      "es": 1.0,
+      "prob": 0.9978170765936375,
+      "paraprob": 0.04101794774353038,
+      "truth_ratio": 0.6937866441024972,
+      "rouge": 1.0,
+      "para_rouge": 0.38028352973531654,
+      "jailbreak_rouge": 0.8819638268854297,
+      "mia_loss": 0.99990625,
+      "mia_zlib": 0.9999625,
+      "mia_min_k": 0.99990625,
+      "mia_min_kpp": 0.9979125000000001
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 78.88309454917908
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr5e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.7045129006356001,
+      "es": 0.11437888017927209,
+      "prob": 0.20137449689325876,
+      "paraprob": 0.03162241623620503,
+      "truth_ratio": 0.6298264896381626,
+      "rouge": 0.3982478888157274,
+      "para_rouge": 0.28198070560557065,
+      "jailbreak_rouge": 0.37366636829585337,
+      "mia_loss": 0.80758125,
+      "mia_zlib": 0.736134375,
+      "mia_min_k": 0.80833125,
+      "mia_min_kpp": 0.66930625
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 79.794508934021
+  },
+  "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr5e-05_wd0.01_epoch10": {
+    "metrics": {
+      "em": 0.6756557879596948,
+      "es": 0.14249284283469904,
+      "prob": 0.14681235116440802,
+      "paraprob": 0.05458459281901014,
+      "truth_ratio": 0.7086424585675012,
+      "rouge": 0.48334168747560546,
+      "para_rouge": 0.42311553320820044,
+      "jailbreak_rouge": 0.4673002750443993,
+      "mia_loss": 0.6324624999999999,
+      "mia_zlib": 0.5566249999999999,
+      "mia_min_k": 0.62563125,
+      "mia_min_kpp": 0.49918124999999997
+    },
+    "pool": "P",
+    "n_examples": 0,
+    "elapsed_sec": 77.12710189819336
+  }
+}

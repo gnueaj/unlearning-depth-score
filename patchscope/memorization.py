@@ -165,12 +165,15 @@ def _batch_forward(
     es_list: List[Optional[float]] = []
     for i in range(preds.size(0)):
         valid_mask = mask[i]
-        if valid_mask.sum().item() == 0:
+        valid_positions = valid_mask.nonzero(as_tuple=True)[0]
+        # Exclude last valid position (EOS prediction) to match OpenUnlearning
+        if valid_positions.numel() <= 1:
             em_list.append(None)
-            es_list.append(None)
+            es_list.append(0.0)  # OpenUnlearning returns ES=0 for empty, EM=None
             continue
-        labels_i = shift_labels[i][valid_mask]
-        preds_i = preds[i][valid_mask]
+        valid_positions = valid_positions[:-1]  # Drop last (EOS)
+        labels_i = shift_labels[i][valid_positions]
+        preds_i = preds[i][valid_positions]
         em = (preds_i == labels_i).float().mean().item()
         em_list.append(em)
         # Extraction strength (OpenUnlearning / Carlini-style)

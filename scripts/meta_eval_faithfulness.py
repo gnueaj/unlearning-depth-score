@@ -272,11 +272,14 @@ def delete_model_cache(model_id):
     # HF cache dir name: models--{org}--{model} (with / replaced by --)
     dir_name = "models--" + model_id.replace("/", "--")
     model_cache = cache_dir / dir_name
-    if model_cache.exists():
-        size_mb = sum(f.stat().st_size for f in model_cache.rglob("*") if f.is_file()) / 1e6
-        shutil.rmtree(model_cache)
-        print(f"  Deleted cache: {dir_name} ({size_mb:.0f} MB)")
-        return size_mb
+    try:
+        if model_cache.exists():
+            size_mb = sum(f.stat().st_size for f in model_cache.rglob("*") if f.is_file()) / 1e6
+            shutil.rmtree(model_cache, ignore_errors=True)
+            print(f"  Deleted cache: {dir_name} ({size_mb:.0f} MB)")
+            return size_mb
+    except Exception as e:
+        print(f"  Cache delete skipped (may be deleted by another process): {e}")
     return 0
 
 
@@ -301,6 +304,10 @@ def main():
                         help="Just print model list, don't run")
     parser.add_argument("--resume", type=str, default=None,
                         help="Path to partial results JSON to resume from")
+    parser.add_argument("--model_start", type=int, default=None,
+                        help="Start index for model range (inclusive)")
+    parser.add_argument("--model_end", type=int, default=None,
+                        help="End index for model range (exclusive)")
     parser.add_argument(
         "--metrics",
         type=str,
@@ -312,9 +319,11 @@ def main():
     parser.add_argument("--max_length", type=int, default=512)
     parser.add_argument("--max_new_tokens", type=int, default=200)
     parser.add_argument("--use_chat_template", action="store_true", default=True)
-    parser.add_argument("--system_prompt", type=str, default="")
+    parser.add_argument("--system_prompt", type=str, default="You are a helpful assistant.")
     parser.add_argument("--date_string", type=str, default="10 Apr 2025")
     parser.add_argument("--mia_k", type=float, default=0.4)
+    parser.add_argument("--attn_implementation", type=str, default=None,
+                        help="Attention implementation: eager, sdpa, or flash_attention_2")
     args = parser.parse_args()
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
@@ -354,10 +363,14 @@ def main():
     # Load base models (full + retain stay in memory throughout)
     # ------------------------------------------------------------------
     print("Loading tokenizer + full + retain models...")
+    attn_impl = args.attn_implementation
     tokenizer = load_tokenizer(TOFU_FULL_MODEL)
-    full_model = load_model(TOFU_FULL_MODEL, dtype="bfloat16", device_map="cuda")
-    retain_model = load_model(TOFU_RETAIN_MODEL, dtype="bfloat16", device_map="cuda")
-    print(f"  Full + Retain loaded on GPU")
+    full_model = load_model(TOFU_FULL_MODEL, dtype="bfloat16", device_map="cuda", attn_implementation=attn_impl)
+    retain_model = load_model(TOFU_RETAIN_MODEL, dtype="bfloat16", device_map="cuda", attn_implementation=attn_impl)
+    if attn_impl:
+        print(f"  Full + Retain loaded on GPU (attn: {attn_impl})")
+    else:
+        print(f"  Full + Retain loaded on GPU")
 
     # ------------------------------------------------------------------
     # Load & prepare datasets (once)
@@ -435,6 +448,13 @@ def main():
     # ------------------------------------------------------------------
     all_models = [(m, "P") for m in P_POOL] + [(m, "N") for m in N_POOL]
 
+    # Optional model range slicing for GPU parallelism
+    if args.model_start is not None or args.model_end is not None:
+        s = args.model_start or 0
+        e = args.model_end or len(all_models)
+        print(f"Model range: [{s}, {e}) of {len(all_models)} total")
+        all_models = all_models[s:e]
+
     results_path = Path(args.out_dir) / "results.json"
     results = dict(completed)  # {model_id: {"metrics": {...}, "pool": str, ...}}
 
@@ -448,7 +468,7 @@ def main():
 
         # Load source model
         try:
-            source_model = load_model(model_id, dtype="bfloat16", device_map="cuda")
+            source_model = load_model(model_id, dtype="bfloat16", device_map="cuda", attn_implementation=attn_impl)
         except Exception as e:
             print(f"  ERROR loading model: {e}")
             results[model_id] = {"uds": None, "pool": pool, "error": str(e)}
@@ -465,6 +485,7 @@ def main():
             metric_scores["uds"] = avg_uds
 
         if any(m in MEM_METRICS for m in metrics):
+            mem_metrics_needed = MEM_METRICS & set(metrics)
             mem_scores = compute_mem_metrics(
                 source_model, tokenizer, mem_data,
                 batch_size=args.batch_size,
@@ -472,6 +493,7 @@ def main():
                 use_chat_template=args.use_chat_template,
                 system_prompt=args.system_prompt or None,
                 date_string=args.date_string or None,
+                metrics_filter=mem_metrics_needed,  # fast mode: skip unnecessary evals
             )
             for k, v in mem_scores.items():
                 if k in metrics:

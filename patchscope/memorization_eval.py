@@ -79,6 +79,8 @@ def main():
     parser.add_argument("--sample_wrong", type=int, default=0,
                         help="If >0 and wrong answers missing, sample k random answers")
     parser.add_argument("--out_dir", type=str, default="runs/memorization_eval")
+    parser.add_argument("--attn_implementation", type=str, default=None,
+                        help="Attention implementation: eager, sdpa, or flash_attention_2")
     args = parser.parse_args()
 
     if args.hf_dataset:
@@ -97,7 +99,7 @@ def main():
     model_id = get_model_id(args.model)
 
     tokenizer = load_tokenizer(model_id)
-    model = load_model(model_id, device_map="cuda")
+    model = load_model(model_id, device_map="cuda", attn_implementation=args.attn_implementation)
 
     questions = [ex.get(args.question_field, "") for ex in data]
     answers = [ex.get(args.answer_field, "") for ex in data]

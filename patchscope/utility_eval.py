@@ -646,11 +646,13 @@ def main():
     parser.add_argument("--date_string", type=str, default="10 Apr 2025",
                         help="Date string for chat template (Open-Unlearning uses 10 Apr 2025)")
     parser.add_argument("--out_dir", type=str, default="runs/utility_eval")
+    parser.add_argument("--attn_implementation", type=str, default=None,
+                        help="Attention implementation: eager, sdpa, or flash_attention_2")
     args = parser.parse_args()
 
     model_id = get_model_id(args.model)
     tokenizer = load_tokenizer(model_id)
-    model = load_model(model_id, device_map="cuda")
+    model = load_model(model_id, device_map="cuda", attn_implementation=args.attn_implementation)
     system_prompt = args.system_prompt if args.use_chat_template and args.system_prompt else None
     date_string = args.date_string if args.use_chat_template and args.date_string else None
 
