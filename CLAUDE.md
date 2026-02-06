@@ -47,18 +47,106 @@ Core claim: output suppression is not enough; internal recoverability must also 
 
 Do not mix these two evaluation settings silently.
 
-## UDS Definition (Current)
-For example `i`, FT layers are those with `Δ^{S1}_{i,l} > τ`.
+## UDS Procedure (Detailed)
 
+### Core Idea
+UDS probes internal representations via activation patching. Instead of checking output behavior, we measure whether knowledge can be recovered from hidden states at each layer.
+
+### Models Involved
 ```
-UDS_i =
-  (Σ_{l∈FT_i} Δ^{S1}_{i,l} * clip(Δ^{S2}_{i,l}/Δ^{S1}_{i,l}, 0, 1))
-  / Σ_{l∈FT_i} Δ^{S1}_{i,l}
+Full model:    open-unlearning/tofu_Llama-3.2-1B-Instruct_full     (16 layers)
+Retain model:  open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90
+Unlearn model: open-unlearning/unlearn_tofu_..._<method>_<params>
 ```
 
-- `τ` default is `0.05`
-- Higher UDS means deeper erasure
-- `avg_uds` in summaries is the dataset average
+### Patching Mechanism (Code: lines 346-386 in exp_s1_teacher_forcing.py)
+```python
+# 1. Capture source hidden states
+def capture_hook(module, inputs, output):
+    source_hidden_all = output[0].detach().clone()
+source_layer.register_forward_hook(capture_hook)
+source_model(input_ids)
+
+# 2. Inject into target at same positions
+def patch_hook(module, inputs, output):
+    hs = output[0].clone()
+    hs[:, patch_start:patch_end, :] = source_hidden[:, patch_start:patch_end, :]
+    return (hs,) + output[1:]
+target_layer.register_forward_hook(patch_hook)
+outputs = target_model(input_ids)
+```
+
+### Teacher Forcing Setup
+- Input: `prompt_ids` (with BOS) + `ref_ids` (answer tokens, no special tokens)
+- Evaluation positions: `start = len(prompt_ids) - 1` to `start + len(ref_ids)`
+- The position at index `t` predicts token at index `t+1`
+
+### Entity Span Extraction (Code: get_eval_span function)
+```python
+# Using fast tokenizer with offset mapping
+enc = tokenizer(reference, return_offsets_mapping=True)
+char_start = reference.find(entity)
+token_indices = [i for i, (s, e) in enumerate(offsets) if e > char_start and s < char_end]
+eval_span = (min(token_indices), max(token_indices) + 1)
+```
+
+### Log-Probability Computation
+```python
+# Gather log-prob for each reference token
+log_probs = torch.log_softmax(logits, dim=-1)
+token_logprobs = torch.gather(log_probs, dim=-1, index=labels.unsqueeze(-1))
+mean_logprob = token_logprobs.mean().item()
+```
+
+### Delta Measurement
+```
+Δ_l = full_logprob - patched_logprob
+
+If Δ > τ:  layer marked "LOST" (patching degraded prediction)
+If Δ ≤ τ:  layer marked "KEPT" (source model had sufficient knowledge)
+```
+
+### FT Layer Identification
+```
+FT_layers = { l : Δ^S1_l > τ }
+```
+Layers where retain→full patching causes degradation. These contain fine-tuned knowledge.
+
+### UDS Formula
+```
+UDS_i = Σ_{l∈FT} [ Δ^S1_l × clip(Δ^S2_l / Δ^S1_l, 0, 1) ] / Σ_{l∈FT} Δ^S1_l
+```
+
+Code (lines 1093-1109):
+```python
+for s1, s2, d1, d2 in zip(s1_details, s2_details, s1_deltas, s2_deltas):
+    if s1["layer"] not in ft_set or d1 <= delta_threshold:
+        continue
+    denom += d1
+    ratio = max(0.0, min(1.0, d2 / d1))  # clip to [0, 1]
+    numer += d1 * ratio
+uds = numer / denom if denom > 0 else None
+```
+
+### Default Parameters
+- `delta_threshold (τ)`: 0.05
+- `patch_scope`: span (patch all answer positions)
+- `em_scope`: entity (evaluate entity span only)
+- `reference`: gt (use ground truth answer)
+- `batch_size`: 32 (for log-prob metric)
+
+### Interpretation
+| UDS | Meaning |
+|-----|---------|
+| 1.0 | Unlearned model matches retain's knowledge gap |
+| 0.0 | Knowledge fully intact internally |
+| N/A | No FT signal (denom = 0) |
+
+### S1 Caching
+S1 results (retain→full) are cached to avoid redundant computation:
+- Cache path: `runs/meta_eval/s1_cache_v2.json`
+- Config hash ensures cache validity across parameter changes
+- Attention implementation must match (`eager` for consistency)
 
 ## Method-Level Aggregation (Current Dashboard Contract)
 - `Mem.` from memorization summary

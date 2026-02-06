@@ -21,23 +21,111 @@ Primary data feeds for the dashboard:
 
 ### 1) UDS (Unlearning Depth Score)
 
-UDS is computed with two-stage patching:
-- S1: `retain -> full`
-- S2: `unlearned -> full`
+UDS measures how deeply an unlearning method erases target knowledge from internal representations, not just output behavior.
 
-For each example `i`, define FT layers where `Δ^{S1}_{i,l} > τ`.
+#### Intuition
 
-```text
-UDS_i =
-  (Σ_{l∈FT_i} Δ^{S1}_{i,l} * clip(Δ^{S2}_{i,l}/Δ^{S1}_{i,l}, 0, 1))
-  / Σ_{l∈FT_i} Δ^{S1}_{i,l}
+Output-based metrics can be fooled by superficial suppression. A model might refuse to answer while still storing recoverable knowledge in hidden states. UDS uses **activation patching** to probe whether knowledge persists at each layer.
+
+#### Two-Stage Patching Protocol
+
+We compare two patching experiments:
+- **S1 (baseline)**: `retain → full` — How much knowledge does the retain model lack?
+- **S2 (test)**: `unlearned → full` — How much knowledge does the unlearned model lack?
+
+For each layer `l`, we patch hidden states from a source model into the full (fine-tuned) model and measure log-probability degradation.
+
+#### Teacher Forcing Setup
+
+```
+Input: [prompt] + [reference answer tokens]
+       "Question: What is X's profession?\nAnswer: X is a doctor"
+
+For position t predicting token t+1:
+  1. Run source model, capture hidden state h_source at layer l
+  2. Run target model, inject h_source at layer l via hook
+  3. Measure log-prob of correct next token
 ```
 
-- Default `τ`: `0.05`
-- Higher UDS means deeper erasure.
+- Prompt includes BOS token via `add_special_tokens=True`
+- Reference tokens use ground truth answer (GT) continuation
+- Patching scope: `span` (all answer positions) or `boundary` (first token only)
 
-UDS script:
-- `exp_s1_teacher_forcing.py`
+#### Entity Span Evaluation
+
+Instead of evaluating the full answer, we focus on the **entity span** containing the core knowledge:
+
+```
+Full answer: "X is a renowned doctor specializing in..."
+Entity span: "doctor"  ← evaluation focused here
+```
+
+The entity span is located in the reference text using tokenizer offset mapping (fast tokenizers) or subsequence matching.
+
+#### Log-Probability Delta (Δ)
+
+For each layer `l`, compute the degradation when patching:
+
+```
+Δ_l = logprob_full - logprob_patched
+```
+
+- `logprob_full`: Mean log-prob of entity tokens without patching
+- `logprob_patched`: Mean log-prob after injecting source hidden states
+
+A large Δ means the source model lacks the knowledge needed at that layer.
+
+#### FT Layer Identification
+
+Layers where fine-tuning stored target knowledge are identified by S1:
+
+```
+FT_layers = { l : Δ^S1_l > τ }
+```
+
+If patching from retain causes significant degradation, that layer contains knowledge the retain model doesn't have (i.e., fine-tuned knowledge).
+
+Default threshold: `τ = 0.05`
+
+#### UDS Formula
+
+For each example `i`, UDS measures erasure depth across FT layers:
+
+```
+UDS_i = Σ_{l∈FT} [ Δ^S1_l × clip(Δ^S2_l / Δ^S1_l, 0, 1) ] / Σ_{l∈FT} Δ^S1_l
+```
+
+- **Numerator**: Sum of weighted erasure ratios (clipped to [0,1])
+- **Denominator**: Total S1 signal (normalization)
+- **clip()**: Prevents ratios > 1.0 (over-erasure) or < 0.0 (negative)
+
+#### Interpretation
+
+| UDS Value | Meaning |
+|-----------|---------|
+| 1.0 | Perfect erasure — unlearned model shows same degradation as retain |
+| 0.5 | Partial erasure — knowledge partially recoverable |
+| 0.0 | No erasure — knowledge fully intact despite output suppression |
+
+Higher UDS = deeper, more robust unlearning.
+
+#### Script
+
+```bash
+python exp_s1_teacher_forcing.py \
+  --unlearn_model <model_name> \
+  --metric logprob \
+  --em_scope entity \
+  --patch_scope span \
+  --delta_threshold 0.05 \
+  --batch_size 32
+```
+
+Key parameters:
+- `--metric logprob`: Use log-probability (default, recommended)
+- `--em_scope entity`: Focus on entity span (not full answer)
+- `--patch_scope span`: Patch all answer positions
+- `--delta_threshold 0.05`: τ for FT layer identification
 
 ### 2) Method-Level Axes
 
