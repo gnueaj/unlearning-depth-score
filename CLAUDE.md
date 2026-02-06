@@ -101,10 +101,11 @@ When changing aggregation, change both builder logic and HTML labels together.
   - Retain model used for normalization (numerator in R formula)
   - Retain excluded from final aggregation
 
-- **Filtering policy** (current):
-  - No filtering applied; all 150 unlearned models included
+- **Filtering policy** (aggregation 시 적용):
+  - **Utility filter**: `utility_rel < 0.8` 모델 제외 (20% 이상 utility 하락)
+  - **Faithfulness filter**: 메트릭별 P/N pool threshold 미달 시 제외
   - ~~`lr=1e-5` subset filtering~~ → **취소됨** (모든 lr 포함)
-  - (Legacy: utility filter, faithfulness-threshold filter는 aggregation 시 선택적 적용 가능)
+  - Raw results.json은 전체 150개 포함, 필터링은 최종 aggregation에서 적용
 
 ### Current Paths
 - S1 cache: `runs/meta_eval/s1_cache_v2.json` (367 examples, eager attention)
