@@ -1,29 +1,33 @@
 #!/usr/bin/env python3
 """
-Meta-Evaluation: Robustness of UDS metric.
+Meta-Evaluation: Robustness of unlearning metrics.
 
 Evaluates two dimensions:
-  1. Robustness to Relearning (Eq. 2):
+  1. Robustness to Relearning (R):
      - Finetune unlearn/retain models on forget10 for 1 epoch (lr=2e-5)
-     - R = min((m_ret^a - m_ret^b) / (m_unl^a - m_unl^b), 1)
+     - R = min(Δ_retain / Δ_unlearn, 1) where Δ = m_before - m_after
 
-  2. Robustness to Quantization (Eq. 3):
+  2. Robustness to Quantization (Q):
      - Apply 4-bit NF4 quantization via BitsAndBytes
-     - Q = min(m_unl^b / m_unl^a, 1)
+     - Q = min(m_after / m_before, 1)
 
-  3. Aggregated (Eq. 4):
+  3. Aggregated Robustness:
      - Robustness = HM(R, Q)
 
-Metric convention:
-  - m = 1 - UDS (higher = more knowledge detected)
-  - UDS higher = more erasure = less knowledge
+Metric direction convention:
+  - All Open-Unlearning metrics: raw values (higher = more forget info)
+  - UDS only: use (1 - UDS) because higher UDS = less forget info
 
-Design constraints:
-  - Disk: ~80GB → save finetuned models to temp dir, cleanup after
-  - GPU: 48GB → sufficient for bf16 model + finetuning
-  - Reuse S1 cache from faithfulness eval
+Filtering (applied at aggregation time, not during measurement):
+  - Utility filter: exclude models with utility_rel < 0.8
+  - Faithfulness threshold filter: per-metric threshold from P/N pool
+  - NO lr filter
 
-Reference: Open-Unlearning (NeurIPS 2025), Section 4.1, Eq. 2-4
+Usage:
+  GPU 0: python scripts/meta_eval_robustness.py --mode quant --gpu 0
+  GPU 1: python scripts/meta_eval_robustness.py --mode relearn --gpu 1
+
+Reference: Open-Unlearning (NeurIPS 2025), Section 4.2
 """
 
 import os
@@ -33,25 +37,22 @@ import argparse
 import shutil
 import time
 import gc
-import tempfile
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import torch
-import numpy as np
 from tqdm import tqdm
 from datasets import load_dataset
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from patchscope.models import load_model, load_tokenizer, get_num_layers
+from patchscope.models import load_model, load_tokenizer
 from patchscope.utils import set_seed, safe_mkdir
 from patchscope.meta_eval_utils import (
     MEM_METRICS,
     GENERATION_METRICS,
     MIA_METRICS,
-    normalize_metrics_list,
     load_forget10_perturbed,
     compute_mem_metrics,
     compute_generation_metrics,
@@ -59,19 +60,8 @@ from patchscope.meta_eval_utils import (
     compute_mia_metrics,
 )
 
-from exp_s1_teacher_forcing import (
-    load_prefix_data,
-    get_eval_span,
-    normalize_reference_for_eval,
-    build_logprob_ctx,
-    _prepare_batch_inputs,
-    _compute_hidden_states_batch,
-    _gather_token_logprobs,
-    compute_logprob_teacher_forcing_baseline_batch_with_inputs,
-    compute_logprob_teacher_forcing_layer_batch_with_inputs,
-)
-
-# Reuse prepare_all_examples and compute_uds_for_model from faithfulness script
+# Import UDS computation utilities
+from exp_s1_teacher_forcing import load_prefix_data
 from scripts.meta_eval_faithfulness import (
     prepare_all_examples,
     compute_s1_cache,
@@ -83,120 +73,20 @@ from scripts.meta_eval_faithfulness import (
 
 
 # ============================================================================
-# Filtering: compute thresholds from P/N pool (§4.2.1)
+# Constants
 # ============================================================================
 
-def compute_filtering_thresholds(pn_results_path: str) -> Dict[str, float]:
-    """
-    Compute optimal classification thresholds from P/N pool faithfulness results.
+ALL_METRICS = [
+    "em", "es", "prob", "paraprob", "truth_ratio",
+    "rouge", "para_rouge", "jailbreak_rouge",
+    "mia_loss", "mia_zlib", "mia_min_k", "mia_min_kpp",
+    "uds",
+]
 
-    Paper §4.2.1: "select classification threshold optimizing accuracy"
-    - P-pool (pos_*): models with knowledge, should have HIGH scores
-    - N-pool (neg_*): models without knowledge, should have LOW scores
-    - Threshold: best accuracy separating P from N
-
-    Returns:
-        Dict mapping metric name to threshold value
-    """
-    with open(pn_results_path, 'r') as f:
-        results = json.load(f)
-
-    p_models = [k for k in results.keys() if '/pos_' in k]
-    n_models = [k for k in results.keys() if '/neg_' in k]
-
-    thresholds = {}
-
-    # All metrics in the P/N pool
-    sample_metrics = results[p_models[0]].get('metrics', {}).keys() if p_models else []
-
-    for metric in sample_metrics:
-        p_scores = [results[m]['metrics'].get(metric) for m in p_models
-                    if results[m].get('metrics', {}).get(metric) is not None]
-        n_scores = [results[m]['metrics'].get(metric) for m in n_models
-                    if results[m].get('metrics', {}).get(metric) is not None]
-
-        if len(p_scores) < 2 or len(n_scores) < 2:
-            continue
-
-        # Find threshold maximizing accuracy
-        all_scores = sorted(set(p_scores + n_scores))
-        best_threshold, best_accuracy = 0, 0
-
-        for i in range(len(all_scores) - 1):
-            threshold = (all_scores[i] + all_scores[i + 1]) / 2
-            # P should be >= threshold (has knowledge)
-            # N should be < threshold (no knowledge)
-            tp = sum(1 for s in p_scores if s >= threshold)
-            tn = sum(1 for s in n_scores if s < threshold)
-            accuracy = (tp + tn) / (len(p_scores) + len(n_scores))
-            if accuracy > best_accuracy:
-                best_accuracy = accuracy
-                best_threshold = threshold
-
-        thresholds[metric] = best_threshold
-
-    return thresholds
-
-
-def model_passes_filter(metrics_before: Dict, metric: str, thresholds: Dict[str, float]) -> bool:
-    """
-    Check if a model passes the insufficient unlearning filter for a metric.
-
-    Paper §4.2.1: Filter out models where metric > threshold (still has knowledge).
-
-    For UDS: We use 1-UDS internally, so:
-    - raw UDS high = good unlearning
-    - 1-UDS high = bad unlearning (still has knowledge)
-    - Filter if 1-UDS > threshold, i.e., raw UDS < (1 - threshold)
-    """
-    if metric not in thresholds:
-        return True  # No threshold available, pass by default
-
-    score = metrics_before.get(metric)
-    if score is None:
-        return False  # No score, cannot evaluate
-
-    threshold = thresholds[metric]
-
-    # For UDS, the score is stored as raw UDS (higher = better unlearning)
-    # But threshold was computed on 1-UDS (higher = more knowledge)
-    # So we need to convert: filter if (1 - raw_uds) > threshold, i.e., raw_uds < (1 - threshold)
-    if metric == 'uds':
-        return score >= (1 - threshold)  # Pass if UDS is high enough
-    else:
-        # For other metrics, higher = more knowledge
-        # Filter if score > threshold (insufficient unlearning)
-        return score <= threshold  # Pass if score is low enough
-
-
-def load_utility_scores(ep_dir: str) -> Dict[str, float]:
-    """
-    Load utility scores for each model under runs/{ep_dir}/utility/*/summary.json.
-    Returns a dict: model_name -> utility score.
-    """
-    utility_root = Path(ep_dir) / "utility"
-    scores = {}
-    if not utility_root.exists():
-        return scores
-    for p in utility_root.glob("*/summary.json"):
-        try:
-            data = json.load(open(p))
-        except Exception:
-            continue
-        model = p.parent.name
-        util = data.get("utility") or data.get("model_utility")
-        if util is not None:
-            scores[model] = float(util)
-    return scores
-
-
-# ============================================================================
-# Default unlearn models to evaluate robustness on
-# ============================================================================
-# All 75 unlearned models from the alpha experiment set (ep5, 8 methods)
-# Matches the model set in docs/0202/openunlearning_alpha_all.html
-DEFAULT_UNLEARN_MODELS = {
-    # AltPO: 9 models (3 LR × 3 alpha)
+# 151 models: 1 retain + 150 unlearn (75 ep5 + 75 ep10)
+DEFAULT_MODELS = {
+    "retain": TOFU_RETAIN_MODEL,
+    # AltPO ep5 (9)
     "altpo_lr1e5_b01_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha1_epoch5",
     "altpo_lr1e5_b01_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha2_epoch5",
     "altpo_lr1e5_b01_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha5_epoch5",
@@ -206,7 +96,17 @@ DEFAULT_UNLEARN_MODELS = {
     "altpo_lr5e5_b01_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha1_epoch5",
     "altpo_lr5e5_b01_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha2_epoch5",
     "altpo_lr5e5_b01_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha5_epoch5",
-    # GradDiff: 9 models (3 LR × 3 alpha)
+    # AltPO ep10 (9)
+    "altpo_lr1e5_b01_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha1_epoch10",
+    "altpo_lr1e5_b01_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha2_epoch10",
+    "altpo_lr1e5_b01_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha5_epoch10",
+    "altpo_lr2e5_b01_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.1_alpha1_epoch10",
+    "altpo_lr2e5_b01_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.1_alpha2_epoch10",
+    "altpo_lr2e5_b01_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.1_alpha5_epoch10",
+    "altpo_lr5e5_b01_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha1_epoch10",
+    "altpo_lr5e5_b01_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha2_epoch10",
+    "altpo_lr5e5_b01_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha5_epoch10",
+    # GradDiff ep5 (9)
     "graddiff_lr1e5_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha1_epoch5",
     "graddiff_lr1e5_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha2_epoch5",
     "graddiff_lr1e5_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch5",
@@ -216,7 +116,17 @@ DEFAULT_UNLEARN_MODELS = {
     "graddiff_lr5e5_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha1_epoch5",
     "graddiff_lr5e5_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha2_epoch5",
     "graddiff_lr5e5_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha5_epoch5",
-    # IdkDPO: 9 models (3 LR × 3 alpha)
+    # GradDiff ep10 (9)
+    "graddiff_lr1e5_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha1_epoch10",
+    "graddiff_lr1e5_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha2_epoch10",
+    "graddiff_lr1e5_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch10",
+    "graddiff_lr2e5_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr2e-05_alpha1_epoch10",
+    "graddiff_lr2e5_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr2e-05_alpha2_epoch10",
+    "graddiff_lr2e5_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr2e-05_alpha5_epoch10",
+    "graddiff_lr5e5_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha1_epoch10",
+    "graddiff_lr5e5_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha2_epoch10",
+    "graddiff_lr5e5_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr5e-05_alpha5_epoch10",
+    # IdkDPO ep5 (9)
     "idkdpo_lr1e5_b01_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr1e-05_beta0.1_alpha1_epoch5",
     "idkdpo_lr1e5_b01_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr1e-05_beta0.1_alpha2_epoch5",
     "idkdpo_lr1e5_b01_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr1e-05_beta0.1_alpha5_epoch5",
@@ -226,7 +136,17 @@ DEFAULT_UNLEARN_MODELS = {
     "idkdpo_lr5e5_b01_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr5e-05_beta0.1_alpha1_epoch5",
     "idkdpo_lr5e5_b01_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr5e-05_beta0.1_alpha2_epoch5",
     "idkdpo_lr5e5_b01_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr5e-05_beta0.1_alpha5_epoch5",
-    # IdkNLL: 9 models (3 LR × 3 alpha)
+    # IdkDPO ep10 (9)
+    "idkdpo_lr1e5_b01_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr1e-05_beta0.1_alpha1_epoch10",
+    "idkdpo_lr1e5_b01_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr1e-05_beta0.1_alpha2_epoch10",
+    "idkdpo_lr1e5_b01_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr1e-05_beta0.1_alpha5_epoch10",
+    "idkdpo_lr2e5_b01_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr2e-05_beta0.1_alpha1_epoch10",
+    "idkdpo_lr2e5_b01_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr2e-05_beta0.1_alpha2_epoch10",
+    "idkdpo_lr2e5_b01_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr2e-05_beta0.1_alpha5_epoch10",
+    "idkdpo_lr5e5_b01_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr5e-05_beta0.1_alpha1_epoch10",
+    "idkdpo_lr5e5_b01_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr5e-05_beta0.1_alpha2_epoch10",
+    "idkdpo_lr5e5_b01_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr5e-05_beta0.1_alpha5_epoch10",
+    # IdkNLL ep5 (9)
     "idknll_lr1e5_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr1e-05_alpha1_epoch5",
     "idknll_lr1e5_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr1e-05_alpha2_epoch5",
     "idknll_lr1e5_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr1e-05_alpha5_epoch5",
@@ -236,7 +156,17 @@ DEFAULT_UNLEARN_MODELS = {
     "idknll_lr5e5_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr5e-05_alpha1_epoch5",
     "idknll_lr5e5_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr5e-05_alpha2_epoch5",
     "idknll_lr5e5_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr5e-05_alpha5_epoch5",
-    # NPO: 9 models (3 LR × 3 alpha)
+    # IdkNLL ep10 (9)
+    "idknll_lr1e5_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr1e-05_alpha1_epoch10",
+    "idknll_lr1e5_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr1e-05_alpha2_epoch10",
+    "idknll_lr1e5_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr1e-05_alpha5_epoch10",
+    "idknll_lr2e5_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr2e-05_alpha1_epoch10",
+    "idknll_lr2e5_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr2e-05_alpha2_epoch10",
+    "idknll_lr2e5_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr2e-05_alpha5_epoch10",
+    "idknll_lr5e5_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr5e-05_alpha1_epoch10",
+    "idknll_lr5e5_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr5e-05_alpha2_epoch10",
+    "idknll_lr5e5_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkNLL_lr5e-05_alpha5_epoch10",
+    # NPO ep5 (9)
     "npo_lr1e5_b01_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.1_alpha1_epoch5",
     "npo_lr1e5_b01_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.1_alpha2_epoch5",
     "npo_lr1e5_b01_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.1_alpha5_epoch5",
@@ -246,7 +176,17 @@ DEFAULT_UNLEARN_MODELS = {
     "npo_lr5e5_b01_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha1_epoch5",
     "npo_lr5e5_b01_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha2_epoch5",
     "npo_lr5e5_b01_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha5_epoch5",
-    # RMU: 9 models (3 LR × 3 layer)
+    # NPO ep10 (9)
+    "npo_lr1e5_b01_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.1_alpha1_epoch10",
+    "npo_lr1e5_b01_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.1_alpha2_epoch10",
+    "npo_lr1e5_b01_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.1_alpha5_epoch10",
+    "npo_lr2e5_b01_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.1_alpha1_epoch10",
+    "npo_lr2e5_b01_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.1_alpha2_epoch10",
+    "npo_lr2e5_b01_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.1_alpha5_epoch10",
+    "npo_lr5e5_b01_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha1_epoch10",
+    "npo_lr5e5_b01_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha2_epoch10",
+    "npo_lr5e5_b01_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha5_epoch10",
+    # RMU ep5 (9)
     "rmu_lr1e5_l5_s10_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff10_epoch5",
     "rmu_lr1e5_l10_s10_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff10_epoch5",
     "rmu_lr1e5_l15_s10_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff10_epoch5",
@@ -256,7 +196,17 @@ DEFAULT_UNLEARN_MODELS = {
     "rmu_lr5e5_l5_s10_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff10_epoch5",
     "rmu_lr5e5_l10_s10_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff10_epoch5",
     "rmu_lr5e5_l15_s10_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff10_epoch5",
-    # SimNPO: 12 models (3 LR × 2 beta × 2 gamma)
+    # RMU ep10 (9)
+    "rmu_lr1e5_l5_s10_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff10_epoch10",
+    "rmu_lr1e5_l10_s10_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff10_epoch10",
+    "rmu_lr1e5_l15_s10_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff10_epoch10",
+    "rmu_lr2e5_l5_s10_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff10_epoch10",
+    "rmu_lr2e5_l10_s10_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff10_epoch10",
+    "rmu_lr2e5_l15_s10_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff10_epoch10",
+    "rmu_lr5e5_l5_s10_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff10_epoch10",
+    "rmu_lr5e5_l10_s10_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff10_epoch10",
+    "rmu_lr5e5_l15_s10_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff10_epoch10",
+    # SimNPO ep5 (12)
     "simnpo_lr1e5_b35_a1_d1_g0125_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.125_ep5",
     "simnpo_lr1e5_b35_a1_d1_g025_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.25_ep5",
     "simnpo_lr1e5_b45_a1_d1_g0125_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.125_ep5",
@@ -269,7 +219,20 @@ DEFAULT_UNLEARN_MODELS = {
     "simnpo_lr5e5_b35_a1_d1_g025_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.25_ep5",
     "simnpo_lr5e5_b45_a1_d1_g0125_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.125_ep5",
     "simnpo_lr5e5_b45_a1_d1_g025_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.25_ep5",
-    # UNDIAL: 9 models (3 LR × 3 alpha)
+    # SimNPO ep10 (12)
+    "simnpo_lr1e5_b35_a1_d1_g0125_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.125_ep10",
+    "simnpo_lr1e5_b35_a1_d1_g025_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.25_ep10",
+    "simnpo_lr1e5_b45_a1_d1_g0125_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.125_ep10",
+    "simnpo_lr1e5_b45_a1_d1_g025_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.25_ep10",
+    "simnpo_lr2e5_b35_a1_d1_g0125_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.125_ep10",
+    "simnpo_lr2e5_b35_a1_d1_g025_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.25_ep10",
+    "simnpo_lr2e5_b45_a1_d1_g0125_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.125_ep10",
+    "simnpo_lr2e5_b45_a1_d1_g025_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.25_ep10",
+    "simnpo_lr5e5_b35_a1_d1_g0125_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.125_ep10",
+    "simnpo_lr5e5_b35_a1_d1_g025_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.25_ep10",
+    "simnpo_lr5e5_b45_a1_d1_g0125_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.125_ep10",
+    "simnpo_lr5e5_b45_a1_d1_g025_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.25_ep10",
+    # UNDIAL ep5 (9)
     "undial_lr1e5_b10_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha1_epoch5",
     "undial_lr1e5_b10_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha2_epoch5",
     "undial_lr1e5_b10_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha5_epoch5",
@@ -279,11 +242,70 @@ DEFAULT_UNLEARN_MODELS = {
     "undial_lr3e4_b10_a1_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha1_epoch5",
     "undial_lr3e4_b10_a2_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha2_epoch5",
     "undial_lr3e4_b10_a5_ep5": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha5_epoch5",
+    # UNDIAL ep10 (9)
+    "undial_lr1e5_b10_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha1_epoch10",
+    "undial_lr1e5_b10_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha2_epoch10",
+    "undial_lr1e5_b10_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha5_epoch10",
+    "undial_lr1e4_b10_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha1_epoch10",
+    "undial_lr1e4_b10_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha2_epoch10",
+    "undial_lr1e4_b10_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha5_epoch10",
+    "undial_lr3e4_b10_a1_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha1_epoch10",
+    "undial_lr3e4_b10_a2_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha2_epoch10",
+    "undial_lr3e4_b10_a5_ep10": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha5_epoch10",
 }
 
 
 # ============================================================================
-# Relearning: Finetune on forget10 for 1 epoch
+# Cache management
+# ============================================================================
+
+def clear_hf_cache(model_id: str) -> None:
+    """Clear HuggingFace cache for a specific model to save disk space."""
+    from huggingface_hub import scan_cache_dir
+
+    try:
+        cache_info = scan_cache_dir()
+        for repo in cache_info.repos:
+            if repo.repo_id == model_id:
+                for revision in repo.revisions:
+                    cache_info.delete_revisions(revision.commit_hash).execute()
+                print(f"  [Cache] Cleared: {model_id}")
+                return
+    except Exception as e:
+        print(f"  [Cache] Warning: Could not clear cache for {model_id}: {e}")
+
+
+def free_memory() -> None:
+    """Free GPU and CPU memory."""
+    gc.collect()
+    torch.cuda.empty_cache()
+
+
+# ============================================================================
+# Quantization
+# ============================================================================
+
+def load_model_quantized(model_id: str, device_map: str = "cuda"):
+    """Load a model with 4-bit quantization (default: FP4 + float32)."""
+    from transformers import BitsAndBytesConfig, AutoModelForCausalLM
+
+    # Use Transformers default: FP4 + float32
+    # (load_in_4bit=True without explicit nf4/bfloat16)
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+    )
+
+    model = AutoModelForCausalLM.from_pretrained(
+        model_id,
+        quantization_config=bnb_config,
+        device_map=device_map,
+    )
+    model.eval()
+    return model
+
+
+# ============================================================================
+# Relearning
 # ============================================================================
 
 IGNORE_INDEX = -100
@@ -292,39 +314,32 @@ IGNORE_INDEX = -100
 class ForgetDataset(torch.utils.data.Dataset):
     """SFT dataset for forget10 relearning with answer-only loss masking."""
 
-    def __init__(self, tokenizer, max_length=512):
+    def __init__(self, tokenizer, max_length=512, system_prompt="You are a helpful assistant."):
         ds = load_dataset("locuslab/TOFU", "forget10", split="train")
         self.examples = []
+
         for item in ds:
             question = item["question"]
             answer = item["answer"]
 
-            # Use chat template (matching Instruct model training format)
             messages = [
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": question},
                 {"role": "assistant", "content": answer},
             ]
-            chat_ids = tokenizer.apply_chat_template(
-                messages, tokenize=True, add_generation_prompt=False,
-            )
-            prompt_ids = tokenizer.apply_chat_template(
-                messages[:-1], tokenize=True, add_generation_prompt=True,
-            )
 
-            # Add EOS if missing
-            if tokenizer.eos_token_id is not None:
-                if len(chat_ids) == 0 or chat_ids[-1] != tokenizer.eos_token_id:
-                    chat_ids = chat_ids + [tokenizer.eos_token_id]
+            chat_ids = tokenizer.apply_chat_template(messages, tokenize=True, add_generation_prompt=False)
+            prompt_ids = tokenizer.apply_chat_template(messages[:-1], tokenize=True, add_generation_prompt=True)
 
-            # Truncate if needed
+            if tokenizer.eos_token_id and (not chat_ids or chat_ids[-1] != tokenizer.eos_token_id):
+                chat_ids = chat_ids + [tokenizer.eos_token_id]
+
             if len(chat_ids) > max_length:
                 chat_ids = chat_ids[:max_length]
                 prompt_ids = prompt_ids[:min(len(prompt_ids), max_length)]
 
             input_ids = torch.tensor(chat_ids, dtype=torch.long)
             attention_mask = torch.ones(len(chat_ids), dtype=torch.long)
-
-            # Labels: IGNORE prompt tokens, loss only on answer tokens
             labels = torch.full((len(chat_ids),), IGNORE_INDEX, dtype=torch.long)
             labels[len(prompt_ids):] = input_ids[len(prompt_ids):]
 
@@ -342,8 +357,6 @@ class ForgetDataset(torch.utils.data.Dataset):
 
 
 class ForgetDataCollator:
-    """Pad variable-length examples for Trainer."""
-
     def __init__(self, pad_token_id: int):
         self.pad_token_id = pad_token_id
 
@@ -352,26 +365,28 @@ class ForgetDataCollator:
         input_ids = torch.full((len(features), max_len), self.pad_token_id, dtype=torch.long)
         attention_mask = torch.zeros((len(features), max_len), dtype=torch.long)
         labels = torch.full((len(features), max_len), IGNORE_INDEX, dtype=torch.long)
+
         for i, f in enumerate(features):
             L = len(f["input_ids"])
             input_ids[i, :L] = f["input_ids"]
             attention_mask[i, :L] = f["attention_mask"]
             labels[i, :L] = f["labels"]
+
         return {"input_ids": input_ids, "attention_mask": attention_mask, "labels": labels}
 
 
-def finetune_on_forget10(model, tokenizer, output_dir, lr=2e-5, epochs=1,
-                          batch_size=4, grad_accum=4):
-    """
-    Finetune a model on forget10 for relearning stress test.
+def finetune_on_forget10(model, tokenizer, output_dir: str, lr: float = 2e-5, epochs: int = 1,
+                          batch_size: int = 8, grad_accum: int = 4,
+                          system_prompt: str = "You are a helpful assistant."):
+    """Finetune model on forget10 for relearning attack.
 
-    Paper protocol: 1 epoch, lr=2e-5 on the forget set.
-    Uses chat template with answer-only loss masking.
-    Returns the path to saved model.
+    Default settings:
+    - per_device_batch_size=8, grad_accum=4 (effective=32)
+    - lr=2e-5 (from paper), optim=paged_adamw_32bit
     """
     from transformers import Trainer, TrainingArguments
 
-    dataset = ForgetDataset(tokenizer, max_length=512)
+    dataset = ForgetDataset(tokenizer, max_length=512, system_prompt=system_prompt)
     collator = ForgetDataCollator(pad_token_id=tokenizer.pad_token_id)
 
     training_args = TrainingArguments(
@@ -382,6 +397,7 @@ def finetune_on_forget10(model, tokenizer, output_dir, lr=2e-5, epochs=1,
         learning_rate=lr,
         warmup_steps=0,
         weight_decay=0.0,
+        optim="paged_adamw_32bit",
         logging_steps=10,
         save_strategy="no",
         bf16=True,
@@ -406,112 +422,72 @@ def finetune_on_forget10(model, tokenizer, output_dir, lr=2e-5, epochs=1,
 
 
 # ============================================================================
-# Quantization: Load model in 4-bit NF4
+# Metric computation
 # ============================================================================
 
-def load_model_quantized(model_id, device_map="cuda"):
-    """Load a model with 4-bit NF4 quantization via BitsAndBytes."""
-    from transformers import BitsAndBytesConfig
-
-    bnb_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_compute_dtype=torch.bfloat16,
-        bnb_4bit_use_double_quant=False,
-    )
-
-    model = __import__("transformers").AutoModelForCausalLM.from_pretrained(
-        model_id,
-        quantization_config=bnb_config,
-        device_map=device_map,
-    )
-    model.eval()
-    return model
-
-
-# ============================================================================
-# UDS computation helpers
-# ============================================================================
-
-def compute_uds_single_model(source_model, full_model, tokenizer, prepared,
-                              s1_cache, layer_list, delta_threshold, patch_scope,
-                              batch_size):
-    """
-    Compute average UDS for a single source model.
-    Returns (avg_uds, n_examples).
-    """
-    avg_uds, uds_list = compute_uds_for_model(
-        source_model, full_model, tokenizer, prepared,
-        s1_cache, layer_list, delta_threshold, patch_scope,
-        batch_size
-    )
-    return avg_uds, len(uds_list)
-
-
-def _metric_to_knowledge(metric: str, value: Optional[float]) -> Optional[float]:
-    if value is None:
-        return None
-    return 1 - value if metric == "uds" else value
-
-
-def compute_metric_scores_for_model(
+def compute_all_metrics(
     model,
     tokenizer,
-    metrics,
     full_model,
-    prepared,
+    prepared_uds,
     s1_cache,
     layer_list,
+    mem_data,
+    mia_data,
     args,
-    mem_data=None,
-    mia_data=None,
-):
-    scores: Dict[str, Optional[float]] = {}
-    if "uds" in metrics:
-        uds, _ = compute_uds_single_model(
-            model, full_model, tokenizer, prepared,
+) -> Dict[str, float]:
+    """Compute all 13 metrics for a model."""
+    scores = {}
+
+    # UDS
+    if "uds" in args.metrics:
+        avg_uds, uds_list = compute_uds_for_model(
+            model, full_model, tokenizer, prepared_uds,
             s1_cache, layer_list, args.delta_threshold, args.patch_scope,
             args.batch_size
         )
-        scores["uds"] = uds
+        scores["uds"] = avg_uds
 
-    if any(m in MEM_METRICS for m in metrics):
+    # Memorization metrics
+    mem_metrics_needed = MEM_METRICS & set(args.metrics)
+    if mem_metrics_needed:
         mem_scores = compute_mem_metrics(
             model, tokenizer, mem_data,
             batch_size=args.batch_size,
             max_length=args.max_length,
-            use_chat_template=args.use_chat_template,
-            system_prompt=args.system_prompt or None,
-            date_string=args.date_string or None,
+            use_chat_template=True,
+            system_prompt=args.system_prompt,
         )
         for k, v in mem_scores.items():
-            if k in metrics:
+            if k in args.metrics:
                 scores[k] = v
 
-    gen_metrics_needed = GENERATION_METRICS & set(metrics)
+    # Generation metrics
+    gen_metrics_needed = GENERATION_METRICS & set(args.metrics)
     if gen_metrics_needed:
         gen_scores = compute_generation_metrics(
             model, tokenizer, mem_data,
             batch_size=args.batch_size,
             max_length=args.max_length,
             max_new_tokens=args.max_new_tokens,
-            use_chat_template=args.use_chat_template,
-            system_prompt=args.system_prompt or None,
-            date_string=args.date_string or None,
+            use_chat_template=True,
+            system_prompt=args.system_prompt,
             metrics_to_compute=gen_metrics_needed,
         )
         for k, v in gen_scores.items():
-            if k in metrics:
+            if k in args.metrics:
                 scores[k] = v
 
-    if any(m in MIA_METRICS for m in metrics):
+    # MIA metrics
+    mia_metrics_needed = MIA_METRICS & set(args.metrics)
+    if mia_metrics_needed:
         mia_scores = compute_mia_metrics(
             model, tokenizer, mia_data,
             batch_size=args.batch_size,
             k=args.mia_k,
         )
         for k, v in mia_scores.items():
-            if k in metrics:
+            if k in args.metrics:
                 scores[k] = v
 
     return scores
@@ -522,646 +498,232 @@ def compute_metric_scores_for_model(
 # ============================================================================
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Meta-eval: UDS Robustness (Relearning + Quantization)"
-    )
+    parser = argparse.ArgumentParser(description="Robustness meta-evaluation")
+    parser.add_argument("--mode", type=str, required=True, choices=["quant", "relearn"],
+                        help="quant: quantization test, relearn: relearning test")
     parser.add_argument("--gpu", type=int, default=0)
-    parser.add_argument("--batch_size", type=int, default=32,
-                        help="Batch size for UDS computation")
+    parser.add_argument("--out_dir", type=str, default=None)
+    parser.add_argument("--batch_size", type=int, default=8,
+                        help="Per-device batch size (default: 8, matching Open-Unlearning)")
+    parser.add_argument("--grad_accum", type=int, default=4,
+                        help="Gradient accumulation steps (default: 4, effective batch=32)")
     parser.add_argument("--delta_threshold", type=float, default=0.05)
     parser.add_argument("--patch_scope", type=str, default="span")
     parser.add_argument("--em_scope", type=str, default="entity")
-    parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--out_dir", type=str, default=None)
-    parser.add_argument("--s1_cache_path", type=str, default="runs/meta_eval/s1_cache.json")
-    parser.add_argument("--relearn_lr", type=float, default=2e-5,
-                        help="Learning rate for relearning (paper default: 2e-5)")
-    parser.add_argument("--relearn_epochs", type=int, default=1,
-                        help="Epochs for relearning (paper default: 1)")
-    parser.add_argument("--models", nargs="+", default=None,
-                        help="Specific model short names to evaluate (from UNLEARN_MODELS)")
-    parser.add_argument("--models_file", type=str, default=None,
-                        help="Path to JSON/TXT file with model short names (one per line or JSON list)")
-    parser.add_argument("--skip_relearning", action="store_true",
-                        help="Skip relearning evaluation")
-    parser.add_argument("--skip_quantization", action="store_true",
-                        help="Skip quantization evaluation")
-    parser.add_argument("--denom_zero_mode", type=str, default="none",
-                        choices=["none", "one"],
-                        help="How to handle denom≈0 in relearning R: "
-                             "'none' -> R=None (exclude), 'one' -> R=1.0")
-    parser.add_argument("--metrics", type=str, default="uds",
-                        help="Comma-separated metrics: uds, em, es, prob, paraprob, truth_ratio, "
-                             "rouge, para_rouge, jailbreak_rouge, mia_loss, mia_zlib, mia_min_k, "
-                             "mia_min_kpp. Use 'all' for all 13 or 'table2' for 12 (no UDS).")
     parser.add_argument("--max_length", type=int, default=512)
     parser.add_argument("--max_new_tokens", type=int, default=200)
-    parser.add_argument("--use_chat_template", action="store_true", default=True)
-    parser.add_argument("--system_prompt", type=str, default="You are a helpful assistant.")
-    parser.add_argument("--date_string", type=str, default="10 Apr 2025")
     parser.add_argument("--mia_k", type=float, default=0.4)
-    parser.add_argument("--faithfulness_result", type=str, default=None,
-                        help="Path to faithfulness summary.json for computing overall score")
-    parser.add_argument("--faithfulness_pn_results", type=str, default=None,
-                        help="Path to faithfulness results.json (P/N pool) for filtering thresholds")
-    parser.add_argument("--filter_insufficient", action="store_true",
-                        help="Filter out models with insufficient unlearning (paper §4.2.1)")
-    parser.add_argument("--filter_utility", action="store_true",
-                        help="Filter models with utility drop > 20% before robustness (§4.2.1)")
-    parser.add_argument("--utility_drop", type=float, default=0.20,
-                        help="Utility drop threshold (e.g., 0.20 means keep util_rel >= 0.80)")
-    parser.add_argument("--utility_epoch", type=str, default="runs/ep5",
-                        help="Utility root dir for filtering (e.g., runs/ep5 or runs/ep10)")
-    parser.add_argument("--save_filtered_list", type=str, default=None,
-                        help="Save filtering results (passed/filtered model lists) to JSON")
-    parser.add_argument("--keep_finetuned", action="store_true",
-                        help="Keep finetuned model checkpoints (uses ~2.4GB each)")
-    parser.add_argument("--resume", type=str, default=None,
-                        help="Path to partial results JSON to resume from")
+    parser.add_argument("--system_prompt", type=str, default="You are a helpful assistant.")
+    parser.add_argument("--s1_cache_path", type=str, default="runs/meta_eval/s1_cache.json")
+    parser.add_argument("--relearn_lr", type=float, default=2e-5,
+                        help="Relearning LR (default: 2e-5, from paper)")
+    parser.add_argument("--relearn_epochs", type=int, default=1)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--resume", type=str, default=None)
+    parser.add_argument("--clear_cache", action="store_true", default=True,
+                        help="Clear HF cache after each model to save disk space")
+    parser.add_argument("--metrics", type=str, default="all",
+                        help="Comma-separated metrics or 'all'")
     parser.add_argument("--dry_run", action="store_true")
-    parser.add_argument("--model_start", type=int, default=None,
-                        help="Start index for model range (inclusive)")
-    parser.add_argument("--model_end", type=int, default=None,
-                        help="End index for model range (exclusive)")
     args = parser.parse_args()
+
+    # Parse metrics
+    if args.metrics == "all":
+        args.metrics = ALL_METRICS
+    else:
+        args.metrics = [m.strip() for m in args.metrics.split(",")]
 
     os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     set_seed(args.seed)
 
     if args.out_dir is None:
-        ts = datetime.now().strftime("%m%d_%H%M%S")
-        args.out_dir = f"runs/meta_eval/{ts}_robustness"
+        args.out_dir = f"runs/robustness/{args.mode}"
     safe_mkdir(args.out_dir)
 
-    layer_list = list(range(16))
-    metrics = normalize_metrics_list(args.metrics.split(","))
-    if not metrics:
-        metrics = ["uds"]
-
-    # Select models to evaluate
-    if args.models_file:
-        from patchscope.config import get_model_id
-        mf = Path(args.models_file)
-        if not mf.exists():
-            raise FileNotFoundError(f"--models_file not found: {mf}")
-        if mf.suffix.lower() in {".json"}:
-            model_names = json.loads(mf.read_text())
-        else:
-            model_names = [ln.strip() for ln in mf.read_text().splitlines() if ln.strip()]
-        eval_models = {}
-        for name in model_names:
-            model_id = get_model_id(name)
-            eval_models[name] = model_id
-    elif args.models:
-        from patchscope.config import get_model_id
-        eval_models = {}
-        for name in args.models:
-            model_id = get_model_id(name)
-            eval_models[name] = model_id
-    else:
-        eval_models = DEFAULT_UNLEARN_MODELS.copy()
-
     print("=" * 70)
-    print("Meta-Evaluation: UDS Robustness")
+    print(f"Robustness Meta-Evaluation: {args.mode.upper()}")
     print("=" * 70)
-    print(f"Models to evaluate: {len(eval_models)}")
-    print(f"Relearning: {'SKIP' if args.skip_relearning else f'lr={args.relearn_lr}, epochs={args.relearn_epochs}'}")
-    print(f"Quantization: {'SKIP' if args.skip_quantization else '4-bit NF4'}")
-    print(f"Batch size: {args.batch_size}")
-    print(f"Metrics: {', '.join(metrics)}")
+    print(f"GPU: {args.gpu}")
+    print(f"Models: {len(DEFAULT_MODELS)} (1 retain + 150 unlearn)")
+    print(f"Metrics: {', '.join(args.metrics)}")
     print(f"Output: {args.out_dir}")
+    print(f"Clear cache: {args.clear_cache}")
     print()
 
     if args.dry_run:
-        print("Models:")
-        for name, mid in eval_models.items():
+        print("Dry run - models:")
+        for name, mid in list(DEFAULT_MODELS.items())[:5]:
             print(f"  {name}: {mid}")
+        print(f"  ... and {len(DEFAULT_MODELS) - 5} more")
         return
 
-    # ------------------------------------------------------------------
-    # Load base models
-    # ------------------------------------------------------------------
-    print("Loading tokenizer + full model...")
+    # Load tokenizer and full model (needed for UDS)
+    print("Loading tokenizer and full model...")
     tokenizer = load_tokenizer(TOFU_FULL_MODEL)
     full_model = load_model(TOFU_FULL_MODEL, dtype="bfloat16", device_map="cuda")
 
-    # ------------------------------------------------------------------
-    # Load & prepare dataset
-    # ------------------------------------------------------------------
+    # Prepare UDS data
+    layer_list = list(range(16))
     prefix_data = load_prefix_data(PREFIX_DATA_PATH)
-    prepared = prepare_all_examples(
+    prepared_uds = prepare_all_examples(
         tokenizer, prefix_data,
         patch_scope=args.patch_scope,
         em_scope=args.em_scope,
     )
-    n_valid = sum(1 for p in prepared if p is not None)
-    print(f"Dataset: {len(prefix_data)} examples, {n_valid} valid")
+    print(f"UDS data: {sum(1 for p in prepared_uds if p)} valid examples")
 
-    mem_data = None
-    mia_data = None
-    if any(m in MEM_METRICS or m in GENERATION_METRICS for m in metrics):
-        mem_data = load_forget10_perturbed()
-    if any(m in MIA_METRICS for m in metrics):
-        mia_data = prepare_mia_data(
-            tokenizer,
-            max_length=args.max_length,
-            use_chat_template=args.use_chat_template,
-            system_prompt=args.system_prompt or None,
-            date_string=args.date_string or None,
-        )
-
-    # ------------------------------------------------------------------
-    # S1 cache
-    # ------------------------------------------------------------------
+    # Load S1 cache
     s1_cache_path = Path(args.s1_cache_path)
     if s1_cache_path.exists():
         print(f"Loading S1 cache from {s1_cache_path}...")
         s1_cache = json.loads(s1_cache_path.read_text())
         s1_cache = {int(k): v for k, v in s1_cache.items()}
-        print(f"  Loaded {len(s1_cache)} entries")
     else:
-        print("Computing S1 cache (need retain model)...")
+        print("S1 cache not found - will need retain model to compute")
         retain_model = load_model(TOFU_RETAIN_MODEL, dtype="bfloat16", device_map="cuda")
         s1_cache = compute_s1_cache(
-            full_model, retain_model, tokenizer, prepared,
+            full_model, retain_model, tokenizer, prepared_uds,
             layer_list, args.delta_threshold, args.patch_scope, args.batch_size
         )
         s1_cache_path.parent.mkdir(parents=True, exist_ok=True)
         s1_cache_path.write_text(json.dumps({str(k): v for k, v in s1_cache.items()}))
-        print(f"  Saved S1 cache: {len(s1_cache)} entries")
         del retain_model
-        gc.collect()
-        torch.cuda.empty_cache()
+        free_memory()
 
-    # ------------------------------------------------------------------
+    # Load evaluation data
+    mem_data = load_forget10_perturbed()
+    mia_data = prepare_mia_data(
+        tokenizer,
+        max_length=args.max_length,
+        use_chat_template=True,
+        system_prompt=args.system_prompt,
+    )
+
     # Resume support
-    # ------------------------------------------------------------------
+    results_path = Path(args.out_dir) / "results.json"
     results = {}
     if args.resume:
         resume_path = Path(args.resume)
         if resume_path.exists():
             results = json.loads(resume_path.read_text())
-            print(f"Resuming: {len(results)} entries loaded")
+            print(f"Resumed: {len(results)} entries")
+    elif results_path.exists():
+        results = json.loads(results_path.read_text())
+        print(f"Resumed from {results_path}: {len(results)} entries")
 
-    results_path = Path(args.out_dir) / "results.json"
+    # Process each model
+    model_items = list(DEFAULT_MODELS.items())
 
-    # ------------------------------------------------------------------
-    # Retain model baseline (needed for relearning)
-    # ------------------------------------------------------------------
-    retain_before_scores = {}
-    retain_after_scores = {}
-
-    if not args.skip_relearning:
-        cached_retain_before = results.get("retain_before", {}).get("metrics", {})
-        cached_retain_after = results.get("retain_after", {}).get("metrics", {})
-        metrics_missing_ret_before = [m for m in metrics if m not in cached_retain_before]
-        metrics_missing_ret_after = [m for m in metrics if m not in cached_retain_after]
-
-        need_retain_model = bool(metrics_missing_ret_before) or bool(metrics_missing_ret_after)
-
-        if need_retain_model:
-            retain_model = load_model(TOFU_RETAIN_MODEL, dtype="bfloat16", device_map="cuda")
-
-            if metrics_missing_ret_before:
-                print(f"\nComputing retain metrics (before)... [{len(metrics_missing_ret_before)} metrics]")
-                scores_new = compute_metric_scores_for_model(
-                    retain_model, tokenizer, metrics_missing_ret_before,
-                    full_model, prepared, s1_cache, layer_list,
-                    args, mem_data, mia_data
-                )
-                cached_retain_before.update(scores_new)
-                results["retain_before"] = {"metrics": cached_retain_before}
-                for k, v in scores_new.items():
-                    if v is not None:
-                        print(f"  Retain {k} (before) = {v:.4f}")
-
-            if metrics_missing_ret_after:
-                # Finetune retain model on forget10
-                print("\nFinetuning retain model on forget10...")
-                retain_ft_dir = os.path.join(args.out_dir, "retain_finetuned")
-                finetune_on_forget10(
-                    retain_model, tokenizer, retain_ft_dir,
-                    lr=args.relearn_lr, epochs=args.relearn_epochs,
-                )
-                del retain_model
-                gc.collect()
-                torch.cuda.empty_cache()
-
-                print(f"Computing retain metrics (after)... [{len(metrics_missing_ret_after)} metrics]")
-                retain_ft_model = load_model(retain_ft_dir, dtype="bfloat16", device_map="cuda")
-                scores_after_new = compute_metric_scores_for_model(
-                    retain_ft_model, tokenizer, metrics_missing_ret_after,
-                    full_model, prepared, s1_cache, layer_list,
-                    args, mem_data, mia_data
-                )
-                cached_retain_after.update(scores_after_new)
-                results["retain_after"] = {"metrics": cached_retain_after}
-                for k, v in scores_after_new.items():
-                    if v is not None:
-                        print(f"  Retain {k} (after) = {v:.4f}")
-                del retain_ft_model
-                gc.collect()
-                torch.cuda.empty_cache()
-
-                if not args.keep_finetuned:
-                    shutil.rmtree(retain_ft_dir, ignore_errors=True)
-                    print(f"  Deleted {retain_ft_dir}")
-            else:
-                del retain_model
-                gc.collect()
-                torch.cuda.empty_cache()
-
-            results_path.write_text(json.dumps(results, indent=2))
-        else:
-            print(f"\nRetain baseline: all {len(metrics)} metrics cached")
-
-        retain_before_scores = results.get("retain_before", {}).get("metrics", {})
-        retain_after_scores = results.get("retain_after", {}).get("metrics", {})
-
-    # ------------------------------------------------------------------
-    # Evaluate each unlearn model
-    # ------------------------------------------------------------------
-    eval_items = list(eval_models.items())
-    if args.model_start is not None or args.model_end is not None:
-        s = args.model_start or 0
-        e = args.model_end or len(eval_items)
-        print(f"Model range: [{s}, {e}) of {len(eval_items)} total")
-        eval_items = eval_items[s:e]
-
-    for mi, (name, model_id) in enumerate(eval_items):
+    for mi, (name, model_id) in enumerate(model_items):
         print(f"\n{'='*60}")
-        print(f"[{mi+1}/{len(eval_items)}] {name}")
+        print(f"[{mi+1}/{len(model_items)}] {name}")
         print(f"  {model_id}")
         print(f"{'='*60}")
 
-        model_results = results.get(name, {})
+        # Check if already done
+        result_key = f"metrics_after_{args.mode}"
+        if name in results and result_key in results[name]:
+            print(f"  Already computed, skipping")
+            continue
 
-        # =============================================================
-        # Step 1: Metrics before any intervention
-        # =============================================================
-        cached_before = model_results.get("metrics_before", {})
-        metrics_missing_before = [m for m in metrics if m not in cached_before]
-        if metrics_missing_before:
-            print(f"\n[1/3] Computing metrics (original)... [{len(metrics_missing_before)} metrics]")
-            t0 = time.time()
-            source_model = load_model(model_id, dtype="bfloat16", device_map="cuda")
-            scores_new = compute_metric_scores_for_model(
-                source_model, tokenizer, metrics_missing_before,
-                full_model, prepared, s1_cache, layer_list,
-                args, mem_data, mia_data
-            )
-            elapsed = time.time() - t0
-            cached_before.update(scores_new)
-            model_results["metrics_before"] = cached_before
-            for k, v in scores_new.items():
-                if v is not None:
-                    extra = f"  (1-UDS = {1-v:.4f})" if k == "uds" else ""
-                    print(f"  {k} = {v:.4f}{extra}  ({elapsed:.1f}s)")
-        else:
-            source_model = None
-            print(f"\n[1/3] All {len(metrics)} metrics cached")
+        if name not in results:
+            results[name] = {"model_id": model_id}
 
-        # =============================================================
-        # Step 2: Robustness to Relearning
-        # =============================================================
-        scores_before = model_results.get("metrics_before", {})
-        cached_R = model_results.get("relearning_R", {})
-        metrics_missing_R = [m for m in metrics if m not in cached_R]
+        t0 = time.time()
 
-        if not args.skip_relearning and metrics_missing_R:
-            print(f"\n[2/3] Robustness to Relearning... [{len(metrics_missing_R)} metrics]")
+        try:
+            # Load original model first (needed for both modes)
+            print("  Loading model...")
+            model = load_model(model_id, dtype="bfloat16", device_map="cuda")
 
-            # Load source if not already loaded
-            if source_model is None:
-                source_model = load_model(model_id, dtype="bfloat16", device_map="cuda")
-
-            # Finetune on forget10
-            ft_dir = os.path.join(args.out_dir, f"ft_{name}")
-            t0 = time.time()
-            finetune_on_forget10(
-                source_model, tokenizer, ft_dir,
-                lr=args.relearn_lr, epochs=args.relearn_epochs,
-            )
-            ft_time = time.time() - t0
-            print(f"  Finetuning done ({ft_time:.1f}s)")
-
-            # Unload original, load finetuned
-            del source_model
-            gc.collect()
-            torch.cuda.empty_cache()
-
-            ft_model = load_model(ft_dir, dtype="bfloat16", device_map="cuda")
-
-            # Only compute metrics missing from after-relearn cache
-            cached_after_relearn = model_results.get("metrics_after_relearn", {})
-            metrics_need_after = [m for m in metrics_missing_R if m not in cached_after_relearn]
-            if metrics_need_after:
-                scores_after_new = compute_metric_scores_for_model(
-                    ft_model, tokenizer, metrics_need_after,
-                    full_model, prepared, s1_cache, layer_list,
-                    args, mem_data, mia_data
+            # Compute metrics_before (needed for both Q and R calculations)
+            if "metrics_before" not in results[name]:
+                print("  Computing metrics (before)...")
+                scores_before = compute_all_metrics(
+                    model, tokenizer, full_model, prepared_uds, s1_cache,
+                    layer_list, mem_data, mia_data, args
                 )
-                cached_after_relearn.update(scores_after_new)
-                model_results["metrics_after_relearn"] = cached_after_relearn
-                for k, v in scores_after_new.items():
-                    if v is not None:
-                        extra = f"  (1-UDS = {1-v:.4f})" if k == "uds" else ""
-                        print(f"  {k} (after relearning) = {v:.4f}{extra}")
+                results[name]["metrics_before"] = scores_before
+                # Save immediately
+                results_path.write_text(json.dumps(results, indent=2))
 
-            del ft_model
-            gc.collect()
-            torch.cuda.empty_cache()
+            if args.mode == "quant":
+                # Unload original model
+                del model
+                free_memory()
 
-            # Cleanup finetuned model
-            if not args.keep_finetuned:
+                # Load quantized model and compute metrics
+                print("  Loading quantized model...")
+                quant_model = load_model_quantized(model_id, device_map="cuda")
+
+                print("  Computing metrics (after quant)...")
+                scores = compute_all_metrics(
+                    quant_model, tokenizer, full_model, prepared_uds, s1_cache,
+                    layer_list, mem_data, mia_data, args
+                )
+                results[name]["metrics_after_quant"] = scores
+
+                del quant_model
+                free_memory()
+
+            else:  # relearn
+                # Finetune on forget10
+                print("  Finetuning on forget10...")
+                ft_dir = Path(args.out_dir) / f"ft_{name}"
+                finetune_on_forget10(
+                    model, tokenizer, str(ft_dir),
+                    lr=args.relearn_lr, epochs=args.relearn_epochs,
+                    batch_size=args.batch_size, grad_accum=args.grad_accum,
+                    system_prompt=args.system_prompt,
+                )
+
+                del model
+                free_memory()
+
+                # Load finetuned model and compute metrics
+                print("  Loading finetuned model...")
+                ft_model = load_model(str(ft_dir), dtype="bfloat16", device_map="cuda")
+
+                print("  Computing metrics (after relearn)...")
+                scores_after = compute_all_metrics(
+                    ft_model, tokenizer, full_model, prepared_uds, s1_cache,
+                    layer_list, mem_data, mia_data, args
+                )
+                results[name]["metrics_after_relearn"] = scores_after
+
+                del ft_model
+                free_memory()
+
+                # Clean up finetuned model
                 shutil.rmtree(ft_dir, ignore_errors=True)
 
-            # Compute R for missing metrics
-            for metric in metrics_missing_R:
-                m_unl_a = _metric_to_knowledge(metric, scores_before.get(metric))
-                m_unl_b = _metric_to_knowledge(metric, cached_after_relearn.get(metric))
-                m_ret_a = _metric_to_knowledge(metric, retain_before_scores.get(metric))
-                m_ret_b = _metric_to_knowledge(metric, retain_after_scores.get(metric))
-                if None in (m_unl_a, m_unl_b, m_ret_a, m_ret_b):
-                    cached_R[metric] = None
-                    continue
-                denom = m_unl_a - m_unl_b
-                numer = m_ret_a - m_ret_b
-                if abs(denom) < 1e-8:
-                    if args.denom_zero_mode == "one":
-                        cached_R[metric] = 1.0
-                    else:
-                        cached_R[metric] = None
-                else:
-                    r = numer / denom
-                    cached_R[metric] = max(0.0, min(r, 1.0))
+            elapsed = time.time() - t0
+            print(f"  Done in {elapsed:.1f}s")
 
-            model_results["relearning_R"] = cached_R
-            model_results["relearning_details"] = {
-                "lr": args.relearn_lr,
-                "epochs": args.relearn_epochs,
-            }
-            source_model = None  # Already freed
-        elif args.skip_relearning:
-            print("\n[2/3] Relearning: SKIPPED")
-        else:
-            print(f"\n[2/3] Relearning R (cached, {len(cached_R)} metrics)")
+            # Print some metrics
+            result_scores = results[name].get(result_key, {})
+            for m in ["uds", "em", "mia_loss"][:3]:
+                if m in result_scores:
+                    print(f"    {m}: {result_scores[m]:.4f}")
 
-        # =============================================================
-        # Step 3: Robustness to Quantization
-        # =============================================================
-        cached_Q = model_results.get("quantization_Q", {})
-        metrics_missing_Q = [m for m in metrics if m not in cached_Q]
+        except Exception as e:
+            print(f"  ERROR: {e}")
+            import traceback
+            traceback.print_exc()
+            results[name]["error"] = str(e)
 
-        if not args.skip_quantization and metrics_missing_Q:
-            print(f"\n[3/3] Robustness to Quantization (4-bit NF4)... [{len(metrics_missing_Q)} metrics]")
-
-            # Free source model if still loaded
-            if source_model is not None:
-                del source_model
-                gc.collect()
-                torch.cuda.empty_cache()
-
-            t0 = time.time()
-            quant_model = load_model_quantized(model_id, device_map="cuda")
-            load_time = time.time() - t0
-            print(f"  Quantized model loaded ({load_time:.1f}s)")
-
-            # Only compute metrics missing from after-quant cache
-            cached_after_quant = model_results.get("metrics_after_quant", {})
-            metrics_need_quant = [m for m in metrics_missing_Q if m not in cached_after_quant]
-            if metrics_need_quant:
-                scores_quant_new = compute_metric_scores_for_model(
-                    quant_model, tokenizer, metrics_need_quant,
-                    full_model, prepared, s1_cache, layer_list,
-                    args, mem_data, mia_data
-                )
-                cached_after_quant.update(scores_quant_new)
-                model_results["metrics_after_quant"] = cached_after_quant
-                for k, v in scores_quant_new.items():
-                    if v is not None:
-                        extra = f"  (1-UDS = {1-v:.4f})" if k == "uds" else ""
-                        print(f"  {k} (after quant) = {v:.4f}{extra}")
-
-            del quant_model
-            gc.collect()
-            torch.cuda.empty_cache()
-
-            # Compute Q for missing metrics
-            for metric in metrics_missing_Q:
-                m_unl_a = _metric_to_knowledge(metric, scores_before.get(metric))
-                m_unl_b = _metric_to_knowledge(metric, cached_after_quant.get(metric))
-                if m_unl_a is None or m_unl_b is None:
-                    cached_Q[metric] = None
-                    continue
-                if abs(m_unl_a) < 1e-8:
-                    cached_Q[metric] = 1.0
-                else:
-                    q = m_unl_b / m_unl_a
-                    cached_Q[metric] = max(0.0, min(q, 1.0))
-
-            model_results["quantization_Q"] = cached_Q
-            model_results["quantization_details"] = {
-                "quant_type": "nf4_4bit",
-            }
-        elif args.skip_quantization:
-            print("\n[3/3] Quantization: SKIPPED")
-        else:
-            print(f"\n[3/3] Quantization Q (cached, {len(cached_Q)} metrics)")
-            source_model = None
-
-        # Free any remaining source model
-        if source_model is not None:
-            del source_model
-            gc.collect()
-            torch.cuda.empty_cache()
-
-        results[name] = model_results
+        # Save progress
         results_path.write_text(json.dumps(results, indent=2))
 
-    # ------------------------------------------------------------------
-    # Compute aggregated scores (with optional filtering)
-    # ------------------------------------------------------------------
-    print("\n" + "=" * 70)
-    print("ROBUSTNESS RESULTS")
-    print("=" * 70)
+        # Clear HF cache
+        if args.clear_cache and model_id != TOFU_FULL_MODEL and model_id != TOFU_RETAIN_MODEL:
+            clear_hf_cache(model_id)
 
-    # Load filtering thresholds if enabled
-    filter_thresholds = {}
-    if args.filter_insufficient and args.faithfulness_pn_results:
-        pn_path = Path(args.faithfulness_pn_results)
-        if pn_path.exists():
-            filter_thresholds = compute_filtering_thresholds(str(pn_path))
-            print(f"\nFiltering enabled (§4.2.1): {len(filter_thresholds)} thresholds loaded")
-            for m, t in filter_thresholds.items():
-                print(f"  {m}: threshold={t:.4f}")
-        else:
-            print(f"\nWARNING: Filtering requested but P/N results not found: {pn_path}")
-    elif args.filter_insufficient:
-        print("\nWARNING: --filter_insufficient requires --faithfulness_pn_results")
+        free_memory()
 
-    summary_rows = []
-    metric_R = {m: [] for m in metrics}
-    metric_Q = {m: [] for m in metrics}
-    metric_filtered = {m: 0 for m in metrics}  # Count filtered models per metric
-    metric_passed = {m: 0 for m in metrics}    # Count passed models per metric
-    passed_models = {m: [] for m in metrics}
-    filtered_models = {m: [] for m in metrics}
-
-    # Utility-based filtering (global)
-    utility_filtered = set()
-    if args.filter_utility:
-        util_scores = load_utility_scores(args.utility_epoch)
-        full_util = util_scores.get("full")
-        if full_util is None:
-            print(f"\nWARNING: Utility filtering requested but full utility not found in {args.utility_epoch}")
-        else:
-            for name in eval_models:
-                if name not in util_scores:
-                    continue
-                util_rel = util_scores[name] / (full_util + 1e-12)
-                if util_rel < (1.0 - args.utility_drop):
-                    utility_filtered.add(name)
-            print(f"\nUtility filter (§4.2.1): drop>{args.utility_drop:.2f} -> filtered {len(utility_filtered)}/{len(eval_models)} models")
-
-    for name in eval_models:
-        mr = results.get(name, {})
-        R = mr.get("relearning_R", {})
-        Q = mr.get("quantization_Q", {})
-        metrics_before = mr.get("metrics_before", {})
-        summary_rows.append({"name": name, "relearning_R": R, "quantization_Q": Q})
-
-        for m in metrics:
-            # Apply filtering if enabled
-            if args.filter_utility and name in utility_filtered:
-                metric_filtered[m] += 1
-                filtered_models[m].append(name)
-                continue
-            if args.filter_insufficient and filter_thresholds:
-                if not model_passes_filter(metrics_before, m, filter_thresholds):
-                    metric_filtered[m] += 1
-                    filtered_models[m].append(name)
-                    continue  # Skip this model for this metric
-                metric_passed[m] += 1
-                passed_models[m].append(name)
-            else:
-                metric_passed[m] += 1
-                passed_models[m].append(name)
-
-            if isinstance(R, dict) and R.get(m) is not None:
-                metric_R[m].append(R[m])
-            if isinstance(Q, dict) and Q.get(m) is not None:
-                metric_Q[m].append(Q[m])
-
-    # Report filtering statistics
-    if args.filter_insufficient and filter_thresholds:
-        print(f"\nFiltering Statistics (models with sufficient unlearning):")
-        for m in metrics:
-            total = metric_passed[m] + metric_filtered[m]
-            print(f"  {m}: {metric_passed[m]}/{total} passed ({metric_filtered[m]} filtered)")
-
-    metric_robust = {}
-    print(f"\n{'Metric':<12} {'R':>8} {'Q':>8} {'Rob':>8}")
-    print("-" * 40)
-    for m in metrics:
-        avg_R = float(np.mean(metric_R[m])) if metric_R[m] else None
-        avg_Q = float(np.mean(metric_Q[m])) if metric_Q[m] else None
-        if avg_R is not None and avg_Q is not None and avg_R > 0 and avg_Q > 0:
-            avg_rob = 2 * avg_R * avg_Q / (avg_R + avg_Q)
-        else:
-            avg_rob = None
-        metric_robust[m] = {"avg_R": avg_R, "avg_Q": avg_Q, "robustness": avg_rob}
-        r_str = f"{avg_R:.4f}" if avg_R is not None else "N/A"
-        q_str = f"{avg_Q:.4f}" if avg_Q is not None else "N/A"
-        rob_str = f"{avg_rob:.4f}" if avg_rob is not None else "N/A"
-        print(f"{m:<12} {r_str:>8} {q_str:>8} {rob_str:>8}")
-
-    # ------------------------------------------------------------------
-    # Overall score (if faithfulness result provided)
-    # ------------------------------------------------------------------
-    overall = None
-    faithfulness = None
-    overall_by_metric = {}
-    if args.faithfulness_result:
-        faith_path = Path(args.faithfulness_result)
-        if faith_path.exists():
-            faith_data = json.loads(faith_path.read_text())
-            faithfulness = faith_data.get("faithfulness", {})
-            for m in metrics:
-                f_auc = None
-                if isinstance(faithfulness, dict):
-                    f_auc = faithfulness.get(m, {}).get("auc")
-                r_val = metric_robust.get(m, {}).get("robustness")
-                if f_auc is not None and r_val is not None and f_auc > 0 and r_val > 0:
-                    overall_by_metric[m] = 2 * f_auc * r_val / (f_auc + r_val)
-                else:
-                    overall_by_metric[m] = None
-
-            print("\nOverall (HM of Faithfulness & Robustness):")
-            for m in metrics:
-                f_auc = faithfulness.get(m, {}).get("auc") if isinstance(faithfulness, dict) else None
-                r_val = metric_robust.get(m, {}).get("robustness")
-                o_val = overall_by_metric.get(m)
-                if f_auc is None or r_val is None or o_val is None:
-                    print(f"  {m}: N/A")
-                else:
-                    print(f"  {m}: F={f_auc:.4f} R={r_val:.4f} Overall={o_val:.4f}")
-
-    # ------------------------------------------------------------------
-    # Save summary
-    # ------------------------------------------------------------------
-    filtering_info = None
-    if args.filter_insufficient and filter_thresholds or args.filter_utility:
-        filtering_info = {
-            "enabled": True,
-            "thresholds": filter_thresholds,
-            "passed_per_metric": {m: metric_passed[m] for m in metrics},
-            "filtered_per_metric": {m: metric_filtered[m] for m in metrics},
-            "utility_drop": args.utility_drop if args.filter_utility else None,
-            "utility_epoch": args.utility_epoch if args.filter_utility else None,
-            "utility_filtered": sorted(list(utility_filtered)) if args.filter_utility else [],
-        }
-
-    summary = {
-        "metrics": metrics,
-        "metric_robustness": metric_robust,
-        "faithfulness": faithfulness,
-        "overall": overall_by_metric,
-        "n_models": len(eval_models),
-        "relearn_lr": args.relearn_lr,
-        "relearn_epochs": args.relearn_epochs,
-        "denom_zero_mode": args.denom_zero_mode,
-        "delta_threshold": args.delta_threshold,
-        "patch_scope": args.patch_scope,
-        "filtering": filtering_info,
-        "per_model": summary_rows,
-    }
-
-    summary_path = Path(args.out_dir) / "summary.json"
-    summary_path.write_text(json.dumps(summary, indent=2))
-    results_path.write_text(json.dumps(results, indent=2))
-
-    if args.save_filtered_list:
-        out = {
-            "utility_filter": {
-                "enabled": args.filter_utility,
-                "drop_threshold": args.utility_drop if args.filter_utility else None,
-                "epoch": args.utility_epoch if args.filter_utility else None,
-                "filtered_models": sorted(list(utility_filtered)) if args.filter_utility else [],
-            },
-            "metric_filter": {
-                "enabled": args.filter_insufficient,
-                "thresholds": filter_thresholds,
-                "passed_models": passed_models,
-                "filtered_models": filtered_models,
-            },
-        }
-        Path(args.save_filtered_list).write_text(json.dumps(out, indent=2))
-        print(f"Saved filtered model lists to: {args.save_filtered_list}")
-
-    print(f"\nResults saved to: {args.out_dir}/")
-    print(f"  summary.json: R, Q, Robustness scores")
-    print(f"  results.json: per-model detailed results")
+    print(f"\n{'='*60}")
+    print(f"Done! Results saved to {results_path}")
+    print(f"{'='*60}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,134 @@
+{
+  "retain": {
+    "model_id": "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90",
+    "metrics_before": {
+      "uds": 1.0,
+      "em": 0.5887443754076958,
+      "es": 0.0591763219041133,
+      "prob": 0.1194139766448643,
+      "paraprob": 0.05461313717882149,
+      "truth_ratio": 0.5673423451083071,
+      "rouge": 0.3900289564908575,
+      "para_rouge": 0.2836101495912363,
+      "jailbreak_rouge": 0.3684864526174525,
+      "mia_loss": 0.38310625,
+      "mia_zlib": 0.30645625,
+      "mia_min_k": 0.37853125,
+      "mia_min_kpp": 0.47264375000000003
+    },
+    "metrics_after_quant": {
+      "uds": 0.9014420776387935,
+      "em": 0.5680969271808862,
+      "es": 0.05706976135350949,
+      "prob": 0.10590674836654217,
+      "paraprob": 0.04753546302847098,
+      "truth_ratio": 0.5521050513288938,
+      "rouge": 0.36531039160027434,
+      "para_rouge": 0.2727067027459347,
+      "jailbreak_rouge": 0.35208817091358724,
+      "mia_loss": 0.38660312500000005,
+      "mia_zlib": 0.30356875,
+      "mia_min_k": 0.38148125,
+      "mia_min_kpp": 0.4665875
+    }
+  },
+  "altpo_lr1e5_b01_a1_ep5": {
+    "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha1_epoch5",
+    "metrics_before": {
+      "uds": 0.35675349719656335,
+      "em": 0.8237463961541652,
+      "es": 0.14337556456487605,
+      "prob": 0.5280538630485535,
+      "paraprob": 0.14619125810917466,
+      "truth_ratio": 0.6128248084305755,
+      "rouge": 0.42445591509390385,
+      "para_rouge": 0.2863996675475521,
+      "jailbreak_rouge": 0.3872314120735531,
+      "mia_loss": 0.9724125,
+      "mia_zlib": 0.92546875,
+      "mia_min_k": 0.9781000000000001,
+      "mia_min_kpp": 0.9922875
+    },
+    "metrics_after_quant": {
+      "uds": 0.34032865524697736,
+      "em": 0.8115704640746116,
+      "es": 0.15617915245084046,
+      "prob": 0.5431684475392103,
+      "paraprob": 0.10343244575662539,
+      "truth_ratio": 0.6398306068588389,
+      "rouge": 0.463626504108008,
+      "para_rouge": 0.294059187911609,
+      "jailbreak_rouge": 0.4058303121578683,
+      "mia_loss": 0.97349375,
+      "mia_zlib": 0.9743375,
+      "mia_min_k": 0.9772312500000001,
+      "mia_min_kpp": 0.981125
+    }
+  },
+  "altpo_lr1e5_b01_a2_ep5": {
+    "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha2_epoch5",
+    "metrics_before": {
+      "uds": 0.30511723607305496,
+      "em": 0.8529924707114697,
+      "es": 0.19341785611005222,
+      "prob": 0.5870262806862593,
+      "paraprob": 0.1447802705410868,
+      "truth_ratio": 0.6204702450813747,
+      "rouge": 0.4548022599414035,
+      "para_rouge": 0.290196031705582,
+      "jailbreak_rouge": 0.41342263856098227,
+      "mia_loss": 0.9817781250000001,
+      "mia_zlib": 0.94906875,
+      "mia_min_k": 0.9849874999999999,
+      "mia_min_kpp": 0.9942812500000001
+    },
+    "metrics_after_quant": {
+      "uds": 0.3356365768247895,
+      "em": 0.8114413060247898,
+      "es": 0.1577027365468047,
+      "prob": 0.5428434406965971,
+      "paraprob": 0.09955076927319169,
+      "truth_ratio": 0.6415976328772046,
+      "rouge": 0.46083025878581607,
+      "para_rouge": 0.2932805909110897,
+      "jailbreak_rouge": 0.40930721984397905,
+      "mia_loss": 0.9733343750000001,
+      "mia_zlib": 0.97525,
+      "mia_min_k": 0.9769,
+      "mia_min_kpp": 0.97865
+    }
+  },
+  "altpo_lr1e5_b01_a5_ep5": {
+    "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha5_epoch5",
+    "metrics_before": {
+      "uds": 0.22619553484367982,
+      "em": 0.8910583585500718,
+      "es": 0.2699854078600141,
+      "prob": 0.6747713737934827,
+      "paraprob": 0.13785944211296738,
+      "truth_ratio": 0.6341418860037493,
+      "rouge": 0.5279698576757773,
+      "para_rouge": 0.29927938743455373,
+      "jailbreak_rouge": 0.4581698941188901,
+      "mia_loss": 0.9905124999999999,
+      "mia_zlib": 0.97669375,
+      "mia_min_k": 0.9916125,
+      "mia_min_kpp": 0.99618125
+    },
+    "metrics_after_quant": {
+      "uds": 0.335554660150456,
+      "em": 0.8056383259594441,
+      "es": 0.14841759924219672,
+      "prob": 0.5344750500097871,
+      "paraprob": 0.09295324907056056,
+      "truth_ratio": 0.6440140373547453,
+      "rouge": 0.45920563568801653,
+      "para_rouge": 0.29547864743532903,
+      "jailbreak_rouge": 0.40818958104130026,
+      "mia_loss": 0.972971875,
+      "mia_zlib": 0.9758374999999999,
+      "mia_min_k": 0.9763437500000001,
+      "mia_min_kpp": 0.97451875
+    }
+  }
+}

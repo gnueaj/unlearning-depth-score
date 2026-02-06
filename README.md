@@ -48,15 +48,8 @@ Per-model evaluation is organized into:
 - Overall aggregation shown in dashboard data
 
 Source folders:
-- `runs/ep5/`
-- `runs/ep10/`
-
-Each epoch has:
-- `memorization/<model>/summary.json`
-- `privacy/<model>/summary.json`
-- `utility/<model>/summary.json`
-- `uds/<model>/summary.json`
-- `gen_rouge/<model>/summary.json`
+- `runs/ep5/{memorization,privacy,utility,uds,gen_rouge}/<model>/`
+- `runs/ep10/{memorization,privacy,utility,uds,gen_rouge}/<model>/`
 
 ### 3) Meta-Evaluation
 
@@ -64,45 +57,39 @@ Scripts:
 - `scripts/meta_eval_faithfulness.py`
 - `scripts/meta_eval_robustness.py`
 
-Faithfulness uses P/N pools and measures metric-level separability.
+**Faithfulness**: Uses P/N pools (30 pos + 30 neg) and measures metric-level AUC-ROC separability.
 
-Robustness evaluates metric stability under:
-- relearning
-- quantization
+**Robustness**: Evaluates metric stability under relearning and quantization attacks.
+- `R = min((m_ret_before - m_ret_after)/(m_unl_before - m_unl_after), 1)`
+- `Q = min(m_unl_after/m_unl_before, 1)`
+- Per-metric robustness = `HM(avg_R, avg_Q)`
 
-Filtering helpers:
-- `scripts/build_robustness_filter_list.py`
-- `scripts/build_robustness_model_list.py`
+Results:
+- `runs/meta_eval/faithfulness/results.json`, `summary.json`
+- `runs/meta_eval/robustness_v2/{quant,relearn}/results.json`
+- S1 cache: `runs/meta_eval/s1_cache_v2.json`
 
 ## Datasets / Prompting Conventions
 
 Two evaluation settings coexist intentionally:
 
-1. UDS setting
-- `tofu_data/forget10_filtered_v7_gt.json` (367)
-- raw `Question/Answer` style patching
+1. **UDS setting**
+   - `tofu_data/forget10_filtered_v7_gt.json` (367 examples)
+   - raw `Question/Answer` style patching
 
-2. Open-Unlearning-style setting
-- 400-example perturbed evaluation protocol
-- chat template + system prompt
+2. **Open-Unlearning-style setting**
+   - 400-example perturbed evaluation protocol
+   - chat template + system prompt (`You are a helpful assistant.`)
 
 Do not merge these settings without explicitly documenting the change.
 
-## Rebuild / Refresh
+## Dashboard Update
 
-Regenerate dashboard data + HTML:
+Dashboard uses JSON data files:
+- `docs/data/method_results.json` - method-level results
+- `docs/data/meta_eval.json` - faithfulness + robustness
 
-```bash
-python scripts/build_openunlearning_alpha_all.py --out_dir docs --ep5_dir runs/ep5 --ep10_dir runs/ep10
-python scripts/update_meta_eval_html.py
-```
-
-Backfill generation metrics for models:
-
-```bash
-python scripts/compute_generation_metrics_all.py --epoch_root runs/ep5
-python scripts/compute_generation_metrics_all.py --epoch_root runs/ep10
-```
+HTML is edited directly in `docs/openunlearning_alpha_all.html`.
 
 ## Minimal Example (UDS)
 
@@ -120,7 +107,5 @@ python exp_s1_teacher_forcing.py \
 ## Notes
 
 - Current naming is **UDS** (older artifacts may still contain `udr` key aliases).
-- Avoid reading from `runs/archive/` for current tables.
-- If metrics/formulas are changed, update both:
-  - builder logic
-  - labels/formula blocks shown in HTML
+- Legacy runs and scripts archived under `runs/archive/` and `scripts/archive_legacy/`.
+- If metrics/formulas are changed, update both data files and HTML labels together.
