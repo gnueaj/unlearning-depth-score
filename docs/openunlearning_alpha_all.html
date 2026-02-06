@@ -70,6 +70,7 @@ table.styled th.sort-desc::after { content: " ▼"; font-size: 10px; }
 table.styled tbody tr:hover { background: #f8f9fa; }
 table.styled td { font-variant-numeric: tabular-nums; }
 table.styled td.num { text-align: right; }
+table.styled th.num { text-align: right; }
 
 /* Meta-eval specific */
 #meta_eval .uds-row { background: #fffde7 !important; }
@@ -203,14 +204,14 @@ button.toggle-btn:hover { text-decoration: underline; }
       <thead>
         <tr>
           <th rowspan="2">Metric</th>
-          <th rowspan="2" class="sortable" data-col="overall">Overall ↑</th>
-          <th rowspan="2" class="sortable" data-col="faith">Faithfulness ↑</th>
+          <th rowspan="2" class="sortable num" data-col="overall">Overall ↑</th>
+          <th rowspan="2" class="sortable num" data-col="faith">Faithfulness ↑</th>
           <th colspan="3" style="text-align:center;">Robustness</th>
         </tr>
         <tr>
-          <th class="sortable" data-col="rob">Agg. ↑</th>
-          <th class="sortable" data-col="quant">Quant. ↑</th>
-          <th class="sortable" data-col="relearn">Relearn. ↑</th>
+          <th class="sortable num" data-col="rob">Agg. ↑</th>
+          <th class="sortable num" data-col="quant">Quant. ↑</th>
+          <th class="sortable num" data-col="relearn">Relearn. ↑</th>
         </tr>
       </thead>
       <tbody id="meta_eval_body">
@@ -304,12 +305,12 @@ button.toggle-btn:hover { text-decoration: underline; }
       <thead>
         <tr>
           <th class="sortable" data-col="model">Model</th>
-          <th class="sortable" data-col="overall">Overall ↑</th>
-          <th class="sortable" data-col="mem" style="white-space:nowrap;">Mem. ↑</th>
-          <th class="sortable" data-col="privacy">Privacy ↑</th>
-          <th class="sortable" data-col="utility_rel">Utility ↑</th>
+          <th class="sortable num" data-col="overall">Overall ↑</th>
+          <th class="sortable num" data-col="mem" style="white-space:nowrap;">Mem. ↑</th>
+          <th class="sortable num" data-col="privacy">Privacy ↑</th>
+          <th class="sortable num" data-col="utility_rel">Utility ↑</th>
           <th>Details</th>
-          <th class="sortable" data-col="uds" style="color:#888;" title="Already included in Privacy axis">UDS ↑</th>
+          <th class="sortable num" data-col="uds" style="color:#888;" title="Already included in Privacy axis">UDS ↑</th>
         </tr>
       </thead>
       <tbody id="method_body">
