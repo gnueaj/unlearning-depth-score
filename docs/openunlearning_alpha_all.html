@@ -75,6 +75,7 @@ table.styled th.num { text-align: right; }
 /* Meta-eval specific */
 #meta_eval .uds-row { background: #fffde7 !important; }
 #meta_eval .uds-row:hover { background: #fff9c4 !important; }
+#meta_eval th:nth-child(n+4), #meta_eval td:nth-child(n+4) { min-width: 110px; }
 
 /* Method table specific */
 #method_table .ref-row { background: #e3f2fd !important; }
@@ -210,8 +211,8 @@ button.toggle-btn:hover { text-decoration: underline; }
         </tr>
         <tr>
           <th class="sortable num" data-col="rob">Agg. ↑</th>
-          <th class="sortable num" data-col="quant">Quant. ↑</th>
-          <th class="sortable num" data-col="relearn">Relearn. ↑</th>
+          <th class="sortable num" data-col="quant">Quantization ↑</th>
+          <th class="sortable num" data-col="relearn">Relearning ↑</th>
         </tr>
       </thead>
       <tbody id="meta_eval_body">
@@ -283,8 +284,8 @@ button.toggle-btn:hover { text-decoration: underline; }
     <div class="control-row">
       <span class="control-label">Epoch</span>
       <div class="control-content">
-        <label class="checkbox-label"><input type="checkbox" class="epoch-filter" value="ep5" checked> ep5</label>
-        <label class="checkbox-label"><input type="checkbox" class="epoch-filter" value="ep10" checked> ep10</label>
+        <label class="checkbox-label"><input type="checkbox" class="epoch-filter" value="ep5" checked> 5</label>
+        <label class="checkbox-label"><input type="checkbox" class="epoch-filter" value="ep10" checked> 10</label>
       </div>
     </div>
     <div class="control-row">
