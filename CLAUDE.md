@@ -19,10 +19,11 @@ Core claim: output suppression is not enough; internal recoverability must also 
   - `runs/ep5/{memorization,privacy,utility,uds,gen_rouge}/<model>/`
   - `runs/ep10/{memorization,privacy,utility,uds,gen_rouge}/<model>/`
 - Meta-eval runs:
-  - `runs/meta_eval/faithfulness/results.json`, `summary.json`
+  - `runs/meta_eval/faithfulness/` (results.json, summary.json, histograms/)
+  - `runs/meta_eval/faithfulness_uds_v2.json` (UDS with s1_cache_v2)
   - `runs/meta_eval/robustness_v2/quant/results.json`
   - `runs/meta_eval/robustness_v2/relearn/results.json`
-  - S1 cache: `runs/meta_eval/s1_cache_v2.json`
+  - `runs/meta_eval/s1_cache_v2.json` (367 examples, eager attention)
 - Legacy: `runs/archive/`
 
 ## Canonical Scripts
@@ -106,8 +107,9 @@ When changing aggregation, change both builder logic and HTML labels together.
   - (Legacy: utility filter, faithfulness-threshold filter는 aggregation 시 선택적 적용 가능)
 
 ### Current Paths
-- S1 cache: `runs/meta_eval/s1_cache_v2.json` (367 examples, computed with eager attention)
-- Faithfulness: `runs/meta_eval/faithfulness/results.json`, `summary.json`
+- S1 cache: `runs/meta_eval/s1_cache_v2.json` (367 examples, eager attention)
+- Faithfulness (12 metrics): `runs/meta_eval/faithfulness/results.json`, `summary.json`
+- Faithfulness UDS: `runs/meta_eval/faithfulness_uds_v2.json` (AUC: 0.973)
 - Robustness: `runs/meta_eval/robustness_v2/{quant,relearn}/results.json`
 
 ### Notes

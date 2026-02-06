@@ -65,9 +65,10 @@ Scripts:
 - Per-metric robustness = `HM(avg_R, avg_Q)`
 
 Results:
-- `runs/meta_eval/faithfulness/results.json`, `summary.json`
+- `runs/meta_eval/faithfulness/` (12 metrics + histograms)
+- `runs/meta_eval/faithfulness_uds_v2.json` (UDS AUC: 0.973)
 - `runs/meta_eval/robustness_v2/{quant,relearn}/results.json`
-- S1 cache: `runs/meta_eval/s1_cache_v2.json`
+- `runs/meta_eval/s1_cache_v2.json` (367 examples)
 
 ## Datasets / Prompting Conventions
 
