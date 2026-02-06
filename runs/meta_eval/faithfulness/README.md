@@ -1,19 +1,38 @@
-# Faithfulness Results (13 Metrics, SDPA)
+# Faithfulness Results (13 Metrics)
 
 60 P/N pool models (30 positive + 30 negative)
 
-| Metric | AUC-ROC | P Mean | N Mean | Count |
-|--------|---------|--------|--------|-------|
-| Exact Match | **0.8167** | 0.7417 | 0.6204 | 30+30 |
-| Extraction Strength | **0.8911** | 0.2866 | 0.0667 | 30+30 |
-| Probability | **0.8156** | 0.3928 | 0.1419 | 30+30 |
-| Para.Prob | **0.7067** | 0.0812 | 0.0554 | 30+30 |
-| Truth Ratio | **0.9467** | 0.6498 | 0.5682 | 30+30 |
-| ROUGE | **0.7222** | 0.5484 | 0.4313 | 30+30 |
-| Para.ROUGE | **0.8322** | 0.3395 | 0.2861 | 30+30 |
-| Jailbreak ROUGE | **0.7567** | 0.4903 | 0.3972 | 30+30 |
-| MIA-LOSS | **0.9022** | 0.7141 | 0.4481 | 30+30 |
-| MIA-ZLib | **0.8667** | 0.6580 | 0.3744 | 30+30 |
-| MIA-MinK | **0.9067** | 0.7160 | 0.4418 | 30+30 |
-| MIA-MinK++ | **0.8156** | 0.6846 | 0.5020 | 30+30 |
-| UDS (Ours) | **0.9711** | 0.4857 | 0.8520 | 30+30 |
+## AUC-ROC Summary
+
+| Metric | AUC-ROC | P Mean | N Mean |
+|--------|---------|--------|--------|
+| Exact Match | 0.817 | 0.742 | 0.620 |
+| Extraction Strength | 0.891 | 0.287 | 0.067 |
+| Probability | 0.816 | 0.393 | 0.142 |
+| Para.Prob | 0.707 | 0.081 | 0.055 |
+| Truth Ratio | 0.947 | 0.650 | 0.568 |
+| ROUGE | 0.722 | 0.548 | 0.431 |
+| Para.ROUGE | 0.832 | 0.340 | 0.286 |
+| Jailbreak ROUGE | 0.757 | 0.490 | 0.397 |
+| MIA-LOSS | 0.902 | 0.714 | 0.448 |
+| MIA-ZLib | 0.867 | 0.658 | 0.374 |
+| MIA-MinK | 0.907 | 0.716 | 0.442 |
+| MIA-MinK++ | 0.816 | 0.685 | 0.502 |
+| **1-UDS (Ours)** | **0.973** | 0.486 | 0.858 |
+
+## Files
+
+- `results.json`: Raw metric values for 60 models × 13 metrics
+- `summary.json`: Per-metric AUC-ROC (12 metrics, excl. UDS)
+- `histograms/`: P/N pool distribution visualizations
+
+## UDS Note
+
+UDS values computed with `s1_cache_v2.json` (367 examples).
+Results stored in `../faithfulness_uds_v2.json`.
+
+## Regenerate Histograms
+
+```bash
+python runs/meta_eval/faithfulness/plot_histograms.py
+```
