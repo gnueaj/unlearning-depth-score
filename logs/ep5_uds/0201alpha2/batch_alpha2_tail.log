@@ -1,7 +1,0 @@
-[run] graddiff_lr1e5_a2_ep5 on gpu 0
-[run] graddiff_lr2e5_a2_ep5 on gpu 0
-[run] graddiff_lr5e5_a2_ep5 on gpu 0
-[run] idknll_lr1e5_a2_ep5 on gpu 1
-[run] idknll_lr2e5_a2_ep5 on gpu 1
-[run] idknll_lr5e5_a2_ep5 on gpu 1
-[alpha2-tail] done

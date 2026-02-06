@@ -194,8 +194,10 @@ button.toggle-btn:hover { text-decoration: underline; }
       </div>
       <div style="margin-top:8px;">
         <code>Robustness</code> = HM(Quantization, Relearning)<br>
-        <span class="sub-formula"><code>Quantization</code> = min(m<sub>before</sub> / m<sub>after</sub>, 1) — metric stability after 4-bit NF4 quantization</span><br>
-        <span class="sub-formula"><code>Relearning</code> = min((m<sub>ret,after</sub> - m<sub>ret,before</sub>) / (m<sub>unl,after</sub> - m<sub>unl,before</sub>), 1) — metric stability after 1-epoch relearning</span>
+        <span class="sub-formula"><code>Quantization</code> = min(m<sub>after</sub> / m<sub>before</sub>, 1) on lr=1e-5 subset only</span><br>
+        <span class="sub-formula"><code>Relearning</code> = min((m<sub>ret,before</sub> - m<sub>ret,after</sub>) / (m<sub>unl,before</sub> - m<sub>unl,after</sub>), 1)</span><br>
+        <span class="sub-formula">Direction handling: raw metric values for all metrics; UDS only uses m = 1 - UDS.</span><br>
+        <span class="sub-formula">Filtering policy: Relearning uses utility + faithfulness-threshold filtering; Quantization uses lr=1e-5 filtering only.</span>
       </div>
       <div style="margin-top:8px;">
         <code>Overall</code> = HM(Faithfulness, Robustness)
@@ -359,11 +361,11 @@ function top2(values) {
   return [nums[0] || null, nums[1] || null];
 }
 
-function styleRank(v, best, second, isUds = false) {
+function styleRank(v, best, second) {
   if (v === null || v === undefined || isNaN(v)) return 'N/A';
   const s = fmt(v);
   if (best !== null && Math.abs(v - best) < 1e-9) return `<strong>${s}</strong>`;
-  if (!isUds && second !== null && Math.abs(v - second) < 1e-9) return `<u>${s}</u>`;
+  if (second !== null && Math.abs(v - second) < 1e-9) return `<u>${s}</u>`;
   return s;
 }
 
@@ -402,13 +404,15 @@ function renderMetaEval() {
   const body = document.getElementById('meta_eval_body');
   const metrics = metaData.metrics;
   const faith = metaData.faithfulness;
+  const robust = metaData.robustness || {};
 
   // Collect values for ranking
   const overalls = [], faiths = [], robs = [], quants = [], relearns = [];
   const rows = metrics.map(m => {
     const f = faith[m.key]?.auc_roc || null;
-    // Robustness is N/A for now
-    const r = null, q = null, rl = null;
+    const r = robust[m.key]?.agg ?? null;
+    const q = robust[m.key]?.quantization ?? null;
+    const rl = robust[m.key]?.relearning ?? null;
     const o = (f !== null && r !== null) ? 2 / (1/f + 1/r) : null;
     overalls.push(o); faiths.push(f); robs.push(r); quants.push(q); relearns.push(rl);
     return { ...m, faith: f, rob: r, quant: q, relearn: rl, overall: o };
@@ -440,11 +444,11 @@ function renderMetaEval() {
 
     html += `<tr class="${classes.join(' ')}">
       <td>${label}</td>
-      <td class="num">${styleRank(r.overall, bestO, secO, isUds)}</td>
-      <td class="num">${styleRank(r.faith, bestF, secF, isUds)}</td>
-      <td class="num">${styleRank(r.rob, bestR, secR, isUds)}</td>
-      <td class="num">${styleRank(r.quant, bestQ, secQ, isUds)}</td>
-      <td class="num">${styleRank(r.relearn, bestL, secL, isUds)}</td>
+      <td class="num">${styleRank(r.overall, bestO, secO)}</td>
+      <td class="num">${styleRank(r.faith, bestF, secF)}</td>
+      <td class="num">${styleRank(r.rob, bestR, secR)}</td>
+      <td class="num">${styleRank(r.quant, bestQ, secQ)}</td>
+      <td class="num">${styleRank(r.relearn, bestL, secL)}</td>
     </tr>`;
   });
   body.innerHTML = html;
@@ -473,6 +477,7 @@ async function loadMethodData() {
     const resp = await fetch('data/method_results.json');
     methodData = await resp.json();
     renderMethodFilters();
+    updateEpochCounts();
     renderMethodTable();
     setupMethodListeners();
     setupTableSorting();
@@ -492,6 +497,24 @@ function renderMethodFilters() {
       ${displayMethod(m)} <span class="count">(${counts[m]})</span>
     </label>
   `).join('');
+}
+
+function updateEpochCounts() {
+  // Count models per epoch (excluding reference models)
+  const epochCounts = {};
+  methodData.models.forEach(m => {
+    if (!m.is_reference && m.epoch) {
+      epochCounts[m.epoch] = (epochCounts[m.epoch] || 0) + 1;
+    }
+  });
+  // Update epoch filter labels
+  document.querySelectorAll('.epoch-filter').forEach(cb => {
+    const ep = cb.value;
+    const count = epochCounts[ep] || 0;
+    const label = cb.parentElement;
+    const epNum = ep.replace('ep', '');
+    label.innerHTML = `<input type="checkbox" class="epoch-filter" value="${ep}" checked> ${epNum} <span class="count">(${count})</span>`;
+  });
 }
 
 function getFilteredModels() {
@@ -595,19 +618,16 @@ function renderMethodTable() {
         <div class="details-grid">
           <div class="detail-card">
             <h4>Memorization</h4>
-            <div class="detail-item summary">
-              <span class="label"><strong>Mem.</strong></span><span class="value"><strong>${fmt(m.mem)}</strong></span>
-            </div>
             <div class="detail-item"><span class="label">1-ES</span><span class="value">${fmt(m.one_minus_es)}</span></div>
             <div class="detail-item"><span class="label">1-EM</span><span class="value">${fmt(m.one_minus_em)}</span></div>
             <div class="detail-item"><span class="label">1-ParaProb</span><span class="value">${fmt(m.one_minus_paraprob)}</span></div>
             <div class="detail-item"><span class="label">1-TruthRatio</span><span class="value">${fmt(m.one_minus_truth)}</span></div>
+            <div class="detail-item summary">
+              <span class="label"><strong>Mem.</strong></span><span class="value"><strong>${fmt(m.mem)}</strong></span>
+            </div>
           </div>
           <div class="detail-card">
             <h4>Privacy</h4>
-            <div class="detail-item summary">
-              <span class="label"><strong>Privacy = HM(MIA, UDS)</strong></span><span class="value"><strong>${fmt(m.privacy)}</strong></span>
-            </div>
             <div class="detail-item"><span class="label">s<sub>LOSS</sub></span><span class="value">${fmt(m.s_loss)}</span></div>
             <div class="detail-item"><span class="label">s<sub>ZLib</sub></span><span class="value">${fmt(m.s_zlib)}</span></div>
             <div class="detail-item"><span class="label">s<sub>Min-k</sub></span><span class="value">${fmt(m.s_mink)}</span></div>
@@ -616,12 +636,12 @@ function renderMethodTable() {
               <span class="label">MIA</span><span class="value">${fmt(m.privacy_mia)}</span>
             </div>
             <div class="detail-item"><span class="label">UDS</span><span class="value">${fmt(m.uds)}</span></div>
+            <div class="detail-item summary">
+              <span class="label"><strong>Privacy = HM(MIA, UDS)</strong></span><span class="value"><strong>${fmt(m.privacy)}</strong></span>
+            </div>
           </div>
           <div class="detail-card">
             <h4>Utility</h4>
-            <div class="detail-item summary">
-              <span class="label"><strong>Utility<sub>rel</sub></strong></span><span class="value"><strong>${fmt(m.utility_rel)}</strong></span>
-            </div>
             <div class="detail-item"><span class="label">ModelUtility (MU)</span><span class="value">${fmt(m.model_utility)}</span></div>
             <div class="detail-item"><span class="label">Fluency</span><span class="value">${fmt(m.fluency)}</span></div>
             <div class="detail-item"><span class="label">Utility = HM(MU, Fluency)</span><span class="value">${fmt(m.utility)}</span></div>
@@ -630,6 +650,9 @@ function renderMethodTable() {
               <div>retain: Prob=${fmt(m.retain_q_prob)}, ROUGE=${fmt(m.retain_q_rouge)}, TruthRatio=${fmt(m.retain_truth_ratio)}</div>
               <div>ra: Prob=${fmt(m.ra_q_prob)}, ROUGE=${fmt(m.ra_q_rouge)}, TruthRatio=${fmt(m.ra_truth_ratio)}</div>
               <div>wf: Prob=${fmt(m.wf_q_prob)}, ROUGE=${fmt(m.wf_q_rouge)}, TruthRatio=${fmt(m.wf_truth_ratio)}</div>
+            </div>
+            <div class="detail-item summary">
+              <span class="label"><strong>Utility<sub>rel</sub></strong></span><span class="value"><strong>${fmt(m.utility_rel)}</strong></span>
             </div>
           </div>
         </div>
