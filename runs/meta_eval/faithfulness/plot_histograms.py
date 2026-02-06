@@ -165,7 +165,7 @@ if len(p_scores) > 0 and len(n_scores) > 0:
         ax_uds.axvline(threshold, color='black', linestyle='--', linewidth=1.5)
 
     auc = auc_data.get('uds', {}).get('auc_roc', 0)
-    ax_uds.set_title(f'1-UDS (Ours)\nAUC: {auc:.3f}')
+    ax_uds.set_title(f'1-UDS (Ours)\nAUC: {auc:.3f}', fontweight='bold')
     ax_uds.set_ylabel('Count')
     ax_uds.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax_uds.legend(fontsize=8)
