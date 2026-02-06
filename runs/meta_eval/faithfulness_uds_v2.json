@@ -1,0 +1,250 @@
+{
+  "auc_roc": 0.9733333333333334,
+  "p_mean": 0.48632927872771,
+  "n_mean": 0.8579752413896143,
+  "p_count": 30,
+  "n_count": 30,
+  "s1_cache": "runs/meta_eval/s1_cache_v2.json",
+  "results": {
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr1e-05_wd0.01_epoch5": {
+      "uds": 0.6024098713476105,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr1e-05_wd0.01_epoch5": {
+      "uds": 0.7709609930718517,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr1e-05_wd0.01_epoch5": {
+      "uds": 0.668045394232691,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr1e-05_wd0.01_epoch10": {
+      "uds": 0.5791403425753516,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr1e-05_wd0.01_epoch10": {
+      "uds": 0.7767133291803243,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr1e-05_wd0.01_epoch10": {
+      "uds": 0.6584885594761171,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr2e-05_wd0.01_epoch5": {
+      "uds": 0.21900550548608133,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr2e-05_wd0.01_epoch5": {
+      "uds": 0.7843372018995721,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr2e-05_wd0.01_epoch5": {
+      "uds": 0.5432466286258267,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr2e-05_wd0.01_epoch10": {
+      "uds": 0.17387018494411277,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr2e-05_wd0.01_epoch10": {
+      "uds": 0.8147750524233256,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr2e-05_wd0.01_epoch10": {
+      "uds": 0.5752096609117018,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr3e-05_wd0.01_epoch5": {
+      "uds": 0.045972799461483894,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr3e-05_wd0.01_epoch5": {
+      "uds": 0.7490933995137411,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr3e-05_wd0.01_epoch5": {
+      "uds": 0.5249513657602847,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr3e-05_wd0.01_epoch10": {
+      "uds": 0.03579807440875124,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr3e-05_wd0.01_epoch10": {
+      "uds": 0.7677938081148257,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr3e-05_wd0.01_epoch10": {
+      "uds": 0.5814481917280234,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr4e-05_wd0.01_epoch5": {
+      "uds": 0.03402026355688397,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr4e-05_wd0.01_epoch5": {
+      "uds": 0.6512784678999721,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr4e-05_wd0.01_epoch5": {
+      "uds": 0.52901739440222,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr4e-05_wd0.01_epoch10": {
+      "uds": 0.017808312271522346,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr4e-05_wd0.01_epoch10": {
+      "uds": 0.6421853439996547,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr4e-05_wd0.01_epoch10": {
+      "uds": 0.5616153200164322,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr5e-05_wd0.01_epoch5": {
+      "uds": 0.027361967880489023,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr5e-05_wd0.01_epoch5": {
+      "uds": 0.580760174157036,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr5e-05_wd0.01_epoch5": {
+      "uds": 0.5249224248855847,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_full_lr5e-05_wd0.01_epoch10": {
+      "uds": 0.01254694252034891,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_bio_lr5e-05_wd0.01_epoch10": {
+      "uds": 0.572616232689199,
+      "pool": "P"
+    },
+    "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct_retain90_forget10_para_lr5e-05_wd0.01_epoch10": {
+      "uds": 0.564485154390282,
+      "pool": "P"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_lr1e-05_wd0.01_epoch5": {
+      "uds": 0.7824230802562046,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_forget10_pert_lr1e-05_wd0.01_epoch5": {
+      "uds": 0.7357231373570167,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_celeb10_bio_lr1e-05_wd0.01_epoch5": {
+      "uds": 0.7890145558155733,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_lr1e-05_wd0.01_epoch10": {
+      "uds": 0.7867915071706599,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_forget10_pert_lr1e-05_wd0.01_epoch10": {
+      "uds": 0.7355904005019958,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_celeb10_bio_lr1e-05_wd0.01_epoch10": {
+      "uds": 0.7906632569671345,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_lr2e-05_wd0.01_epoch5": {
+      "uds": 0.8848537248199447,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_forget10_pert_lr2e-05_wd0.01_epoch5": {
+      "uds": 0.7511495479357087,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_celeb10_bio_lr2e-05_wd0.01_epoch5": {
+      "uds": 0.8767266796028894,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_lr2e-05_wd0.01_epoch10": {
+      "uds": 0.9267005321099931,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_forget10_pert_lr2e-05_wd0.01_epoch10": {
+      "uds": 0.798761226679423,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_celeb10_bio_lr2e-05_wd0.01_epoch10": {
+      "uds": 0.9180389492524595,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_lr3e-05_wd0.01_epoch5": {
+      "uds": 0.9407189857275322,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_forget10_pert_lr3e-05_wd0.01_epoch5": {
+      "uds": 0.8126563429552434,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_celeb10_bio_lr3e-05_wd0.01_epoch5": {
+      "uds": 0.9298453941904632,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_lr3e-05_wd0.01_epoch10": {
+      "uds": 0.9354969996613659,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_forget10_pert_lr3e-05_wd0.01_epoch10": {
+      "uds": 0.8394338709311854,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_celeb10_bio_lr3e-05_wd0.01_epoch10": {
+      "uds": 0.9483573594070068,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_lr4e-05_wd0.01_epoch5": {
+      "uds": 0.9075012107512967,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_forget10_pert_lr4e-05_wd0.01_epoch5": {
+      "uds": 0.8317790595384732,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_celeb10_bio_lr4e-05_wd0.01_epoch5": {
+      "uds": 0.9092977057586074,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_lr4e-05_wd0.01_epoch10": {
+      "uds": 0.9200147888508469,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_forget10_pert_lr4e-05_wd0.01_epoch10": {
+      "uds": 0.8373137855693545,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_celeb10_bio_lr4e-05_wd0.01_epoch10": {
+      "uds": 0.913753171499867,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_lr5e-05_wd0.01_epoch5": {
+      "uds": 0.8889724927007985,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_forget10_pert_lr5e-05_wd0.01_epoch5": {
+      "uds": 0.8212866343274589,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_celeb10_bio_lr5e-05_wd0.01_epoch5": {
+      "uds": 0.8853672697646116,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_lr5e-05_wd0.01_epoch10": {
+      "uds": 0.8982398489109558,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_forget10_pert_lr5e-05_wd0.01_epoch10": {
+      "uds": 0.8436587508307103,
+      "pool": "N"
+    },
+    "open-unlearning/neg_tofu_Llama-3.2-1B-Instruct_retain90_celeb10_bio_lr5e-05_wd0.01_epoch10": {
+      "uds": 0.8991269718436518,
+      "pool": "N"
+    }
+  }
+}

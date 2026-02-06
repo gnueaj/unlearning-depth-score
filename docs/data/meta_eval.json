@@ -1,42 +1,214 @@
 {
   "metrics": [
-    {"key": "es", "label": "Extraction Strength", "category": "memorization"},
-    {"key": "em", "label": "Exact Memorization", "category": "memorization"},
-    {"key": "prob", "label": "Probability", "category": "memorization"},
-    {"key": "paraprob", "label": "Para. Probability", "category": "memorization"},
-    {"key": "truth_ratio", "label": "Truth Ratio", "category": "memorization"},
-    {"key": "rouge", "label": "ROUGE", "category": "generation"},
-    {"key": "para_rouge", "label": "Para. ROUGE", "category": "generation"},
-    {"key": "jailbreak_rouge", "label": "Jailbreak ROUGE", "category": "generation"},
-    {"key": "mia_loss", "label": "MIA-LOSS", "category": "mia"},
-    {"key": "mia_zlib", "label": "MIA-ZLib", "category": "mia"},
-    {"key": "mia_min_k", "label": "MIA-MinK", "category": "mia"},
-    {"key": "mia_min_kpp", "label": "MIA-MinK++", "category": "mia"},
-    {"key": "uds", "label": "UDS (Ours)", "category": "ours"}
+    {
+      "key": "es",
+      "label": "Extraction Strength",
+      "category": "memorization"
+    },
+    {
+      "key": "em",
+      "label": "Exact Memorization",
+      "category": "memorization"
+    },
+    {
+      "key": "truth_ratio",
+      "label": "Truth Ratio",
+      "category": "memorization"
+    },
+    {
+      "key": "paraprob",
+      "label": "Para. Probability",
+      "category": "memorization"
+    },
+    {
+      "key": "para_rouge",
+      "label": "Para. ROUGE",
+      "category": "generation"
+    },
+    {
+      "key": "prob",
+      "label": "Probability",
+      "category": "memorization"
+    },
+    {
+      "key": "rouge",
+      "label": "ROUGE",
+      "category": "generation"
+    },
+    {
+      "key": "jailbreak_rouge",
+      "label": "Jailbreak ROUGE",
+      "category": "generation"
+    },
+    {
+      "key": "mia_zlib",
+      "label": "MIA-ZLib",
+      "category": "mia"
+    },
+    {
+      "key": "mia_min_k",
+      "label": "MIA-MinK",
+      "category": "mia"
+    },
+    {
+      "key": "mia_loss",
+      "label": "MIA-LOSS",
+      "category": "mia"
+    },
+    {
+      "key": "mia_min_kpp",
+      "label": "MIA-MinK++",
+      "category": "mia"
+    },
+    {
+      "key": "uds",
+      "label": "UDS (Ours)",
+      "category": "ours"
+    }
   ],
   "faithfulness": {
-    "em": {"auc_roc": 0.817, "p_mean": 0.742, "n_mean": 0.620},
-    "es": {"auc_roc": 0.891, "p_mean": 0.287, "n_mean": 0.067},
-    "prob": {"auc_roc": 0.816, "p_mean": 0.393, "n_mean": 0.142},
-    "paraprob": {"auc_roc": 0.707, "p_mean": 0.081, "n_mean": 0.055},
-    "truth_ratio": {"auc_roc": 0.947, "p_mean": 0.650, "n_mean": 0.568},
-    "rouge": {"auc_roc": 0.722, "p_mean": 0.548, "n_mean": 0.431},
-    "para_rouge": {"auc_roc": 0.832, "p_mean": 0.339, "n_mean": 0.286},
-    "jailbreak_rouge": {"auc_roc": 0.757, "p_mean": 0.490, "n_mean": 0.397},
-    "mia_loss": {"auc_roc": 0.902, "p_mean": 0.714, "n_mean": 0.448},
-    "mia_zlib": {"auc_roc": 0.867, "p_mean": 0.658, "n_mean": 0.374},
-    "mia_min_k": {"auc_roc": 0.907, "p_mean": 0.716, "n_mean": 0.442},
-    "mia_min_kpp": {"auc_roc": 0.816, "p_mean": 0.685, "n_mean": 0.502},
-    "uds": {"auc_roc": 0.971, "p_mean": 0.486, "n_mean": 0.852}
+    "em": {
+      "auc_roc": 0.817,
+      "p_mean": 0.742,
+      "n_mean": 0.62
+    },
+    "es": {
+      "auc_roc": 0.891,
+      "p_mean": 0.287,
+      "n_mean": 0.067
+    },
+    "prob": {
+      "auc_roc": 0.816,
+      "p_mean": 0.393,
+      "n_mean": 0.142
+    },
+    "paraprob": {
+      "auc_roc": 0.707,
+      "p_mean": 0.081,
+      "n_mean": 0.055
+    },
+    "truth_ratio": {
+      "auc_roc": 0.947,
+      "p_mean": 0.65,
+      "n_mean": 0.568
+    },
+    "rouge": {
+      "auc_roc": 0.722,
+      "p_mean": 0.548,
+      "n_mean": 0.431
+    },
+    "para_rouge": {
+      "auc_roc": 0.832,
+      "p_mean": 0.339,
+      "n_mean": 0.286
+    },
+    "jailbreak_rouge": {
+      "auc_roc": 0.757,
+      "p_mean": 0.49,
+      "n_mean": 0.397
+    },
+    "mia_loss": {
+      "auc_roc": 0.902,
+      "p_mean": 0.714,
+      "n_mean": 0.448
+    },
+    "mia_zlib": {
+      "auc_roc": 0.867,
+      "p_mean": 0.658,
+      "n_mean": 0.374
+    },
+    "mia_min_k": {
+      "auc_roc": 0.907,
+      "p_mean": 0.716,
+      "n_mean": 0.442
+    },
+    "mia_min_kpp": {
+      "auc_roc": 0.816,
+      "p_mean": 0.685,
+      "n_mean": 0.502
+    },
+    "uds": {
+      "auc_roc": 0.973,
+      "p_mean": 0.486,
+      "n_mean": 0.858
+    }
   },
   "robustness": {
-    "_note": "N/A - not yet measured"
+    "em": {
+      "relearning": 0.37914933139894264,
+      "quantization": 0.9753035706672853,
+      "agg": 0.5460296126434397
+    },
+    "es": {
+      "relearning": 0.5472181056107149,
+      "quantization": 0.9899233593039346,
+      "agg": 0.7048199502030511
+    },
+    "prob": {
+      "relearning": 0.5122226723600207,
+      "quantization": 0.9835349674495442,
+      "agg": 0.6736237154712743
+    },
+    "paraprob": {
+      "relearning": 0.863876873931187,
+      "quantization": 0.9869876031144397,
+      "agg": 0.921337867533473
+    },
+    "truth_ratio": {
+      "relearning": 0.11938483222835289,
+      "quantization": 0.999349071205699,
+      "agg": 0.2132895424680149
+    },
+    "rouge": {
+      "relearning": 0.16459978566907732,
+      "quantization": 0.971186851420958,
+      "agg": 0.28149150970481723
+    },
+    "para_rouge": {
+      "relearning": 0.09353750416000904,
+      "quantization": 0.9719115328094796,
+      "agg": 0.1706513890179261
+    },
+    "jailbreak_rouge": {
+      "relearning": 0.2706766891791579,
+      "quantization": 0.9474397706422809,
+      "agg": 0.4210596749537491
+    },
+    "mia_loss": {
+      "relearning": 0.42406415977514916,
+      "quantization": 0.9704633481639676,
+      "agg": 0.590219586187895
+    },
+    "mia_zlib": {
+      "relearning": 0.38836584515823586,
+      "quantization": 0.9977990530699169,
+      "agg": 0.5591125169002861
+    },
+    "mia_min_k": {
+      "relearning": 0.41020211926397365,
+      "quantization": 0.9633418625951331,
+      "agg": 0.575394568839896
+    },
+    "mia_min_kpp": {
+      "relearning": 0.27407474942434434,
+      "quantization": 0.987072753719237,
+      "agg": 0.4290247048261372
+    },
+    "uds": {
+      "relearning": 0.8303425267918566,
+      "quantization": 0.9681856546979476,
+      "agg": 0.8939817915553515
+    }
   },
   "formulas": {
     "faithfulness": "AUC-ROC over P (30 with knowledge) vs N (30 without) pool",
     "robustness": "HM(Relearning, Quantization)",
-    "relearning": "min(Δ_retain / Δ_unlearn, 1) after 1-epoch relearning",
+    "relearning": "min(\u0394_retain / \u0394_unlearn, 1) after 1-epoch relearning",
     "quantization": "min(m_after / m_before, 1) after 4-bit NF4 quantization",
     "overall": "HM(Faithfulness, Robustness)"
+  },
+  "notes": {
+    "robustness_policy": "R & Q: utility+faithfulness-threshold filters; raw metric values for all Open-Unlearning metrics; UDS only is mapped as 1-UDS",
+    "robustness_source": "runs/meta_eval/robustness_parallel/recomputed_direction_fixed/summary.json"
   }
 }

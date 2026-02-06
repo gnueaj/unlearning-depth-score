@@ -33,13 +33,31 @@ def _compute_best_threshold(p_scores, n_scores):
 
 
 # ---------- Load data ----------
-result_path = Path("runs/faithfulness/results.json")
-summary_path = Path("runs/faithfulness/summary.json")
+result_path = Path("runs/meta_eval/faithfulness/results.json")
+summary_path = Path("runs/meta_eval/faithfulness/summary.json")
+uds_v2_path = Path("runs/meta_eval/faithfulness_uds_v2.json")
 
 with open(result_path) as f:
     results = json.load(f)
 with open(summary_path) as f:
     auc_data = json.load(f)
+
+# Merge new UDS data (from s1_cache_v2)
+if uds_v2_path.exists():
+    with open(uds_v2_path) as f:
+        uds_v2 = json.load(f)
+    # Update UDS values in results
+    for model_id, data in uds_v2.get("results", {}).items():
+        short_id = model_id.split("/")[-1] if "/" in model_id else model_id
+        # Find matching model in results
+        for res_id in results:
+            if short_id in res_id:
+                if "metrics" not in results[res_id]:
+                    results[res_id]["metrics"] = {}
+                results[res_id]["metrics"]["uds"] = data.get("uds")
+                break
+    # Update AUC for UDS
+    auc_data["uds"] = {"auc_roc": uds_v2.get("auc_roc", 0)}
 
 # First 12 metrics (excluding UDS)
 METRICS_12 = [
@@ -59,7 +77,7 @@ METRIC_NAMES = {
 }
 
 # ---------- Output directory ----------
-out_dir = Path("runs/faithfulness/histograms")
+out_dir = Path("runs/meta_eval/faithfulness/histograms")
 out_dir.mkdir(parents=True, exist_ok=True)
 
 # ---------- Create figure with 4 rows ----------
