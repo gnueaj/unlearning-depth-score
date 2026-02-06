@@ -80,9 +80,10 @@ table.styled th.num { text-align: right; }
 /* Method table specific */
 #method_table .ref-row { background: #e3f2fd !important; }
 #method_table .ref-row:hover { background: #bbdefb !important; }
-#method_table th:nth-child(n+2):nth-child(-n+5), #method_table td:nth-child(n+2):nth-child(-n+5) { min-width: 90px; }
-#method_table th:nth-child(7), #method_table td:nth-child(7) { min-width: 90px; }
-#method_table th:nth-child(6), #method_table td:nth-child(6) { text-align: center; }
+#method_table th:nth-child(n+2):nth-child(-n+6), #method_table td:nth-child(n+2):nth-child(-n+6) { min-width: 90px; }
+#method_table th:nth-child(7), #method_table td:nth-child(7) { text-align: center; width: 40px; }
+.expand-cell { padding: 4px !important; }
+.toggle-btn { font-size: 12px; padding: 2px 8px; min-width: 28px; }
 .details-row { display: none; background: #fafafa !important; }
 .details-row td { padding: 12px 16px; }
 .details-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
@@ -313,8 +314,8 @@ button.toggle-btn:hover { text-decoration: underline; }
           <th class="sortable num" data-col="mem" style="white-space:nowrap;">Mem. ↑</th>
           <th class="sortable num" data-col="privacy">Privacy ↑</th>
           <th class="sortable num" data-col="utility_rel">Utility ↑</th>
-          <th>Details</th>
           <th class="sortable num" data-col="uds" style="color:#888;" title="Already included in Privacy axis">UDS ↑</th>
+          <th></th>
         </tr>
       </thead>
       <tbody id="method_body">
@@ -584,8 +585,8 @@ function renderMethodTable() {
       <td class="num">${fmt(m.mem)}</td>
       <td class="num">${fmt(m.privacy)}</td>
       <td class="num">${fmt(m.utility_rel)}</td>
-      <td><button class="toggle-btn" data-target="${rid}">show</button></td>
       <td class="num" style="color:#888;">${fmt(m.uds)}</td>
+      <td class="expand-cell"><button class="toggle-btn" data-target="${rid}">▼</button></td>
     </tr>`;
 
     // Details row - show all content directly
@@ -653,7 +654,7 @@ function renderMethodTable() {
       const target = document.getElementById(btn.dataset.target);
       const isHidden = target.style.display !== 'table-row';
       target.style.display = isHidden ? 'table-row' : 'none';
-      btn.textContent = isHidden ? 'hide' : 'show';
+      btn.textContent = isHidden ? '▲' : '▼';
     });
   });
 }
