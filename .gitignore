@@ -29,3 +29,8 @@ venv/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Archive/Legacy (local only)
+runs/archive/
+scripts/archive_legacy/
+logs/legacy/
