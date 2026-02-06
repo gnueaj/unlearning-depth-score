@@ -12,7 +12,7 @@
     {"key": "mia_zlib", "label": "MIA-ZLib", "category": "mia"},
     {"key": "mia_min_k", "label": "MIA-MinK", "category": "mia"},
     {"key": "mia_min_kpp", "label": "MIA-MinK++", "category": "mia"},
-    {"key": "uds", "label": "UDS", "category": "ours"}
+    {"key": "uds", "label": "UDS (Ours)", "category": "ours"}
   ],
   "faithfulness": {
     "em": {"auc_roc": 0.817, "p_mean": 0.742, "n_mean": 0.620},

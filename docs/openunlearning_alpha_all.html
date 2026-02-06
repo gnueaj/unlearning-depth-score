@@ -72,8 +72,7 @@ table.styled td { font-variant-numeric: tabular-nums; }
 table.styled td.num { text-align: right; }
 
 /* Meta-eval specific */
-#meta_eval .mia-start td { border-top: 2px solid #666; }
-#meta_eval .uds-row { font-weight: 600; background: #fffde7 !important; }
+#meta_eval .uds-row { background: #fffde7 !important; }
 #meta_eval .uds-row:hover { background: #fff9c4 !important; }
 
 /* Method table specific */
@@ -309,7 +308,7 @@ button.toggle-btn:hover { text-decoration: underline; }
           <th class="sortable" data-col="privacy">Privacy ↑</th>
           <th class="sortable" data-col="utility_rel">Utility ↑</th>
           <th>Details</th>
-          <th class="sortable" data-col="uds" style="color:#888;" title="Already included in Privacy axis">(UDS) ↑</th>
+          <th class="sortable" data-col="uds" style="color:#888;" title="Already included in Privacy axis">UDS (Ours) ↑</th>
         </tr>
       </thead>
       <tbody id="method_body">
@@ -426,13 +425,9 @@ function renderMetaEval() {
   }
 
   let html = '';
-  let prevCat = '';
   rows.forEach((r, i) => {
     const classes = [];
-    // MIA separator line
-    if (r.category === 'mia' && prevCat !== 'mia') classes.push('mia-start');
     if (r.key === 'uds') classes.push('uds-row');
-    prevCat = r.category;
 
     const isUds = r.key === 'uds';
     const label = isUds ? `<strong>${r.label}</strong>` : r.label;
