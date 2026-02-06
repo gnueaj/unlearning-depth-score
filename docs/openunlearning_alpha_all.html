@@ -1,312 +1,723 @@
-<!doctype html><html><head><meta charset='utf-8'>
-<title>Open‑Unlearning Results</title>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UDS: Unlearning Depth Score - Benchmark Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-body { font-family: Arial, sans-serif; margin: 20px; }
-.table-sortable th { cursor: pointer; background: #f2f2f2; }
-.table-sortable th, td { border: 1px solid #ddd; padding: 6px 8px; }
-.table-sortable { border-collapse: collapse; width: 100%; }
-tr:nth-child(even) { background: #fafafa; }
-.filters { display:flex; gap:12px; flex-wrap:wrap; margin:10px 0; }
-.filters label { margin-right:8px; }
-.pill { display:inline-block; padding:2px 6px; border-radius:6px; background:#eee; margin-left:6px; font-size:12px; }
-</style></head><body>
-<h2>Open‑Unlearning Results</h2>
-<h3>Meta-eval</h3>
-<p><b>Models:</b> 60 (30 P + 30 N) | <b>Metrics:</b> 13</p>
-<div style='margin:10px 0; padding:8px 12px; background:#f8f8f8; border:1px solid #ddd;'>
-<b>Column definitions</b><br>
-Faithfulness = AUC-ROC(P, N) where P = positive pool (with knowledge), N = negative pool (without knowledge)<br>
-Quantization = min(m<sub>after</sub> / m<sub>before</sub>, 1) where m = metric value after/before 4-bit quantization<br>
-Relearning = min(Δ<sub>retain</sub> / Δ<sub>unlearn</sub>, 1) where Δ = metric change after 1 epoch relearning<br>
-Robustness = HM(Quantization, Relearning)<br>
-Overall = HM(Faithfulness, Robustness)
-</div>
-<table class='table-sortable' id='meta_eval'>
-<thead><tr>
-<th rowspan='2'>Metric</th>
-<th rowspan='2'>Faithfulness↑</th>
-<th colspan='3'>Robustness↑</th>
-<th rowspan='2'>Overall↑</th>
-</tr><tr>
-<th>Agg↑</th><th>Quantization↑</th><th>Relearning↑</th>
-</tr></thead><tbody>
-<tr><td>Extraction Strength</td><td>0.891</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr><td>Exact Memorization</td><td>0.817</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr><td>Truth Ratio</td><td>0.947</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr><td>Para. Probability</td><td>0.707</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr><td>Para. ROUGE</td><td>0.832</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr><td>Probability</td><td>0.816</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr><td>ROUGE</td><td>0.722</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr><td>Jailbreak ROUGE</td><td>0.757</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr style='background:#e3f2fd;'><td>MIA - ZLib</td><td>0.867</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr style='background:#e3f2fd;'><td>MIA - MinK</td><td>0.907</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr style='background:#e3f2fd;'><td>MIA - LOSS</td><td>0.902</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr style='background:#e3f2fd;'><td>MIA - MinK++</td><td>0.816</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-<tr style='background:#e8f5e9;font-weight:bold;'><td>UDS (Ours)</td><td>0.971</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
-</tbody></table>
-<h3>Method‑level Results</h3>
-<p><b>Total models:</b> 150 (excluding full/retain) | <b>Methods:</b> 8</p>
-<p>Utility is normalized to the Full model of the same epoch and clipped to [0,1].</p>
-<div style='margin:10px 0; padding:8px 12px; background:#f8f8f8; border:1px solid #ddd;'>
-<b>Column definitions</b><br>
-Mem = HM(1−ES, 1−EM, 1−ParaProb, 1−TruthRatio)<br>
-Privacy = HM(sLOSS, sZLib, sMin‑k, sMin‑k++)<br>
-Utility = HM(MU, Fluency); MU = HM(retain/ra/wf × {Prob, ROUGE, TruthRatio})<br>
-Utility<sub>rel</sub> = Utility / Utility<sub>full(epoch)</sub><br>
-Agg (no UDS) = HM(Mem, Privacy, Utility<sub>rel</sub>)<br>
-Agg (with UDS) = HM(Mem, Privacy, Utility<sub>rel</sub>, UDS)
-</div>
-<div style='margin:10px 0; padding:8px 12px; background:#f8f8f8; border:1px solid #ddd;'>
-<b>Hyperparameters (fixed + swept)</b><br>
-Epoch ∈ {5,10} (all).<br>
-GradDiff/IdkNLL/IdkDPO/NPO/AltPO: lr ∈ {1e‑5,2e‑5,5e‑5}, α ∈ {1,2,5}<br>
-UNDIAL: lr ∈ {1e‑4,1e‑5,3e‑4}, α ∈ {1,2,5}, β fixed = 10<br>
-SimNPO: lr ∈ {1e‑5,2e‑5,5e‑5}, β ∈ {3.5,4.5}, δ=1 fixed, γ ∈ {0.125,0.25}<br>
-RMU: lr ∈ {1e‑5,2e‑5,5e‑5}, layer ∈ {5,10,15}, s fixed = 10
-</div>
-<div class='filters'>
-<label>View: <select id='viewMode'><option value='all'>All</option><option value='best_method'>Best per Method</option><option value='best_overall'>Best Overall</option></select></label>
-<label>Metric: <select id='bestMetric'><option value='agg'>Agg (no UDS)</option><option value='agg_uds'>Agg (with UDS)</option><option value='uds'>UDS</option><option value='utility_rel'>Utility</option><option value='mem'>Mem</option><option value='privacy'>Privacy</option></select></label>
-<span class='pill'>Best‑per‑method uses selected metric</span>
-<span>Epoch:</span>
-<label><input type='checkbox' class='epochFilter' value='ep5' checked> ep5</label>
-<label><input type='checkbox' class='epochFilter' value='ep10' checked> ep10</label>
-<span>Methods:</span>
-<label><input type='checkbox' class='methodFilter' value='altpo' checked> altpo</label>
-<label><input type='checkbox' class='methodFilter' value='graddiff' checked> graddiff</label>
-<label><input type='checkbox' class='methodFilter' value='idkdpo' checked> idkdpo</label>
-<label><input type='checkbox' class='methodFilter' value='idknll' checked> idknll</label>
-<label><input type='checkbox' class='methodFilter' value='npo' checked> npo</label>
-<label><input type='checkbox' class='methodFilter' value='rmu' checked> rmu</label>
-<label><input type='checkbox' class='methodFilter' value='simnpo' checked> simnpo</label>
-<label><input type='checkbox' class='methodFilter' value='undial' checked> undial</label>
-</div>
-<table class='table-sortable' id='metrics'>
-<thead><tr>
-<th>Model</th><th>Agg (no UDS)</th><th>Agg (with UDS)</th><th>Mem</th><th>Privacy</th><th>Utility<br>(rel)</th><th>UDS</th>
-</tr></thead><tbody>
-<tr data-method='full' data-epoch='ep10' data-agg='5.9999999998717994e-12' data-agg_uds='2.666666666647674e-12' data-uds='0.0' data-utility_rel='0.9999999999985951' data-mem='0.10326957371765141' data-privacy='1e-12'><td>full</td><td>0.000</td><td>0.000</td><td>0.103</td><td>0.000</td><td>1.000</td><td>0.000</td></tr>
-<tr data-method='retain' data-epoch='ep10' data-agg='0.8069569394996283' data-agg_uds='0.8478760882500159' data-uds='1.0' data-utility_rel='1.0' data-mem='0.582183839279926' data-privacy='1.000000000001'><td>retain</td><td>0.807</td><td>0.848</td><td>0.582</td><td>1.000</td><td>1.000</td><td>1.000</td></tr>
-<tr data-method='graddiff' data-epoch='ep5' data-agg='0.4780367667188775' data-agg_uds='0.3977327924234719' data-uds='0.2644568393495558' data-utility_rel='0.8684999732154101' data-mem='0.44822568059870105' data-privacy='0.3456334574022172'><td>graddiff_lr1e5_a1_ep5</td><td>0.478</td><td>0.398</td><td>0.448</td><td>0.346</td><td>0.868</td><td>0.264</td></tr>
-<tr data-method='graddiff' data-epoch='ep5' data-agg='0.29394672784744147' data-agg_uds='0.2407424796515979' data-uds='0.1560224589007095' data-utility_rel='0.9653296678626176' data-mem='0.3584382760421602' data-privacy='0.1567365010709636'><td>graddiff_lr1e5_a2_ep5</td><td>0.294</td><td>0.241</td><td>0.358</td><td>0.157</td><td>0.965</td><td>0.156</td></tr>
-<tr data-method='graddiff' data-epoch='ep5' data-agg='0.04544971893530587' data-agg_uds='0.0478287996589223' data-uds='0.056738840321841365' data-utility_rel='0.9972014314300818' data-mem='0.20406786414052805' data-privacy='0.016637863245796126'><td>graddiff_lr1e5_a5_ep5</td><td>0.045</td><td>0.048</td><td>0.204</td><td>0.017</td><td>0.997</td><td>0.057</td></tr>
-<tr data-method='graddiff' data-epoch='ep5' data-agg='0.6364860021438326' data-agg_uds='0.6721533106689918' data-uds='0.8079868545011637' data-utility_rel='0.7239479869261949' data-mem='0.6172645931910988' data-privacy='0.5841074157155315'><td>graddiff_lr2e5_a1_ep5</td><td>0.636</td><td>0.672</td><td>0.617</td><td>0.584</td><td>0.724</td><td>0.808</td></tr>
-<tr data-method='graddiff' data-epoch='ep5' data-agg='0.3423571298891501' data-agg_uds='0.405074742276627' data-uds='0.8993279220963569' data-utility_rel='0.2742953595884461' data-mem='0.9827465095971739' data-privacy='0.24393112451210347'><td>graddiff_lr2e5_a2_ep5</td><td>0.342</td><td>0.405</td><td>0.983</td><td>0.244</td><td>0.274</td><td>0.899</td></tr>
-<tr data-method='graddiff' data-epoch='ep5' data-agg='0.7069986545493283' data-agg_uds='0.6465323343636522' data-uds='0.5145190427623196' data-utility_rel='0.9012823053378096' data-mem='0.5014571701496935' data-privacy='0.8775231937313737'><td>graddiff_lr2e5_a5_ep5</td><td>0.707</td><td>0.647</td><td>0.501</td><td>0.878</td><td>0.901</td><td>0.515</td></tr>
-<tr data-method='graddiff' data-epoch='ep5' data-agg='0.36193147699240125' data-agg_uds='0.42943157656850506' data-uds='0.9748708280697859' data-utility_rel='0.3140286277932153' data-mem='0.9860511622455983' data-privacy='0.24448128669392347'><td>graddiff_lr5e5_a1_ep5</td><td>0.362</td><td>0.429</td><td>0.986</td><td>0.244</td><td>0.314</td><td>0.975</td></tr>
-<tr data-method='graddiff' data-epoch='ep5' data-agg='0.35272681475216167' data-agg_uds='0.4195650948660657' data-uds='0.9722747508292218' data-utility_rel='0.27596793614731285' data-mem='0.9841095510798691' data-privacy='0.25870481710018817'><td>graddiff_lr5e5_a2_ep5</td><td>0.353</td><td>0.420</td><td>0.984</td><td>0.259</td><td>0.276</td><td>0.972</td></tr>
-<tr data-method='graddiff' data-epoch='ep5' data-agg='0.46587358341777274' data-agg_uds='0.5348105067861714' data-uds='0.9617516464822309' data-utility_rel='0.7414860928126674' data-mem='0.9825190992329988' data-privacy='0.245514434551172'><td>graddiff_lr5e5_a5_ep5</td><td>0.466</td><td>0.535</td><td>0.983</td><td>0.246</td><td>0.741</td><td>0.962</td></tr>
-<tr data-method='graddiff' data-epoch='ep10' data-agg='0.590658384586113' data-agg_uds='0.49563504535815917' data-uds='0.3342942794544519' data-utility_rel='0.8429909551863236' data-mem='0.48395525007559964' data-privacy='0.5474895470305083'><td>graddiff_lr1e5_a1_ep10</td><td>0.591</td><td>0.496</td><td>0.484</td><td>0.547</td><td>0.843</td><td>0.334</td></tr>
-<tr data-method='graddiff' data-epoch='ep10' data-agg='0.4579734930135455' data-agg_uds='0.3758859191668395' data-uds='0.2444432476166316' data-utility_rel='0.9426104098888329' data-mem='0.41227158208526454' data-privacy='0.32635710095152326'><td>graddiff_lr1e5_a2_ep10</td><td>0.458</td><td>0.376</td><td>0.412</td><td>0.326</td><td>0.943</td><td>0.244</td></tr>
-<tr data-method='graddiff' data-epoch='ep10' data-agg='0.08953687060766423' data-agg_uds='0.08673664168806822' data-uds='0.07929672408115611' data-utility_rel='1.0' data-mem='0.24649824248733118' data-privacy='0.035150711941935794'><td>graddiff_lr1e5_a5_ep10</td><td>0.090</td><td>0.087</td><td>0.246</td><td>0.035</td><td>1.000</td><td>0.079</td></tr>
-<tr data-method='graddiff' data-epoch='ep10' data-agg='0.3591297683686097' data-agg_uds='0.42230690443689983' data-uds='0.8942479197575691' data-utility_rel='0.30761129335228904' data-mem='0.9870848787568632' data-privacy='0.2445235076439984'><td>graddiff_lr2e5_a1_ep10</td><td>0.359</td><td>0.422</td><td>0.987</td><td>0.245</td><td>0.308</td><td>0.894</td></tr>
-<tr data-method='graddiff' data-epoch='ep10' data-agg='0.30993923609626595' data-agg_uds='0.37216376298391163' data-uds='0.9357687832537497' data-utility_rel='0.21848946681493916' data-mem='0.9876945810290392' data-privacy='0.24450007961157855'><td>graddiff_lr2e5_a2_ep10</td><td>0.310</td><td>0.372</td><td>0.988</td><td>0.245</td><td>0.218</td><td>0.936</td></tr>
-<tr data-method='graddiff' data-epoch='ep10' data-agg='0.3426562920457372' data-agg_uds='0.4058832160692338' data-uds='0.90915486245272' data-utility_rel='0.27424084639200047' data-mem='0.9813731902231536' data-privacy='0.24451559396045242'><td>graddiff_lr2e5_a5_ep10</td><td>0.343</td><td>0.406</td><td>0.981</td><td>0.245</td><td>0.274</td><td>0.909</td></tr>
-<tr data-method='graddiff' data-epoch='ep10' data-agg='0.3577175279783711' data-agg_uds='0.4248968918681205' data-uds='0.9731951234845305' data-utility_rel='0.2970527319557563' data-mem='0.9879007769910987' data-privacy='0.24951018764279867'><td>graddiff_lr5e5_a1_ep10</td><td>0.358</td><td>0.425</td><td>0.988</td><td>0.250</td><td>0.297</td><td>0.973</td></tr>
-<tr data-method='graddiff' data-epoch='ep10' data-agg='0.32502890299449655' data-agg_uds='0.38997349593104497' data-uds='0.9735591741462031' data-utility_rel='0.21795625910843994' data-mem='0.9884046313784385' data-privacy='0.27547143542424396'><td>graddiff_lr5e5_a2_ep10</td><td>0.325</td><td>0.390</td><td>0.988</td><td>0.275</td><td>0.218</td><td>0.974</td></tr>
-<tr data-method='graddiff' data-epoch='ep10' data-agg='0.5136233783169071' data-agg_uds='0.5821176331228821' data-uds='0.9703012579838831' data-utility_rel='0.7743849913257065' data-mem='0.9818300770149605' data-privacy='0.28320572163708346'><td>graddiff_lr5e5_a5_ep10</td><td>0.514</td><td>0.582</td><td>0.982</td><td>0.283</td><td>0.774</td><td>0.970</td></tr>
-<tr data-method='idknll' data-epoch='ep5' data-agg='8.999999914839848e-12' data-agg_uds='1.1999999885696998e-11' data-uds='0.04761074114180199' data-utility_rel='0.8837006951077695' data-mem='0.191970019006909' data-privacy='1.999999971670349e-12'><td>idknll_lr1e5_a1_ep5</td><td>0.000</td><td>0.000</td><td>0.192</td><td>0.000</td><td>0.884</td><td>0.048</td></tr>
-<tr data-method='idknll' data-epoch='ep5' data-agg='1.4999999962756193e-11' data-agg_uds='1.999999994804278e-11' data-uds='0.043500851944262654' data-utility_rel='0.9658766910830857' data-mem='0.17984353078860102' data-privacy='3.999999987750291e-12'><td>idknll_lr1e5_a2_ep5</td><td>0.000</td><td>0.000</td><td>0.180</td><td>0.000</td><td>0.966</td><td>0.044</td></tr>
-<tr data-method='idknll' data-epoch='ep5' data-agg='1.4999999958334043e-11' data-agg_uds='1.9999999942058404e-11' data-uds='0.04189384102211495' data-utility_rel='0.9942237896232596' data-mem='0.1605774935288985' data-privacy='3.99999998629218e-12'><td>idknll_lr1e5_a5_ep5</td><td>0.000</td><td>0.000</td><td>0.161</td><td>0.000</td><td>0.994</td><td>0.042</td></tr>
-<tr data-method='idknll' data-epoch='ep5' data-agg='0.013738703850579065' data-agg_uds='0.017257749577640764' data-uds='0.07452275410486485' data-utility_rel='0.8699813307908735' data-mem='0.21294394489801802' data-privacy='0.004705534945118799'><td>idknll_lr2e5_a1_ep5</td><td>0.014</td><td>0.017</td><td>0.213</td><td>0.005</td><td>0.870</td><td>0.075</td></tr>
-<tr data-method='idknll' data-epoch='ep5' data-agg='0.01365059783826536' data-agg_uds='0.017225600823488656' data-uds='0.08037347651950452' data-utility_rel='0.9496515991327479' data-mem='0.21103706878077882' data-privacy='0.00467335421101954'><td>idknll_lr2e5_a2_ep5</td><td>0.014</td><td>0.017</td><td>0.211</td><td>0.005</td><td>0.950</td><td>0.080</td></tr>
-<tr data-method='idknll' data-epoch='ep5' data-agg='0.011234956202602826' data-agg_uds='0.014265034878726657' data-uds='0.07472631815308517' data-utility_rel='0.9785004221352995' data-mem='0.20206600937058988' data-privacy='0.0038306413969937236'><td>idknll_lr2e5_a5_ep5</td><td>0.011</td><td>0.014</td><td>0.202</td><td>0.004</td><td>0.979</td><td>0.075</td></tr>
-<tr data-method='idknll' data-epoch='ep5' data-agg='0.12424542071637061' data-agg_uds='0.14238470601015113' data-uds='0.25334762487469176' data-utility_rel='0.8622057511536921' data-mem='0.36498647940720674' data-privacy='0.04939219049876255'><td>idknll_lr5e5_a1_ep5</td><td>0.124</td><td>0.142</td><td>0.365</td><td>0.049</td><td>0.862</td><td>0.253</td></tr>
-<tr data-method='idknll' data-epoch='ep5' data-agg='0.1295506575287503' data-agg_uds='0.14736768735530692' data-uds='0.25087633589433866' data-utility_rel='0.9039231546953539' data-mem='0.3694182900231548' data-privacy='0.051696371478920186'><td>idknll_lr5e5_a2_ep5</td><td>0.130</td><td>0.147</td><td>0.369</td><td>0.052</td><td>0.904</td><td>0.251</td></tr>
-<tr data-method='idknll' data-epoch='ep5' data-agg='0.10222742070579019' data-agg_uds='0.11829154986753389' data-uds='0.22379258998203663' data-utility_rel='0.9190929886900003' data-mem='0.36126716339260867' data-privacy='0.03923065558467664'><td>idknll_lr5e5_a5_ep5</td><td>0.102</td><td>0.118</td><td>0.361</td><td>0.039</td><td>0.919</td><td>0.224</td></tr>
-<tr data-method='idknll' data-epoch='ep10' data-agg='1.4999999933986383e-11' data-agg_uds='1.9999999909792234e-11' data-uds='0.045670281389988805' data-utility_rel='0.9239769567163212' data-mem='0.19185143255286904' data-privacy='3.999999978152827e-12'><td>idknll_lr1e5_a1_ep10</td><td>0.000</td><td>0.000</td><td>0.192</td><td>0.000</td><td>0.924</td><td>0.046</td></tr>
-<tr data-method='idknll' data-epoch='ep10' data-agg='1.4999999971276725e-11' data-agg_uds='1.999999995942462e-11' data-uds='0.04390430518231385' data-utility_rel='0.9879344178657932' data-mem='0.1824963727972877' data-privacy='3.999999990587869e-12'><td>idknll_lr1e5_a2_ep10</td><td>0.000</td><td>0.000</td><td>0.182</td><td>0.000</td><td>0.988</td><td>0.044</td></tr>
-<tr data-method='idknll' data-epoch='ep10' data-agg='1.499999997603308e-11' data-agg_uds='1.9999999965493077e-11' data-uds='0.03919979748465859' data-utility_rel='0.9958165601602621' data-mem='0.16172453170266465' data-privacy='3.999999992190717e-12'><td>idknll_lr1e5_a5_ep10</td><td>0.000</td><td>0.000</td><td>0.162</td><td>0.000</td><td>0.996</td><td>0.039</td></tr>
-<tr data-method='idknll' data-epoch='ep10' data-agg='0.016710536548766208' data-agg_uds='0.020752476461849453' data-uds='0.07563935370419002' data-utility_rel='0.9267221200035896' data-mem='0.2148789452019998' data-privacy='0.005753918906672914'><td>idknll_lr2e5_a1_ep10</td><td>0.017</td><td>0.021</td><td>0.215</td><td>0.006</td><td>0.927</td><td>0.076</td></tr>
-<tr data-method='idknll' data-epoch='ep10' data-agg='0.01566333805600102' data-agg_uds='0.01955354156268479' data-uds='0.07670789677652154' data-utility_rel='0.9922145954212721' data-mem='0.21209923946806997' data-privacy='0.005381915975311911'><td>idknll_lr2e5_a2_ep10</td><td>0.016</td><td>0.020</td><td>0.212</td><td>0.005</td><td>0.992</td><td>0.077</td></tr>
-<tr data-method='idknll' data-epoch='ep10' data-agg='0.012313673959384066' data-agg_uds='0.015506079149072462' data-uds='0.06977515306019152' data-utility_rel='1.0' data-mem='0.20412120182404453' data-privacy='0.004206407707187657'><td>idknll_lr2e5_a5_ep10</td><td>0.012</td><td>0.016</td><td>0.204</td><td>0.004</td><td>1.000</td><td>0.070</td></tr>
-<tr data-method='idknll' data-epoch='ep10' data-agg='0.12279856100238723' data-agg_uds='0.13799253715138177' data-uds='0.21945123000569272' data-utility_rel='0.9275864608097035' data-mem='0.36191070585502294' data-privacy='0.048569448637449164'><td>idknll_lr5e5_a1_ep10</td><td>0.123</td><td>0.138</td><td>0.362</td><td>0.049</td><td>0.928</td><td>0.219</td></tr>
-<tr data-method='idknll' data-epoch='ep10' data-agg='0.11183287920546792' data-agg_uds='0.12746344247995525' data-uds='0.21950019550856434' data-utility_rel='0.9682252688752944' data-mem='0.3563770803053328' data-privacy='0.04350302311754651'><td>idknll_lr5e5_a2_ep10</td><td>0.112</td><td>0.127</td><td>0.356</td><td>0.044</td><td>0.968</td><td>0.220</td></tr>
-<tr data-method='idknll' data-epoch='ep10' data-agg='0.09187490977878407' data-agg_uds='0.10539080450143269' data-uds='0.18864784799485948' data-utility_rel='0.9833847232040474' data-mem='0.3439142641118515' data-privacy='0.034808644538834387'><td>idknll_lr5e5_a5_ep10</td><td>0.092</td><td>0.105</td><td>0.344</td><td>0.035</td><td>0.983</td><td>0.189</td></tr>
-<tr data-method='idkdpo' data-epoch='ep5' data-agg='0.11055357210853638' data-agg_uds='0.12485840514197043' data-uds='0.20407646175859961' data-utility_rel='0.9749137729540662' data-mem='0.3475194252711333' data-privacy='0.04304241615478596'><td>idkdpo_lr1e5_b01_a1_ep5</td><td>0.111</td><td>0.125</td><td>0.348</td><td>0.043</td><td>0.975</td><td>0.204</td></tr>
-<tr data-method='idkdpo' data-epoch='ep5' data-agg='0.06388837282368104' data-agg_uds='0.07419739815998898' data-uds='0.14381567153745' data-utility_rel='0.9877418158437985' data-mem='0.3012163433107142' data-privacy='0.023460620949876262'><td>idkdpo_lr1e5_b01_a2_ep5</td><td>0.064</td><td>0.074</td><td>0.301</td><td>0.023</td><td>0.988</td><td>0.144</td></tr>
-<tr data-method='idkdpo' data-epoch='ep5' data-agg='0.02665830154466687' data-agg_uds='0.03212100082161807' data-uds='0.08337627467478738' data-utility_rel='0.9914500834690009' data-mem='0.2384070764590333' data-privacy='0.009316871043255829'><td>idkdpo_lr1e5_b01_a5_ep5</td><td>0.027</td><td>0.032</td><td>0.238</td><td>0.009</td><td>0.991</td><td>0.083</td></tr>
-<tr data-method='idkdpo' data-epoch='ep5' data-agg='0.46523674379290303' data-agg_uds='0.47268117322127406' data-uds='0.4965159949567476' data-utility_rel='0.9865730074592043' data-mem='0.461786965703223' data-privacy='0.30588341180384243'><td>idkdpo_lr2e5_b01_a1_ep5</td><td>0.465</td><td>0.473</td><td>0.462</td><td>0.306</td><td>0.987</td><td>0.497</td></tr>
-<tr data-method='idkdpo' data-epoch='ep5' data-agg='0.3341021740464364' data-agg_uds='0.34592042975178294' data-uds='0.38698734676703617' data-utility_rel='0.986383517008382' data-mem='0.42019193757986323' data-privacy='0.17903116065937644'><td>idkdpo_lr2e5_b01_a2_ep5</td><td>0.334</td><td>0.346</td><td>0.420</td><td>0.179</td><td>0.986</td><td>0.387</td></tr>
-<tr data-method='idkdpo' data-epoch='ep5' data-agg='0.167248569654582' data-agg_uds='0.18226637960464864' data-uds='0.24946811578328554' data-utility_rel='0.9860511543012985' data-mem='0.35630493520557727' data-privacy='0.07083837538847261'><td>idkdpo_lr2e5_b01_a5_ep5</td><td>0.167</td><td>0.182</td><td>0.356</td><td>0.071</td><td>0.986</td><td>0.249</td></tr>
-<tr data-method='idkdpo' data-epoch='ep5' data-agg='0.7284885011033088' data-agg_uds='0.7170487851187242' data-uds='0.6847883543564852' data-utility_rel='0.9531136888289935' data-mem='0.5412537814417264' data-privacy='0.8187588377443423'><td>idkdpo_lr5e5_b01_a1_ep5</td><td>0.728</td><td>0.717</td><td>0.541</td><td>0.819</td><td>0.953</td><td>0.685</td></tr>
-<tr data-method='idkdpo' data-epoch='ep5' data-agg='0.6529308774165635' data-agg_uds='0.6441057547544461' data-uds='0.6190059900771032' data-utility_rel='0.9483726577754171' data-mem='0.5131454893120773' data-privacy='0.6283521858660709'><td>idkdpo_lr5e5_b01_a2_ep5</td><td>0.653</td><td>0.644</td><td>0.513</td><td>0.628</td><td>0.948</td><td>0.619</td></tr>
-<tr data-method='idkdpo' data-epoch='ep5' data-agg='0.517966696592793' data-agg_uds='0.5164178013398504' data-uds='0.5118262020340383' data-utility_rel='0.9506040874161239' data-mem='0.4768342526595649' data-privacy='0.378393614072799'><td>idkdpo_lr5e5_b01_a5_ep5</td><td>0.518</td><td>0.516</td><td>0.477</td><td>0.378</td><td>0.951</td><td>0.512</td></tr>
-<tr data-method='idkdpo' data-epoch='ep10' data-agg='0.16556325091693824' data-agg_uds='0.17980640525953165' data-uds='0.24235459560358727' data-utility_rel='0.9905817544253488' data-mem='0.37402237702370456' data-privacy='0.06926733891945915'><td>idkdpo_lr1e5_b01_a1_ep10</td><td>0.166</td><td>0.180</td><td>0.374</td><td>0.069</td><td>0.991</td><td>0.242</td></tr>
-<tr data-method='idkdpo' data-epoch='ep10' data-agg='0.09701667565787855' data-agg_uds='0.10872746891482608' data-uds='0.17045322137953958' data-utility_rel='0.9932942796578725' data-mem='0.3302831868958156' data-privacy='0.03719122466628478'><td>idkdpo_lr1e5_b01_a2_ep10</td><td>0.097</td><td>0.109</td><td>0.330</td><td>0.037</td><td>0.993</td><td>0.170</td></tr>
-<tr data-method='idkdpo' data-epoch='ep10' data-agg='0.036672079794911' data-agg_uds='0.04354964705336747' data-uds='0.0995709515555706' data-utility_rel='0.9928756074736501' data-mem='0.25781780984694136' data-privacy='0.01300048263201672'><td>idkdpo_lr1e5_b01_a5_ep10</td><td>0.037</td><td>0.044</td><td>0.258</td><td>0.013</td><td>0.993</td><td>0.100</td></tr>
-<tr data-method='idkdpo' data-epoch='ep10' data-agg='0.5083204634200412' data-agg_uds='0.5110806812821798' data-uds='0.519544171573713' data-utility_rel='0.9950897189938951' data-mem='0.4757410483026122' data-privacy='0.3577983430979158'><td>idkdpo_lr2e5_b01_a1_ep10</td><td>0.508</td><td>0.511</td><td>0.476</td><td>0.358</td><td>0.995</td><td>0.520</td></tr>
-<tr data-method='idkdpo' data-epoch='ep10' data-agg='0.3860305982805652' data-agg_uds='0.3917798826876166' data-uds='0.4101033048155681' data-utility_rel='0.9903102717800744' data-mem='0.4364883883819875' data-privacy='0.22368319869655076'><td>idkdpo_lr2e5_b01_a2_ep10</td><td>0.386</td><td>0.392</td><td>0.436</td><td>0.224</td><td>0.990</td><td>0.410</td></tr>
-<tr data-method='idkdpo' data-epoch='ep10' data-agg='0.20154465117302278' data-agg_uds='0.21544132125120932' data-uds='0.27162830984922987' data-utility_rel='0.9894267519837608' data-mem='0.3722282445078097' data-privacy='0.08938284550114767'><td>idkdpo_lr2e5_b01_a5_ep10</td><td>0.202</td><td>0.215</td><td>0.372</td><td>0.089</td><td>0.989</td><td>0.272</td></tr>
-<tr data-method='idkdpo' data-epoch='ep10' data-agg='0.7503139591990599' data-agg_uds='0.733248188706359' data-uds='0.6864112479394013' data-utility_rel='0.9753442023023194' data-mem='0.5498565212188581' data-privacy='0.8662576751908572'><td>idkdpo_lr5e5_b01_a1_ep10</td><td>0.750</td><td>0.733</td><td>0.550</td><td>0.866</td><td>0.975</td><td>0.686</td></tr>
-<tr data-method='idkdpo' data-epoch='ep10' data-agg='0.6786890011172672' data-agg_uds='0.6620496830351817' data-uds='0.6166916672436105' data-utility_rel='0.9681624225211972' data-mem='0.5242680788715152' data-privacy='0.6756843035997482'><td>idkdpo_lr5e5_b01_a2_ep10</td><td>0.679</td><td>0.662</td><td>0.524</td><td>0.676</td><td>0.968</td><td>0.617</td></tr>
-<tr data-method='idkdpo' data-epoch='ep10' data-agg='0.5405088023984692' data-agg_uds='0.5325185435915343' data-uds='0.5099050010863649' data-utility_rel='0.9624956724764705' data-mem='0.4845453839724071' data-privacy='0.40856849671859097'><td>idkdpo_lr5e5_b01_a5_ep10</td><td>0.541</td><td>0.533</td><td>0.485</td><td>0.409</td><td>0.962</td><td>0.510</td></tr>
-<tr data-method='npo' data-epoch='ep5' data-agg='0.4337198664646055' data-agg_uds='0.4496222022911079' data-uds='0.505190635486999' data-utility_rel='0.6794860792708007' data-mem='0.5345425238326118' data-privacy='0.2797634773076525'><td>npo_lr1e5_b01_a1_ep5</td><td>0.434</td><td>0.450</td><td>0.535</td><td>0.280</td><td>0.679</td><td>0.505</td></tr>
-<tr data-method='npo' data-epoch='ep5' data-agg='0.3782569191732716' data-agg_uds='0.40274582477005183' data-uds='0.4998237925499827' data-utility_rel='0.8183821035444316' data-mem='0.5005956110047978' data-privacy='0.2122433052562319'><td>npo_lr1e5_b01_a2_ep5</td><td>0.378</td><td>0.403</td><td>0.501</td><td>0.212</td><td>0.818</td><td>0.500</td></tr>
-<tr data-method='npo' data-epoch='ep5' data-agg='0.3391200875061806' data-agg_uds='0.3583600494732565' data-uds='0.43186568681431087' data-utility_rel='0.952440455398508' data-mem='0.4477840740474641' data-privacy='0.17975039405852503'><td>npo_lr1e5_b01_a5_ep5</td><td>0.339</td><td>0.358</td><td>0.448</td><td>0.180</td><td>0.952</td><td>0.432</td></tr>
-<tr data-method='npo' data-epoch='ep5' data-agg='0.7482837185361418' data-agg_uds='0.7110913964033935' data-uds='0.618818982704776' data-utility_rel='0.9513483336790184' data-mem='0.5432299132479242' data-privacy='0.8951000014023541'><td>npo_lr2e5_b01_a1_ep5</td><td>0.748</td><td>0.711</td><td>0.543</td><td>0.895</td><td>0.951</td><td>0.619</td></tr>
-<tr data-method='npo' data-epoch='ep5' data-agg='0.749254936683748' data-agg_uds='0.7228344644608269' data-uds='0.6536832842346667' data-utility_rel='0.9978015286853379' data-mem='0.5407199496645038' data-privacy='0.8677631892481951'><td>npo_lr2e5_b01_a2_ep5</td><td>0.749</td><td>0.723</td><td>0.541</td><td>0.868</td><td>0.998</td><td>0.654</td></tr>
-<tr data-method='npo' data-epoch='ep5' data-agg='0.6866309180611859' data-agg_uds='0.6895782727325048' data-uds='0.6985741350767264' data-utility_rel='1.0' data-mem='0.5285985670795602' data-privacy='0.6768809166886596'><td>npo_lr2e5_b01_a5_ep5</td><td>0.687</td><td>0.690</td><td>0.529</td><td>0.677</td><td>1.000</td><td>0.699</td></tr>
-<tr data-method='npo' data-epoch='ep5' data-agg='0.6654980908816859' data-agg_uds='0.6881506188060785' data-uds='0.7664131847227835' data-utility_rel='0.9598258327151222' data-mem='0.6079280084810357' data-privacy='0.5491143107756519'><td>npo_lr5e5_b01_a1_ep5</td><td>0.665</td><td>0.688</td><td>0.608</td><td>0.549</td><td>0.960</td><td>0.766</td></tr>
-<tr data-method='npo' data-epoch='ep5' data-agg='0.706885248806789' data-agg_uds='0.7209865441907277' data-uds='0.7668808987358552' data-utility_rel='0.9506115733219251' data-mem='0.6011780687211616' data-privacy='0.6541868486282598'><td>npo_lr5e5_b01_a2_ep5</td><td>0.707</td><td>0.721</td><td>0.601</td><td>0.654</td><td>0.951</td><td>0.767</td></tr>
-<tr data-method='npo' data-epoch='ep5' data-agg='0.74942935522927' data-agg_uds='0.7643507820141351' data-uds='0.8129066334598957' data-utility_rel='0.9705142449963803' data-mem='0.5950807744802199' data-privacy='0.7738620131848812'><td>npo_lr5e5_b01_a5_ep5</td><td>0.749</td><td>0.764</td><td>0.595</td><td>0.774</td><td>0.971</td><td>0.813</td></tr>
-<tr data-method='npo' data-epoch='ep10' data-agg='0.5881169583273433' data-agg_uds='0.5630493773598849' data-uds='0.4992146118778673' data-utility_rel='0.8271900781339301' data-mem='0.5509904335946783' data-privacy='0.48141714211218384'><td>npo_lr1e5_b01_a1_ep10</td><td>0.588</td><td>0.563</td><td>0.551</td><td>0.481</td><td>0.827</td><td>0.499</td></tr>
-<tr data-method='npo' data-epoch='ep10' data-agg='0.45260921247515407' data-agg_uds='0.4656486783542423' data-uds='0.5097014831689174' data-utility_rel='0.9053802703418996' data-mem='0.5061919030962347' data-privacy='0.281833766592159'><td>npo_lr1e5_b01_a2_ep10</td><td>0.453</td><td>0.466</td><td>0.506</td><td>0.282</td><td>0.905</td><td>0.510</td></tr>
-<tr data-method='npo' data-epoch='ep10' data-agg='0.40188481668349435' data-agg_uds='0.41709878196147787' data-uds='0.4705375397422601' data-utility_rel='0.982007901009757' data-mem='0.4710113943743642' data-privacy='0.23129875564568325'><td>npo_lr1e5_b01_a5_ep10</td><td>0.402</td><td>0.417</td><td>0.471</td><td>0.231</td><td>0.982</td><td>0.471</td></tr>
-<tr data-method='npo' data-epoch='ep10' data-agg='0.7598375146897123' data-agg_uds='0.7188972965255663' data-uds='0.6188637393050974' data-utility_rel='0.9828297365035492' data-mem='0.5470229467757939' data-privacy='0.906893402259214'><td>npo_lr2e5_b01_a1_ep10</td><td>0.760</td><td>0.719</td><td>0.547</td><td>0.907</td><td>0.983</td><td>0.619</td></tr>
-<tr data-method='npo' data-epoch='ep10' data-agg='0.7585632982869334' data-agg_uds='0.7295614406588575' data-uds='0.654492557137053' data-utility_rel='1.0' data-mem='0.5484387301285021' data-privacy='0.8837928108199163'><td>npo_lr2e5_b01_a2_ep10</td><td>0.759</td><td>0.730</td><td>0.548</td><td>0.884</td><td>1.000</td><td>0.654</td></tr>
-<tr data-method='npo' data-epoch='ep10' data-agg='0.6994946275108118' data-agg_uds='0.7006945654736294' data-uds='0.7043192081326681' data-utility_rel='1.0' data-mem='0.5387007813945653' data-privacy='0.6980839054470431'><td>npo_lr2e5_b01_a5_ep10</td><td>0.699</td><td>0.701</td><td>0.539</td><td>0.698</td><td>1.000</td><td>0.704</td></tr>
-<tr data-method='npo' data-epoch='ep10' data-agg='0.6847497302764941' data-agg_uds='0.7019543592983806' data-uds='0.7591784027859579' data-utility_rel='0.9828271575509715' data-mem='0.6133619526767912' data-privacy='0.5769238120385083'><td>npo_lr5e5_b01_a1_ep10</td><td>0.685</td><td>0.702</td><td>0.613</td><td>0.577</td><td>0.983</td><td>0.759</td></tr>
-<tr data-method='npo' data-epoch='ep10' data-agg='0.7183084414524874' data-agg_uds='0.7331051905795384' data-uds='0.7813940200722683' data-utility_rel='0.9791760651191485' data-mem='0.6106274440437484' data-privacy='0.658955886756237'><td>npo_lr5e5_b01_a2_ep10</td><td>0.718</td><td>0.733</td><td>0.611</td><td>0.659</td><td>0.979</td><td>0.781</td></tr>
-<tr data-method='npo' data-epoch='ep10' data-agg='0.7553750770844898' data-agg_uds='0.7700937807698861' data-uds='0.8179051414490547' data-utility_rel='0.9894507743941104' data-mem='0.6054245329358151' data-privacy='0.7638592616057668'><td>npo_lr5e5_b01_a5_ep10</td><td>0.755</td><td>0.770</td><td>0.605</td><td>0.764</td><td>0.989</td><td>0.818</td></tr>
-<tr data-method='altpo' data-epoch='ep5' data-agg='0.08078144375187164' data-agg_uds='0.10026454188539938' data-uds='0.3626840535227267' data-utility_rel='0.8841392112554408' data-mem='0.38541136245635294' data-privacy='0.02992975387158508'><td>altpo_lr1e5_b01_a1_ep5</td><td>0.081</td><td>0.100</td><td>0.385</td><td>0.030</td><td>0.884</td><td>0.363</td></tr>
-<tr data-method='altpo' data-epoch='ep5' data-agg='0.04911468211232791' data-agg_uds='0.062245066550166' data-uds='0.31440711699597895' data-utility_rel='0.9228065985631035' data-mem='0.34162779233424295' data-privacy='0.01752212039929454'><td>altpo_lr1e5_b01_a2_ep5</td><td>0.049</td><td>0.062</td><td>0.342</td><td>0.018</td><td>0.923</td><td>0.314</td></tr>
-<tr data-method='altpo' data-epoch='ep5' data-agg='0.02247986016013225' data-agg_uds='0.02902884261550596' data-uds='0.23035100973943654' data-utility_rel='0.9574567642328445' data-mem='0.27969297925275843' data-privacy='0.007761986150082223'><td>altpo_lr1e5_b01_a5_ep5</td><td>0.022</td><td>0.029</td><td>0.280</td><td>0.008</td><td>0.957</td><td>0.230</td></tr>
-<tr data-method='altpo' data-epoch='ep5' data-agg='0.3509239924100865' data-agg_uds='0.3695591973747993' data-uds='0.43959020474013055' data-utility_rel='0.9289019755221901' data-mem='0.43100778140661467' data-privacy='0.19409274146440564'><td>altpo_lr2e5_b01_a1_ep5</td><td>0.351</td><td>0.370</td><td>0.431</td><td>0.194</td><td>0.929</td><td>0.440</td></tr>
-<tr data-method='altpo' data-epoch='ep5' data-agg='0.2800819760492676' data-agg_uds='0.30490293634038756' data-uds='0.4153204586382222' data-utility_rel='0.9612210641509492' data-mem='0.4107445458819923' data-privacy='0.13819401962999828'><td>altpo_lr2e5_b01_a2_ep5</td><td>0.280</td><td>0.305</td><td>0.411</td><td>0.138</td><td>0.961</td><td>0.415</td></tr>
-<tr data-method='altpo' data-epoch='ep5' data-agg='0.2030980800986798' data-agg_uds='0.2304526889349752' data-uds='0.38670456740931697' data-utility_rel='0.9821933638794885' data-mem='0.38215375642230637' data-privacy='0.0897963418313729'><td>altpo_lr2e5_b01_a5_ep5</td><td>0.203</td><td>0.230</td><td>0.382</td><td>0.090</td><td>0.982</td><td>0.387</td></tr>
-<tr data-method='altpo' data-epoch='ep5' data-agg='0.7874651586239012' data-agg_uds='0.7944119941611196' data-uds='0.8160078929787096' data-utility_rel='0.9261370074946698' data-mem='0.5888596837806762' data-privacy='0.9692354172025954'><td>altpo_lr5e5_b01_a1_ep5</td><td>0.787</td><td>0.794</td><td>0.589</td><td>0.969</td><td>0.926</td><td>0.816</td></tr>
-<tr data-method='altpo' data-epoch='ep5' data-agg='0.7596001176634021' data-agg_uds='0.7682353349854764' data-uds='0.7953605732774727' data-utility_rel='0.9358100975212876' data-mem='0.5710495159745137' data-privacy='0.8851970541969844'><td>altpo_lr5e5_b01_a2_ep5</td><td>0.760</td><td>0.768</td><td>0.571</td><td>0.885</td><td>0.936</td><td>0.795</td></tr>
-<tr data-method='altpo' data-epoch='ep5' data-agg='0.698442427343562' data-agg_uds='0.7090789601068171' data-uds='0.7430254122330942' data-utility_rel='0.9409509247974892' data-mem='0.5486530216798265' data-privacy='0.7092845192570053'><td>altpo_lr5e5_b01_a5_ep5</td><td>0.698</td><td>0.709</td><td>0.549</td><td>0.709</td><td>0.941</td><td>0.743</td></tr>
-<tr data-method='altpo' data-epoch='ep10' data-agg='0.17874639162404823' data-agg_uds='0.2057007272116297' data-uds='0.375633339565469' data-utility_rel='0.9308573176338867' data-mem='0.39739885907197564' data-privacy='0.07579826822473064'><td>altpo_lr1e5_b01_a1_ep10</td><td>0.179</td><td>0.206</td><td>0.397</td><td>0.076</td><td>0.931</td><td>0.376</td></tr>
-<tr data-method='altpo' data-epoch='ep10' data-agg='0.12501090110507793' data-agg_uds='0.14774031987085498' data-uds='0.3250315183152701' data-utility_rel='0.9537589835442317' data-mem='0.35574054982925457' data-privacy='0.04965641034504139'><td>altpo_lr1e5_b01_a2_ep10</td><td>0.125</td><td>0.148</td><td>0.356</td><td>0.050</td><td>0.954</td><td>0.325</td></tr>
-<tr data-method='altpo' data-epoch='ep10' data-agg='0.07731790873423874' data-agg_uds='0.09418361444307174' data-uds='0.2725248642571713' data-utility_rel='0.9787782907949835' data-mem='0.3133743057062172' data-privacy='0.028911687254430586'><td>altpo_lr1e5_b01_a5_ep10</td><td>0.077</td><td>0.094</td><td>0.313</td><td>0.029</td><td>0.979</td><td>0.273</td></tr>
-<tr data-method='altpo' data-epoch='ep10' data-agg='0.5528126125263034' data-agg_uds='0.5655851406235343' data-uds='0.6077077173446725' data-utility_rel='0.973596148311384' data-mem='0.4995113510643724' data-privacy='0.4170633521691303'><td>altpo_lr2e5_b01_a1_ep10</td><td>0.553</td><td>0.566</td><td>0.500</td><td>0.417</td><td>0.974</td><td>0.608</td></tr>
-<tr data-method='altpo' data-epoch='ep10' data-agg='0.48925952468992057' data-agg_uds='0.5101325443420301' data-uds='0.5850059387687461' data-utility_rel='0.9804019946308102' data-mem='0.4804650470795049' data-privacy='0.32998852016821134'><td>altpo_lr2e5_b01_a2_ep10</td><td>0.489</td><td>0.510</td><td>0.480</td><td>0.330</td><td>0.980</td><td>0.585</td></tr>
-<tr data-method='altpo' data-epoch='ep10' data-agg='0.3830812262637821' data-agg_uds='0.40823856103224704' data-uds='0.5084000004045504' data-utility_rel='0.9875765318876697' data-mem='0.4474909427148235' data-privacy='0.2181512542518885'><td>altpo_lr2e5_b01_a5_ep10</td><td>0.383</td><td>0.408</td><td>0.447</td><td>0.218</td><td>0.988</td><td>0.508</td></tr>
-<tr data-method='altpo' data-epoch='ep10' data-agg='0.7652992716694949' data-agg_uds='0.7895227691736213' data-uds='0.8723593624707031' data-utility_rel='0.9640248105443234' data-mem='0.6253727076893867' data-privacy='0.7790158354369715'><td>altpo_lr5e5_b01_a1_ep10</td><td>0.765</td><td>0.790</td><td>0.625</td><td>0.779</td><td>0.964</td><td>0.872</td></tr>
-<tr data-method='altpo' data-epoch='ep10' data-agg='0.7893538057457943' data-agg_uds='0.7995668078762895' data-uds='0.8318555315930689' data-utility_rel='0.9553772867888586' data-mem='0.6035879288628643' data-privacy='0.9114849997544363'><td>altpo_lr5e5_b01_a2_ep10</td><td>0.789</td><td>0.800</td><td>0.604</td><td>0.911</td><td>0.955</td><td>0.832</td></tr>
-<tr data-method='altpo' data-epoch='ep10' data-agg='0.7571342586367752' data-agg_uds='0.7629332340192414' data-uds='0.7808756745909828' data-utility_rel='0.9514754591053477' data-mem='0.5706977447104269' data-privacy='0.862761502977267'><td>altpo_lr5e5_b01_a5_ep10</td><td>0.757</td><td>0.763</td><td>0.571</td><td>0.863</td><td>0.951</td><td>0.781</td></tr>
-<tr data-method='undial' data-epoch='ep5' data-agg='1.4999999989281843e-11' data-agg_uds='1.9999999984755483e-11' data-uds='0.10486143515640307' data-utility_rel='1.0' data-mem='0.19763211452050394' data-privacy='3.999999996578779e-12'><td>undial_lr1e5_b10_a1_ep5</td><td>0.000</td><td>0.000</td><td>0.198</td><td>0.000</td><td>1.000</td><td>0.105</td></tr>
-<tr data-method='undial' data-epoch='ep5' data-agg='1.4999999986507854e-11' data-agg_uds='1.9999999980863204e-11' data-uds='0.08716385835633367' data-utility_rel='1.0' data-mem='0.1750278691869642' data-privacy='3.9999999956704526e-12'><td>undial_lr1e5_b10_a2_ep5</td><td>0.000</td><td>0.000</td><td>0.175</td><td>0.000</td><td>1.000</td><td>0.087</td></tr>
-<tr data-method='undial' data-epoch='ep5' data-agg='1.4999999970958138e-11' data-agg_uds='1.9999999959513964e-11' data-uds='0.0567037562779966' data-utility_rel='1.0' data-mem='0.13430759642090276' data-privacy='3.9999999905305195e-12'><td>undial_lr1e5_b10_a5_ep5</td><td>0.000</td><td>0.000</td><td>0.134</td><td>0.000</td><td>1.000</td><td>0.057</td></tr>
-<tr data-method='undial' data-epoch='ep5' data-agg='0.5689161346282994' data-agg_uds='0.574953159960824' data-uds='0.5938582520825829' data-utility_rel='0.8609738993518697' data-mem='0.6227056474340732' data-privacy='0.3990718589249547'><td>undial_lr1e4_b10_a1_ep5</td><td>0.569</td><td>0.575</td><td>0.623</td><td>0.399</td><td>0.861</td><td>0.594</td></tr>
-<tr data-method='undial' data-epoch='ep5' data-agg='0.47094261163957934' data-agg_uds='0.5008977445479059' data-uds='0.6190191488417576' data-utility_rel='0.8660531832747166' data-mem='0.5975660683011744' data-privacy='0.282319650492955'><td>undial_lr1e4_b10_a2_ep5</td><td>0.471</td><td>0.501</td><td>0.598</td><td>0.282</td><td>0.866</td><td>0.619</td></tr>
-<tr data-method='undial' data-epoch='ep5' data-agg='0.4141297229318345' data-agg_uds='0.4489006820764607' data-uds='0.6000419854289462' data-utility_rel='0.8660109873856433' data-mem='0.5632977128327242' data-privacy='0.23179660693292245'><td>undial_lr1e4_b10_a5_ep5</td><td>0.414</td><td>0.449</td><td>0.563</td><td>0.232</td><td>0.866</td><td>0.600</td></tr>
-<tr data-method='undial' data-epoch='ep5' data-agg='0.4162067380206122' data-agg_uds='0.4732361774528067' data-uds='0.8035466528891915' data-utility_rel='0.28576962887760343' data-mem='0.6102092127386276' data-privacy='0.48312633784517034'><td>undial_lr3e4_b10_a1_ep5</td><td>0.416</td><td>0.473</td><td>0.610</td><td>0.483</td><td>0.286</td><td>0.804</td></tr>
-<tr data-method='undial' data-epoch='ep5' data-agg='8.722594205678702e-11' data-agg_uds='1.1630125607150686e-10' data-uds='0.8033612702942853' data-utility_rel='2.8075314022469067e-11' data-mem='0.5943260836965699' data-privacy='0.39920363802065884'><td>undial_lr3e4_b10_a2_ep5</td><td>0.000</td><td>0.000</td><td>0.594</td><td>0.399</td><td>0.000</td><td>0.803</td></tr>
-<tr data-method='undial' data-epoch='ep5' data-agg='0.11950808647707177' data-agg_uds='0.1523733168832896' data-uds='0.8707679491441838' data-utility_rel='0.04659836671341231' data-mem='0.5944728279503715' data-privacy='0.5100059274258546'><td>undial_lr3e4_b10_a5_ep5</td><td>0.120</td><td>0.152</td><td>0.594</td><td>0.510</td><td>0.047</td><td>0.871</td></tr>
-<tr data-method='undial' data-epoch='ep10' data-agg='1.499999999200127e-11' data-agg_uds='1.9999999988491202e-11' data-uds='0.11850792083987459' data-utility_rel='1.0' data-mem='0.221637736189389' data-privacy='3.999999997471554e-12'><td>undial_lr1e5_b10_a1_ep10</td><td>0.000</td><td>0.000</td><td>0.222</td><td>0.000</td><td>1.000</td><td>0.119</td></tr>
-<tr data-method='undial' data-epoch='ep10' data-agg='1.499999998971775e-11' data-agg_uds='1.999999998527286e-11' data-uds='0.09828214892883604' data-utility_rel='1.0' data-mem='0.19520733332373108' data-privacy='3.999999996725653e-12'><td>undial_lr1e5_b10_a2_ep10</td><td>0.000</td><td>0.000</td><td>0.195</td><td>0.000</td><td>1.000</td><td>0.098</td></tr>
-<tr data-method='undial' data-epoch='ep10' data-agg='1.4999999975018884e-11' data-agg_uds='1.9999999965246086e-11' data-uds='0.06916769233401047' data-utility_rel='1.0' data-mem='0.1431649052421215' data-privacy='3.999999991872585e-12'><td>undial_lr1e5_b10_a5_ep10</td><td>0.000</td><td>0.000</td><td>0.143</td><td>0.000</td><td>1.000</td><td>0.069</td></tr>
-<tr data-method='undial' data-epoch='ep10' data-agg='0.6262237787584505' data-agg_uds='0.6215261968219091' data-uds='0.6078470079045497' data-utility_rel='0.8949217197171447' data-mem='0.6398023226927312' data-privacy='0.4738840561002852'><td>undial_lr1e4_b10_a1_ep10</td><td>0.626</td><td>0.622</td><td>0.640</td><td>0.474</td><td>0.895</td><td>0.608</td></tr>
-<tr data-method='undial' data-epoch='ep10' data-agg='0.5104737207173182' data-agg_uds='0.5340302580009343' data-uds='0.6198405319121149' data-utility_rel='0.8850367706773753' data-mem='0.6174934278047145' data-privacy='0.3197393880090572'><td>undial_lr1e4_b10_a2_ep10</td><td>0.510</td><td>0.534</td><td>0.617</td><td>0.320</td><td>0.885</td><td>0.620</td></tr>
-<tr data-method='undial' data-epoch='ep10' data-agg='0.3175240393564324' data-agg_uds='0.3574745867883099' data-uds='0.5742166152271917' data-utility_rel='0.8869640999982334' data-mem='0.574786288821351' data-privacy='0.15195524311064382'><td>undial_lr1e4_b10_a5_ep10</td><td>0.318</td><td>0.357</td><td>0.575</td><td>0.152</td><td>0.887</td><td>0.574</td></tr>
-<tr data-method='undial' data-epoch='ep10' data-agg='0.4502488158496629' data-agg_uds='0.5030177353762537' data-uds='0.7757811321267405' data-utility_rel='0.28563197365683535' data-mem='0.6305418541160258' data-privacy='0.6345031177980139'><td>undial_lr3e4_b10_a1_ep10</td><td>0.450</td><td>0.503</td><td>0.631</td><td>0.635</td><td>0.286</td><td>0.776</td></tr>
-<tr data-method='undial' data-epoch='ep10' data-agg='0.42874379429535026' data-agg_uds='0.4802031045933826' data-uds='0.7503998440009979' data-utility_rel='0.3092093308883686' data-mem='0.6098130130343752' data-privacy='0.47096859300176863'><td>undial_lr3e4_b10_a2_ep10</td><td>0.429</td><td>0.480</td><td>0.610</td><td>0.471</td><td>0.309</td><td>0.750</td></tr>
-<tr data-method='undial' data-epoch='ep10' data-agg='0.22061186589616394' data-agg_uds='0.2690187371236656' data-uds='0.7872097068982445' data-utility_rel='0.10658542265892235' data-mem='0.5870696857725463' data-privacy='0.39792728829392965'><td>undial_lr3e4_b10_a5_ep10</td><td>0.221</td><td>0.269</td><td>0.587</td><td>0.398</td><td>0.107</td><td>0.787</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.05001137790842366' data-agg_uds='0.052705934317631126' data-uds='0.06286764724495089' data-utility_rel='0.9960313658391978' data-mem='0.22220152072741564' data-privacy='0.018354704167954875'><td>simnpo_lr1e5_b35_a1_d1_g0125_ep5</td><td>0.050</td><td>0.053</td><td>0.222</td><td>0.018</td><td>0.996</td><td>0.063</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.15734652663101206' data-agg_uds='0.15734652663101206' data-uds='None' data-utility_rel='0.9886568841086547' data-mem='0.3085563091977715' data-privacy='0.06750451012548751'><td>simnpo_lr1e5_b35_a1_d1_g025_ep5</td><td>0.157</td><td>0.157</td><td>0.309</td><td>0.068</td><td>0.989</td><td>NA</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.05337236884695192' data-agg_uds='0.05600392352897595' data-uds='0.06572587769120852' data-utility_rel='0.9956134344232164' data-mem='0.22615110106785674' data-privacy='0.01969177195086257'><td>simnpo_lr1e5_b45_a1_d1_g0125_ep5</td><td>0.053</td><td>0.056</td><td>0.226</td><td>0.020</td><td>0.996</td><td>0.066</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.15914515980837696' data-agg_uds='0.15914515980837696' data-uds='None' data-utility_rel='0.9864762351799362' data-mem='0.31053750298244537' data-privacy='0.06841450893416759'><td>simnpo_lr1e5_b45_a1_d1_g025_ep5</td><td>0.159</td><td>0.159</td><td>0.311</td><td>0.068</td><td>0.986</td><td>NA</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.4883943362884322' data-agg_uds='0.44500361777266706' data-uds='0.3513563204861288' data-utility_rel='0.9938866026896248' data-mem='0.4035947362882634' data-privacy='0.37612460800575054'><td>simnpo_lr2e5_b35_a1_d1_g0125_ep5</td><td>0.488</td><td>0.445</td><td>0.404</td><td>0.376</td><td>0.994</td><td>0.351</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.6209911728964121' data-agg_uds='0.6209911728964121' data-uds='None' data-utility_rel='0.9811421721528476' data-mem='0.4448784446854629' data-privacy='0.6394020328940009'><td>simnpo_lr2e5_b35_a1_d1_g025_ep5</td><td>0.621</td><td>0.621</td><td>0.445</td><td>0.639</td><td>0.981</td><td>NA</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.464022091782107' data-agg_uds='0.42361216182847067' data-uds='0.3358646210304718' data-utility_rel='0.988528412721428' data-mem='0.3984955989526877' data-privacy='0.33965467965964147'><td>simnpo_lr2e5_b45_a1_d1_g0125_ep5</td><td>0.464</td><td>0.424</td><td>0.398</td><td>0.340</td><td>0.989</td><td>0.336</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.5984803132171409' data-agg_uds='0.5984803132171409' data-uds='None' data-utility_rel='0.9863612384763828' data-mem='0.43914372875825064' data-privacy='0.5808178811978982'><td>simnpo_lr2e5_b45_a1_d1_g025_ep5</td><td>0.598</td><td>0.598</td><td>0.439</td><td>0.581</td><td>0.986</td><td>NA</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.7290884675619981' data-agg_uds='0.7286846583717209' data-uds='0.7274759101681311' data-utility_rel='0.9663481235565672' data-mem='0.5313148864009299' data-privacy='0.8348777358286911'><td>simnpo_lr5e5_b35_a1_d1_g0125_ep5</td><td>0.729</td><td>0.729</td><td>0.531</td><td>0.835</td><td>0.966</td><td>0.727</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.6908542602777367' data-agg_uds='0.7180390945279914' data-uds='0.8141483093862255' data-utility_rel='0.9725430799748649' data-mem='0.5629257639762837' data-privacy='0.6502861225651854'><td>simnpo_lr5e5_b35_a1_d1_g025_ep5</td><td>0.691</td><td>0.718</td><td>0.563</td><td>0.650</td><td>0.973</td><td>0.814</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.7099866413498723' data-agg_uds='0.7077757760731996' data-uds='0.7012250299891826' data-utility_rel='0.9723933973080077' data-mem='0.5224916460498623' data-privacy='0.7793411915496523'><td>simnpo_lr5e5_b45_a1_d1_g0125_ep5</td><td>0.710</td><td>0.708</td><td>0.522</td><td>0.779</td><td>0.972</td><td>0.701</td></tr>
-<tr data-method='simnpo' data-epoch='ep5' data-agg='0.7301246046840891' data-agg_uds='0.7445063657973469' data-uds='0.7912645972344249' data-utility_rel='0.9728301118531246' data-mem='0.5523241085233659' data-privacy='0.7871364042799168'><td>simnpo_lr5e5_b45_a1_d1_g025_ep5</td><td>0.730</td><td>0.745</td><td>0.552</td><td>0.787</td><td>0.973</td><td>0.791</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.08007021544642516' data-agg_uds='0.08307332098505607' data-uds='0.09360560897091276' data-utility_rel='1.0' data-mem='0.2607730288930997' data-privacy='0.030644425014810288'><td>simnpo_lr1e5_b35_a1_d1_g0125_ep10</td><td>0.080</td><td>0.083</td><td>0.261</td><td>0.031</td><td>1.000</td><td>0.094</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.21761345086457023' data-agg_uds='0.20438403969713229' data-uds='0.1728582394993498' data-utility_rel='0.9889770198419776' data-mem='0.3427241206681094' data-privacy='0.10145107526270081'><td>simnpo_lr1e5_b35_a1_d1_g025_ep10</td><td>0.218</td><td>0.204</td><td>0.343</td><td>0.101</td><td>0.989</td><td>0.173</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.08457868578694483' data-agg_uds='0.08802616153655657' data-uds='0.1002897668089647' data-utility_rel='1.0' data-mem='0.2663346803319641' data-privacy='0.032557112238341554'><td>simnpo_lr1e5_b45_a1_d1_g0125_ep10</td><td>0.085</td><td>0.088</td><td>0.266</td><td>0.033</td><td>1.000</td><td>0.100</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.2144174762982719' data-agg_uds='0.20276407686658088' data-uds='0.17433862801201988' data-utility_rel='0.9887800891156979' data-mem='0.3428556294293618' data-privacy='0.09937028976326333'><td>simnpo_lr1e5_b45_a1_d1_g025_ep10</td><td>0.214</td><td>0.203</td><td>0.343</td><td>0.099</td><td>0.989</td><td>0.174</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.5862808551327028' data-agg_uds='0.5376226596426291' data-uds='0.4304479758365346' data-utility_rel='0.985114683123668' data-mem='0.44243495900706037' data-privacy='0.5429848493551834'><td>simnpo_lr2e5_b35_a1_d1_g0125_ep10</td><td>0.586</td><td>0.538</td><td>0.442</td><td>0.543</td><td>0.985</td><td>0.430</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.6506369077898851' data-agg_uds='0.6078082572546727' data-uds='0.5075739727818759' data-utility_rel='0.9837122011772126' data-mem='0.4628118877919504' data-privacy='0.6975426722509498'><td>simnpo_lr2e5_b35_a1_d1_g025_ep10</td><td>0.651</td><td>0.608</td><td>0.463</td><td>0.698</td><td>0.984</td><td>0.508</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.5500654689654342' data-agg_uds='0.5048809040597443' data-uds='0.40506095216328497' data-utility_rel='0.9932157746048451' data-mem='0.4320800461886288' data-privacy='0.4688936624292972'><td>simnpo_lr2e5_b45_a1_d1_g0125_ep10</td><td>0.550</td><td>0.505</td><td>0.432</td><td>0.469</td><td>0.993</td><td>0.405</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.6240560622668166' data-agg_uds='0.5821415858341509' data-uds='0.4845148467338846' data-utility_rel='0.9910380173336728' data-mem='0.4548673389855946' data-privacy='0.6250882158395757'><td>simnpo_lr2e5_b45_a1_d1_g025_ep10</td><td>0.624</td><td>0.582</td><td>0.455</td><td>0.625</td><td>0.991</td><td>0.485</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.7445243407553672' data-agg_uds='0.7431161479993085' data-uds='0.7389233508538894' data-utility_rel='0.9884283952207324' data-mem='0.5391893654651302' data-privacy='0.859789607065489'><td>simnpo_lr5e5_b35_a1_d1_g0125_ep10</td><td>0.745</td><td>0.743</td><td>0.539</td><td>0.860</td><td>0.988</td><td>0.739</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.6835772695626134' data-agg_uds='0.7142850967915916' data-uds='0.8255405006487233' data-utility_rel='0.9952414433914921' data-mem='0.5714691865410995' data-privacy='0.6119875012665438'><td>simnpo_lr5e5_b35_a1_d1_g025_ep10</td><td>0.684</td><td>0.714</td><td>0.571</td><td>0.612</td><td>0.995</td><td>0.826</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.7249190933473512' data-agg_uds='0.7222544699929709' data-uds='0.7143768519474218' data-utility_rel='0.9845263789577291' data-mem='0.5298771035867954' data-privacy='0.8094243025560904'><td>simnpo_lr5e5_b45_a1_d1_g0125_ep10</td><td>0.725</td><td>0.722</td><td>0.530</td><td>0.809</td><td>0.985</td><td>0.714</td></tr>
-<tr data-method='simnpo' data-epoch='ep10' data-agg='0.7268281957438739' data-agg_uds='0.7445782824355793' data-uds='0.8034415335691534' data-utility_rel='0.9886390258010557' data-mem='0.5581188163315632' data-privacy='0.7551169577313833'><td>simnpo_lr5e5_b45_a1_d1_g025_ep10</td><td>0.727</td><td>0.745</td><td>0.558</td><td>0.755</td><td>0.989</td><td>0.803</td></tr>
-<tr data-method='rmu' data-epoch='ep5' data-agg='1.4999999668296067e-11' data-agg_uds='1.9999999555608472e-11' data-uds='0.04717831315349259' data-utility_rel='0.9931384126504998' data-mem='0.12261305130470462' data-privacy='3.999999889661088e-12'><td>rmu_lr1e5_l10_s10_ep5</td><td>0.000</td><td>0.000</td><td>0.123</td><td>0.000</td><td>0.993</td><td>0.047</td></tr>
-<tr data-method='rmu' data-epoch='ep5' data-agg='0.004022925352890583' data-agg_uds='0.004168429993224581' data-uds='0.004675783304949939' data-utility_rel='0.9920119823786069' data-mem='0.11561574759383657' data-privacy='0.0013585690255224644'><td>rmu_lr1e5_l15_s10_ep5</td><td>0.004</td><td>0.004</td><td>0.116</td><td>0.001</td><td>0.992</td><td>0.005</td></tr>
-<tr data-method='rmu' data-epoch='ep5' data-agg='0.004568632823623749' data-agg_uds='0.005908603887134455' data-uds='0.04919496229415405' data-utility_rel='0.984600762473546' data-mem='0.1699696039331591' data-privacy='0.0015390474568003811'><td>rmu_lr1e5_l5_s10_ep5</td><td>0.005</td><td>0.006</td><td>0.170</td><td>0.002</td><td>0.985</td><td>0.049</td></tr>
-<tr data-method='rmu' data-epoch='ep5' data-agg='0.33282578400385926' data-agg_uds='0.35599846454791306' data-uds='0.44998854572155406' data-utility_rel='0.7237976347928085' data-mem='0.5035838224491597' data-privacy='0.17710536429367152'><td>rmu_lr2e5_l10_s10_ep5</td><td>0.333</td><td>0.356</td><td>0.504</td><td>0.177</td><td>0.724</td><td>0.450</td></tr>
-<tr data-method='rmu' data-epoch='ep5' data-agg='0.010454245469367705' data-agg_uds='0.010952274616836075' data-uds='0.012778543295645744' data-utility_rel='0.9863921666867312' data-mem='0.18155852592929114' data-privacy='0.003565785783343282'><td>rmu_lr2e5_l15_s10_ep5</td><td>0.010</td><td>0.011</td><td>0.182</td><td>0.004</td><td>0.986</td><td>0.013</td></tr>
-<tr data-method='rmu' data-epoch='ep5' data-agg='0.6590850057708619' data-agg_uds='0.6409710511968271' data-uds='0.5921481612776118' data-utility_rel='0.6079645448267831' data-mem='0.6370185465983624' data-privacy='0.7478765127157347'><td>rmu_lr2e5_l5_s10_ep5</td><td>0.659</td><td>0.641</td><td>0.637</td><td>0.748</td><td>0.608</td><td>0.592</td></tr>
-<tr data-method='rmu' data-epoch='ep5' data-agg='0.28955151295165915' data-agg_uds='0.34770442783178135' data-uds='0.8747582025854346' data-utility_rel='0.13960252461299585' data-mem='0.7789527414516759' data-privacy='0.5224983756578038'><td>rmu_lr5e5_l10_s10_ep5</td><td>0.290</td><td>0.348</td><td>0.779</td><td>0.522</td><td>0.140</td><td>0.875</td></tr>
-<tr data-method='rmu' data-epoch='ep5' data-agg='0.03587341279863179' data-agg_uds='0.035375323080817804' data-uds='0.03396072492142771' data-utility_rel='0.9728317464631957' data-mem='0.2786783261869894' data-privacy='0.012656449587086739'><td>rmu_lr5e5_l15_s10_ep5</td><td>0.036</td><td>0.035</td><td>0.279</td><td>0.013</td><td>0.973</td><td>0.034</td></tr>
-<tr data-method='rmu' data-epoch='ep5' data-agg='0.27283922574765823' data-agg_uds='0.33276125557758' data-uds='0.975472912817129' data-utility_rel='0.12945891228065548' data-mem='0.7896766048295301' data-privacy='0.4988310634486885'><td>rmu_lr5e5_l5_s10_ep5</td><td>0.273</td><td>0.333</td><td>0.790</td><td>0.499</td><td>0.129</td><td>0.975</td></tr>
-<tr data-method='rmu' data-epoch='ep10' data-agg='1.499999994335041e-11' data-agg_uds='1.9999999922643596e-11' data-uds='0.054836168110929874' data-utility_rel='0.9893143761013027' data-mem='0.13965365658420367' data-privacy='3.999999981321088e-12'><td>rmu_lr1e5_l10_s10_ep10</td><td>0.000</td><td>0.000</td><td>0.140</td><td>0.000</td><td>0.989</td><td>0.055</td></tr>
-<tr data-method='rmu' data-epoch='ep10' data-agg='0.005283790271926988' data-agg_uds='0.005310607620074134' data-uds='0.005392718222225851' data-utility_rel='0.9924594755505703' data-mem='0.12193462583462979' data-privacy='0.0017903002502384034'><td>rmu_lr1e5_l15_s10_ep10</td><td>0.005</td><td>0.005</td><td>0.122</td><td>0.002</td><td>0.992</td><td>0.005</td></tr>
-<tr data-method='rmu' data-epoch='ep10' data-agg='0.010170270279301393' data-agg_uds='0.012782748300174826' data-uds='0.05572787501888217' data-utility_rel='0.9800712151037457' data-mem='0.22119767944064536' data-privacy='0.0034549924345891217'><td>rmu_lr1e5_l5_s10_ep10</td><td>0.010</td><td>0.013</td><td>0.221</td><td>0.003</td><td>0.980</td><td>0.056</td></tr>
-<tr data-method='rmu' data-epoch='ep10' data-agg='0.4788950664057496' data-agg_uds='0.5071954910086984' data-uds='0.6164904699283393' data-utility_rel='0.5233606528131117' data-mem='0.582175118716423' data-privacy='0.3793632676268843'><td>rmu_lr2e5_l10_s10_ep10</td><td>0.479</td><td>0.507</td><td>0.582</td><td>0.379</td><td>0.523</td><td>0.616</td></tr>
-<tr data-method='rmu' data-epoch='ep10' data-agg='0.011857122902512805' data-agg_uds='0.012312691976111031' data-uds='0.013916808107563046' data-utility_rel='0.9867553788714598' data-mem='0.18521771601461487' data-privacy='0.004055150039067841'><td>rmu_lr2e5_l15_s10_ep10</td><td>0.012</td><td>0.012</td><td>0.185</td><td>0.004</td><td>0.987</td><td>0.014</td></tr>
-<tr data-method='rmu' data-epoch='ep10' data-agg='0.6593517509873795' data-agg_uds='0.6612838002779778' data-uds='0.6671484867296097' data-utility_rel='0.5417181754917529' data-mem='0.6656435238248215' data-privacy='0.8321963148110698'><td>rmu_lr2e5_l5_s10_ep10</td><td>0.659</td><td>0.661</td><td>0.666</td><td>0.832</td><td>0.542</td><td>0.667</td></tr>
-<tr data-method='rmu' data-epoch='ep10' data-agg='0.27997498845911994' data-agg_uds='0.3376454433133327' data-uds='0.8837796967902392' data-utility_rel='0.13755379945286783' data-mem='0.7944723532651631' data-privacy='0.45731783194352693'><td>rmu_lr5e5_l10_s10_ep10</td><td>0.280</td><td>0.338</td><td>0.794</td><td>0.457</td><td>0.138</td><td>0.884</td></tr>
-<tr data-method='rmu' data-epoch='ep10' data-agg='0.04879451321441104' data-agg_uds='0.04479616233015833' data-uds='0.035956942668240365' data-utility_rel='0.9664262383017163' data-mem='0.29078867147275916' data-privacy='0.017541194951286924'><td>rmu_lr5e5_l15_s10_ep10</td><td>0.049</td><td>0.045</td><td>0.291</td><td>0.018</td><td>0.966</td><td>0.036</td></tr>
-<tr data-method='rmu' data-epoch='ep10' data-agg='0.26042935626771163' data-agg_uds='0.31890082797199987' data-uds='0.9769004861231773' data-utility_rel='0.12221441433846213' data-mem='0.7937665928685413' data-privacy='0.481398380409694'><td>rmu_lr5e5_l5_s10_ep10</td><td>0.260</td><td>0.319</td><td>0.794</td><td>0.481</td><td>0.122</td><td>0.977</td></tr>
-</tbody></table>
-<script>
-
-function getSelectedValues(selector){
-  return Array.from(document.querySelectorAll(selector+':checked')).map(x=>x.value);
+* { box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0; padding: 20px 24px;
+  font-size: 15px; color: #1a1a1a;
+  background: #f8f9fa;
+  line-height: 1.5;
 }
-function updateTable(){
-  const view = document.getElementById('viewMode').value;
-  const metric = document.getElementById('bestMetric').value;
-  const epochs = getSelectedValues('.epochFilter');
-  const methods = getSelectedValues('.methodFilter');
-  const rows = Array.from(document.querySelectorAll('#metrics tbody tr'));
+h1 { font-size: 1.8rem; font-weight: 700; margin: 0 0 8px 0; color: #111; }
+h2 { font-size: 1.3rem; font-weight: 600; margin: 24px 0 12px 0; color: #222; border-bottom: 2px solid #e0e0e0; padding-bottom: 6px; }
+h3 { font-size: 1.1rem; font-weight: 600; margin: 16px 0 8px 0; color: #333; }
 
-  // filter rows
-  let filtered = rows.filter(r => {
-    const m = r.dataset.method;
-    const ep = r.dataset.epoch;
-    if (r.children[0].innerText === 'full' || r.children[0].innerText === 'retain') return true; // keep references
-    return methods.includes(m) && epochs.includes(ep);
+.container { max-width: 1400px; margin: 0 auto; }
+.card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.card.uds-intro {
+  border-left: 4px solid #ffc107;
+  background: #fffef5;
+}
+.formula-box {
+  background: #f6f8fa;
+  border-left: 3px solid #0366d6;
+  padding: 12px 16px;
+  font-size: 14px;
+  margin: 12px 0;
+  border-radius: 0 6px 6px 0;
+}
+.formula-box code { background: #e8ecf0; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+.formula-box .sub-formula { margin-left: 20px; color: #555; font-size: 13px; }
+.higher-better { color: #2e7d32; font-weight: 600; }
+.uds-highlight { background: #fff8e1; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; margin: 12px 0; }
+table.styled {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+  background: #fff;
+}
+table.styled th, table.styled td {
+  border: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  text-align: left;
+}
+table.styled th {
+  background: #f6f8fa;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+table.styled th:hover { background: #eef1f4; }
+table.styled th.sort-asc::after { content: " ▲"; font-size: 10px; }
+table.styled th.sort-desc::after { content: " ▼"; font-size: 10px; }
+table.styled tbody tr:hover { background: #f8f9fa; }
+table.styled td { font-variant-numeric: tabular-nums; }
+table.styled td.num { text-align: right; }
+
+/* Meta-eval specific */
+#meta_eval .mia-start td { border-top: 2px solid #666; }
+#meta_eval .uds-row { font-weight: 600; background: #fffde7 !important; }
+#meta_eval .uds-row:hover { background: #fff9c4 !important; }
+
+/* Method table specific */
+#method_table .ref-row { background: #e3f2fd !important; }
+#method_table .ref-row:hover { background: #bbdefb !important; }
+.details-row { display: none; background: #fafafa !important; }
+.details-row td { padding: 12px 16px; }
+.details-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.detail-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 12px;
+}
+.detail-card h4 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 6px;
+}
+.detail-item { display: flex; justify-content: space-between; padding: 2px 0; }
+.detail-item .label { color: #666; }
+.detail-item .value { font-weight: 500; font-variant-numeric: tabular-nums; }
+.detail-item.summary { border-top: 1px solid #eee; margin-top: 6px; padding-top: 6px; }
+.detail-sub { margin-top: 8px; font-size: 12px; color: #666; }
+
+/* Controls */
+.controls {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.control-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.control-row:last-child { margin-bottom: 0; }
+.control-label { min-width: 90px; font-weight: 600; color: #333; padding-top: 4px; }
+.control-content { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.method-grid { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.checkbox-label {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 13px; cursor: pointer;
+}
+.checkbox-label input { margin: 0; }
+.checkbox-label .count { color: #888; font-size: 12px; }
+select, button.btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+select:focus, button.btn:focus { outline: 2px solid #0366d6; outline-offset: 1px; }
+button.btn { background: #f6f8fa; }
+button.btn:hover { background: #eef1f4; }
+button.toggle-btn {
+  background: none;
+  border: none;
+  color: #0366d6;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+}
+button.toggle-btn:hover { text-decoration: underline; }
+
+/* Hints */
+.hint { color: #666; font-size: 12px; margin-bottom: 8px; }
+
+/* Loading */
+.loading { text-align: center; padding: 40px; color: #666; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>UDS: Unlearning Depth Score</h1>
+  <p style="color:#666; margin-top:0;">Benchmark results on TOFU dataset using Llama-3.2-1B-Instruct (Open-Unlearning framework)</p>
+
+  <!-- UDS Introduction -->
+  <div class="card uds-intro">
+    <h3 style="margin-top:0; color:#b8860b;">UDS: Unlearning Depth Score</h3>
+    <p style="margin:0 0 10px 0;">
+      <strong>UDS (Unlearning Depth Score)</strong> is a metric that quantifies the <em>mechanistic depth</em> of unlearning by measuring how much target knowledge is recoverable through activation patching.
+    </p>
+    <p style="margin:0 0 10px 0;">
+      <strong>Method:</strong> We patch hidden states from the unlearned model into a full (knowledge-present) model layer by layer, and measure how much the patching recovers the original knowledge. If knowledge is truly erased, patching should not help recovery.
+    </p>
+    <div class="formula-box" style="margin-bottom:0;">
+      <code>UDS</code> = weighted average of per-layer erasure ratios, where higher = deeper/better unlearning.<br>
+      <span class="sub-formula">UDS ranges from 0 (no unlearning, knowledge fully recoverable) to 1 (complete unlearning, no recovery possible).</span>
+    </div>
+  </div>
+
+  <!-- Meta-evaluation Section -->
+  <h2>Meta-evaluation</h2>
+  <div class="card">
+    <p style="margin:0 0 12px 0;">
+      This section evaluates <strong>how reliable each unlearning metric is</strong> using the Open-Unlearning benchmark framework.
+    </p>
+    <p style="margin:0 0 12px 0;">
+      <strong>Faithfulness</strong>: How well each metric separates knowledge-present (P, 30 models) vs knowledge-absent (N, 30 models), measured by AUC-ROC.<br>
+      <strong>Robustness</strong>: Stability of each metric under post-hoc perturbations (quantization, relearning).
+    </p>
+    <p id="meta_eval_summary" style="margin:0 0 12px 0; padding:8px 12px; background:#fffde7; border-radius:4px;">
+      <strong>Meta-evaluation summary:</strong> loading...
+    </p>
+    <div class="formula-box">
+      <div><strong>Formulas:</strong></div>
+      <div style="margin-top:6px;">
+        <code>Faithfulness</code> = AUC-ROC over P/N pools (30 knowledge-present vs 30 knowledge-absent models)
+      </div>
+      <div style="margin-top:8px;">
+        <code>Robustness</code> = HM(Quantization, Relearning)<br>
+        <span class="sub-formula"><code>Quantization</code> = min(m<sub>before</sub> / m<sub>after</sub>, 1) — metric stability after 4-bit NF4 quantization</span><br>
+        <span class="sub-formula"><code>Relearning</code> = min((m<sub>ret,after</sub> - m<sub>ret,before</sub>) / (m<sub>unl,after</sub> - m<sub>unl,before</sub>), 1) — metric stability after 1-epoch relearning</span>
+      </div>
+      <div style="margin-top:8px;">
+        <code>Overall</code> = HM(Faithfulness, Robustness)
+      </div>
+    </div>
+  </div>
+
+  <div class="hint">Per column: <strong>best</strong> value is bold, <u>second-best</u> is underlined.</div>
+  <div class="table-wrap">
+    <table class="styled" id="meta_eval">
+      <thead>
+        <tr>
+          <th rowspan="2">Metric</th>
+          <th rowspan="2" class="sortable" data-col="overall">Overall ↑</th>
+          <th rowspan="2" class="sortable" data-col="faith">Faithfulness ↑</th>
+          <th colspan="3" style="text-align:center;">Robustness</th>
+        </tr>
+        <tr>
+          <th class="sortable" data-col="rob">Agg. ↑</th>
+          <th class="sortable" data-col="quant">Quant. ↑</th>
+          <th class="sortable" data-col="relearn">Relearn. ↑</th>
+        </tr>
+      </thead>
+      <tbody id="meta_eval_body">
+        <tr><td colspan="6" class="loading">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Method-level Section -->
+  <h2>Method-level Results</h2>
+  <div class="card">
+    <p style="margin:0 0 12px 0;">
+      This section evaluates <strong><span id="model_total_count">152</span> models</strong> (8 methods × varying hyperparameters × 2 epochs + full + retain) across three axes.
+    </p>
+    <p style="margin:0 0 12px 0;">
+      <strong>Memorization</strong>: How much target knowledge was forgotten. <span class="higher-better">(↑ higher = more forgotten)</span><br>
+      <strong>Privacy</strong>: How well sensitive information from the forget set is protected from being extracted (assessed via MIAs and UDS). <span class="higher-better">(↑ higher = better protected)</span><br>
+      <strong>Utility</strong>: How well the model retains general capabilities on non-target knowledge. <span class="higher-better">(↑ higher = better retention)</span><br>
+      <strong>Overall</strong>: Harmonic mean of all three axes. <span class="higher-better">(↑ higher = better)</span>
+    </p>
+    <p style="margin:0 0 12px 0; padding:8px 12px; background:#fffde7; border-radius:4px;">
+      <span class="uds-highlight">UDS</span> is incorporated into the Privacy axis as <code>Privacy = HM(MIA, UDS)</code>, capturing both statistical (MIA) and mechanistic (UDS) aspects.
+    </p>
+    <div class="formula-box">
+      <div><strong>Formulas:</strong></div>
+      <div style="margin-top:8px;">
+        <strong>Memorization:</strong><br>
+        <code>Mem.</code> = HM(1-ES, 1-EM, 1-ParaProb, 1-TruthRatio)<br>
+        <span class="sub-formula">ES=Extraction Strength, EM=Exact Memorization, ParaProb=Paraphrase Probability, TruthRatio=Truth Ratio</span>
+      </div>
+      <div style="margin-top:10px;">
+        <strong>Privacy:</strong><br>
+        <code>MIA</code> = HM(s<sub>LOSS</sub>, s<sub>ZLib</sub>, s<sub>Min-k</sub>, s<sub>Min-k++</sub>)<br>
+        <span class="sub-formula">s_* = 1 - normalized attack success rate (higher = more resistant)</span><br>
+        <code>Privacy</code> = HM(MIA, <span class="uds-highlight">UDS</span>)
+      </div>
+      <div style="margin-top:10px;">
+        <strong>Utility:</strong><br>
+        <code>ModelUtility (MU)</code> = HM(retain_Prob, retain_ROUGE, retain_TruthRatio, ra_Prob, ra_ROUGE, ra_TruthRatio, wf_Prob, wf_ROUGE, wf_TruthRatio)<br>
+        <span class="sub-formula">retain=Retain set, ra=Real Authors, wf=World Facts</span><br>
+        <code>Fluency</code> = generation fluency score<br>
+        <code>Utility</code> = HM(MU, Fluency), then normalized: Utility<sub>rel</sub> = Utility / Utility<sub>full(epoch)</sub>
+      </div>
+      <div style="margin-top:10px;">
+        <strong>Overall:</strong><br>
+        <code>Overall</code> = HM(Mem., Privacy, Utility<sub>rel</sub>)
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="control-row">
+      <span class="control-label">View</span>
+      <div class="control-content">
+        <select id="viewMode">
+          <option value="all">All models</option>
+          <option value="best">Top-1 per method</option>
+        </select>
+        <select id="rankMetric" style="margin-left:8px; display:none;">
+          <option value="overall">by Overall</option>
+          <option value="mem">by Memorization</option>
+          <option value="privacy">by Privacy</option>
+          <option value="utility_rel">by Utility</option>
+          <option value="uds">by UDS</option>
+        </select>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">Epoch</span>
+      <div class="control-content">
+        <label class="checkbox-label"><input type="checkbox" class="epoch-filter" value="ep5" checked> ep5</label>
+        <label class="checkbox-label"><input type="checkbox" class="epoch-filter" value="ep10" checked> ep10</label>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">Methods</span>
+      <div class="control-content" style="flex-direction:column; align-items:flex-start; gap:8px;">
+        <div class="method-grid" id="method_filters"></div>
+        <div>
+          <button class="btn" id="checkAll">Check All</button>
+          <button class="btn" id="uncheckAll">Uncheck All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="styled" id="method_table">
+      <thead>
+        <tr>
+          <th class="sortable" data-col="model">Model</th>
+          <th class="sortable" data-col="overall">Overall ↑</th>
+          <th class="sortable" data-col="mem" style="white-space:nowrap;">Mem. ↑</th>
+          <th class="sortable" data-col="privacy">Privacy ↑</th>
+          <th class="sortable" data-col="utility_rel">Utility ↑</th>
+          <th>Details</th>
+          <th class="sortable" data-col="uds" style="color:#888;" title="Already included in Privacy axis">(UDS) ↑</th>
+        </tr>
+      </thead>
+      <tbody id="method_body">
+        <tr><td colspan="7" class="loading">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="hint" id="model_count">Total: loading...</div>
+</div>
+
+<script>
+// Data storage
+let metaData = null;
+let methodData = null;
+let currentSort = { col: null, asc: true };
+let metaSort = { col: null, asc: true };
+
+// Method name display mapping
+const methodDisplayNames = {
+  'graddiff': 'GradDiff',
+  'idknll': 'IDKNLL',
+  'idkdpo': 'IDKDPO',
+  'npo': 'NPO',
+  'altpo': 'AltPO',
+  'undial': 'UnDial',
+  'simnpo': 'SimNPO',
+  'rmu': 'RMU'
+};
+
+function displayMethod(m) {
+  return methodDisplayNames[m.toLowerCase()] || m;
+}
+
+// Utility functions
+function fmt(v) {
+  if (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) return 'N/A';
+  return v.toFixed(3);
+}
+
+function top2(values) {
+  const nums = [...new Set(values.filter(v => v !== null && !isNaN(v)))].sort((a,b) => b-a);
+  return [nums[0] || null, nums[1] || null];
+}
+
+function styleRank(v, best, second, isUds = false) {
+  if (v === null || v === undefined || isNaN(v)) return 'N/A';
+  const s = fmt(v);
+  if (best !== null && Math.abs(v - best) < 1e-9) return `<strong>${s}</strong>`;
+  if (!isUds && second !== null && Math.abs(v - second) < 1e-9) return `<u>${s}</u>`;
+  return s;
+}
+
+// Load meta-eval data
+async function loadMetaEval() {
+  try {
+    const resp = await fetch('data/meta_eval.json');
+    metaData = await resp.json();
+    renderMetaEval();
+    setupMetaSorting();
+  } catch (e) {
+    document.getElementById('meta_eval_body').innerHTML = '<tr><td colspan="6">Error loading data</td></tr>';
+  }
+}
+
+function setupMetaSorting() {
+  document.querySelectorAll('#meta_eval th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (metaSort.col === col) {
+        metaSort.asc = !metaSort.asc;
+      } else {
+        metaSort.col = col;
+        metaSort.asc = false; // Default descending (higher is better)
+      }
+      document.querySelectorAll('#meta_eval th.sortable').forEach(h => {
+        h.classList.remove('sort-asc', 'sort-desc');
+      });
+      th.classList.add(metaSort.asc ? 'sort-asc' : 'sort-desc');
+      renderMetaEval();
+    });
+  });
+}
+
+function renderMetaEval() {
+  const body = document.getElementById('meta_eval_body');
+  const metrics = metaData.metrics;
+  const faith = metaData.faithfulness;
+
+  // Collect values for ranking
+  const overalls = [], faiths = [], robs = [], quants = [], relearns = [];
+  const rows = metrics.map(m => {
+    const f = faith[m.key]?.auc_roc || null;
+    // Robustness is N/A for now
+    const r = null, q = null, rl = null;
+    const o = (f !== null && r !== null) ? 2 / (1/f + 1/r) : null;
+    overalls.push(o); faiths.push(f); robs.push(r); quants.push(q); relearns.push(rl);
+    return { ...m, faith: f, rob: r, quant: q, relearn: rl, overall: o };
   });
 
-  // apply best per method / overall
-  let showSet = new Set(filtered);
-  if (view === 'best_method'){
-    showSet = new Set();
-    const byMethod = {};
-    filtered.forEach(r => {
-      const m = r.dataset.method;
-      const v = parseFloat(r.dataset[metric]);
-      if (!byMethod[m] || v > byMethod[m].v){ byMethod[m] = {v, r}; }
+  const [bestO, secO] = top2(overalls);
+  const [bestF, secF] = top2(faiths);
+  const [bestR, secR] = top2(robs);
+  const [bestQ, secQ] = top2(quants);
+  const [bestL, secL] = top2(relearns);
+
+  // Sort if needed
+  if (metaSort.col) {
+    rows.sort((a, b) => {
+      let av = a[metaSort.col], bv = b[metaSort.col];
+      if (av === null || isNaN(av)) av = -Infinity;
+      if (bv === null || isNaN(bv)) bv = -Infinity;
+      return metaSort.asc ? av - bv : bv - av;
     });
-    Object.values(byMethod).forEach(x=>showSet.add(x.r));
-  } else if (view === 'best_overall'){
-    let best = null;
-    filtered.forEach(r => {
-      const v = parseFloat(r.dataset[metric]);
-      if (best === null || v > best.v){ best = {v, r}; }
-    });
-    showSet = new Set(best ? [best.r] : []);
   }
 
-  // show/hide
-  rows.forEach(r => {
-    const isRef = (r.children[0].innerText === 'full' || r.children[0].innerText === 'retain');
-    if (isRef){ r.style.display = ''; return; }
-    r.style.display = showSet.has(r) ? '' : 'none';
+  let html = '';
+  let prevCat = '';
+  rows.forEach((r, i) => {
+    const classes = [];
+    // MIA separator line
+    if (r.category === 'mia' && prevCat !== 'mia') classes.push('mia-start');
+    if (r.key === 'uds') classes.push('uds-row');
+    prevCat = r.category;
+
+    const isUds = r.key === 'uds';
+    const label = isUds ? `<strong>${r.label}</strong>` : r.label;
+
+    html += `<tr class="${classes.join(' ')}">
+      <td>${label}</td>
+      <td class="num">${styleRank(r.overall, bestO, secO, isUds)}</td>
+      <td class="num">${styleRank(r.faith, bestF, secF, isUds)}</td>
+      <td class="num">${styleRank(r.rob, bestR, secR, isUds)}</td>
+      <td class="num">${styleRank(r.quant, bestQ, secQ, isUds)}</td>
+      <td class="num">${styleRank(r.relearn, bestL, secL, isUds)}</td>
+    </tr>`;
+  });
+  body.innerHTML = html;
+
+  // Dynamic summary (avoid stale hardcoded claims)
+  const faithPairs = rows
+    .filter(r => r.faith !== null && !isNaN(r.faith))
+    .sort((a, b) => b.faith - a.faith);
+  const summaryEl = document.getElementById('meta_eval_summary');
+  if (faithPairs.length > 0) {
+    const top = faithPairs[0];
+    const second = faithPairs.length > 1 ? faithPairs[1] : null;
+    let msg = `<strong>Meta-evaluation summary:</strong> Highest Faithfulness is <span class="uds-highlight">${top.label} (${fmt(top.faith)} AUC-ROC)</span>.`;
+    if (second) {
+      msg += ` Second-highest is ${second.label} (${fmt(second.faith)}).`;
+    }
+    summaryEl.innerHTML = msg;
+  } else {
+    summaryEl.innerHTML = "<strong>Meta-evaluation summary:</strong> Faithfulness values are not available yet.";
+  }
+}
+
+// Load method-level data
+async function loadMethodData() {
+  try {
+    const resp = await fetch('data/method_results.json');
+    methodData = await resp.json();
+    renderMethodFilters();
+    renderMethodTable();
+    setupMethodListeners();
+    setupTableSorting();
+  } catch (e) {
+    document.getElementById('method_body').innerHTML = '<tr><td colspan="7">Error loading data</td></tr>';
+  }
+}
+
+function renderMethodFilters() {
+  const grid = document.getElementById('method_filters');
+  const counts = methodData.method_counts;
+  const methods = Object.keys(counts).sort();
+
+  grid.innerHTML = methods.map(m => `
+    <label class="checkbox-label">
+      <input type="checkbox" class="method-filter" value="${m}" checked>
+      ${displayMethod(m)} <span class="count">(${counts[m]})</span>
+    </label>
+  `).join('');
+}
+
+function getFilteredModels() {
+  const view = document.getElementById('viewMode').value;
+  const rankBy = document.getElementById('rankMetric').value;
+  const epochs = new Set([...document.querySelectorAll('.epoch-filter:checked')].map(e => e.value));
+  const methods = new Set([...document.querySelectorAll('.method-filter:checked')].map(e => e.value));
+
+  // Filter models
+  let models = methodData.models.filter(m => {
+    if (m.is_reference) return true;
+    return epochs.has(m.epoch) && methods.has(m.method);
+  });
+
+  // If top-1 per method view
+  if (view === 'best') {
+    const refs = models.filter(m => m.is_reference);
+    const nonRefs = models.filter(m => !m.is_reference);
+    const bestByMethod = {};
+    nonRefs.forEach(m => {
+      const key = m.method;
+      const val = m[rankBy];
+      if (val === null || isNaN(val)) return;
+      if (!bestByMethod[key] || val > bestByMethod[key][rankBy]) {
+        bestByMethod[key] = m;
+      }
+    });
+    models = [...refs, ...Object.values(bestByMethod)];
+  }
+
+  return models;
+}
+
+function sortModels(models) {
+  const methodOrder = ['graddiff', 'idknll', 'idkdpo', 'npo', 'altpo', 'undial', 'simnpo', 'rmu'];
+
+  // If custom sort is active, use it
+  if (currentSort.col) {
+    return models.slice().sort((a, b) => {
+      // Reference rows always stay at top
+      if (a.is_reference && !b.is_reference) return -1;
+      if (!a.is_reference && b.is_reference) return 1;
+      if (a.is_reference && b.is_reference) {
+        return a.model === 'full' ? -1 : 1;
+      }
+
+      const col = currentSort.col;
+      let av = col === 'model' ? a.model : a[col];
+      let bv = col === 'model' ? b.model : b[col];
+
+      if (col === 'model') {
+        return currentSort.asc ? av.localeCompare(bv) : bv.localeCompare(av);
+      }
+
+      // Handle null/NaN
+      if (av === null || isNaN(av)) av = -Infinity;
+      if (bv === null || isNaN(bv)) bv = -Infinity;
+
+      return currentSort.asc ? av - bv : bv - av;
+    });
+  }
+
+  // Default sort
+  return models.slice().sort((a, b) => {
+    if (a.model === 'full') return -1;
+    if (b.model === 'full') return 1;
+    if (a.model === 'retain') return -1;
+    if (b.model === 'retain') return 1;
+    const ma = methodOrder.indexOf(a.method), mb = methodOrder.indexOf(b.method);
+    if (ma !== mb) return (ma === -1 ? 999 : ma) - (mb === -1 ? 999 : mb);
+    if (a.epoch !== b.epoch) return a.epoch.localeCompare(b.epoch);
+    return a.model.localeCompare(b.model);
   });
 }
 
-document.querySelectorAll('.epochFilter,.methodFilter').forEach(el => el.addEventListener('change', updateTable));
-document.getElementById('viewMode').addEventListener('change', updateTable);
-document.getElementById('bestMetric').addEventListener('change', updateTable);
-updateTable();
+function renderMethodTable() {
+  const body = document.getElementById('method_body');
+  const view = document.getElementById('viewMode').value;
 
-// sortable columns
-function comparer(idx, asc) {
-  return (a, b) => {
-    const v1 = getCellValue(a, idx), v2 = getCellValue(b, idx);
-    const n1 = parseFloat(v1), n2 = parseFloat(v2);
-    if (!isNaN(n1) && !isNaN(n2)) return (n1 - n2) * (asc ? 1 : -1);
-    return v1.toString().localeCompare(v2) * (asc ? 1 : -1);
-  };
+  let models = getFilteredModels();
+  models = sortModels(models);
+
+  let html = '';
+  models.forEach((m, idx) => {
+    const rowClass = m.is_reference ? 'main-row ref-row' : 'main-row';
+    const rid = `row_${idx}`;
+
+    html += `<tr class="${rowClass}" data-rid="${rid}">
+      <td>${m.model}</td>
+      <td class="num">${fmt(m.overall)}</td>
+      <td class="num">${fmt(m.mem)}</td>
+      <td class="num">${fmt(m.privacy)}</td>
+      <td class="num">${fmt(m.utility_rel)}</td>
+      <td><button class="toggle-btn" data-target="${rid}">show</button></td>
+      <td class="num" style="color:#888;">${fmt(m.uds)}</td>
+    </tr>`;
+
+    // Details row - show all content directly
+    html += `<tr id="${rid}" class="details-row">
+      <td colspan="7">
+        <div class="details-grid">
+          <div class="detail-card">
+            <h4>Memorization</h4>
+            <div class="detail-item summary">
+              <span class="label"><strong>Mem.</strong></span><span class="value"><strong>${fmt(m.mem)}</strong></span>
+            </div>
+            <div class="detail-item"><span class="label">1-ES</span><span class="value">${fmt(m.one_minus_es)}</span></div>
+            <div class="detail-item"><span class="label">1-EM</span><span class="value">${fmt(m.one_minus_em)}</span></div>
+            <div class="detail-item"><span class="label">1-ParaProb</span><span class="value">${fmt(m.one_minus_paraprob)}</span></div>
+            <div class="detail-item"><span class="label">1-TruthRatio</span><span class="value">${fmt(m.one_minus_truth)}</span></div>
+          </div>
+          <div class="detail-card">
+            <h4>Privacy</h4>
+            <div class="detail-item summary">
+              <span class="label"><strong>Privacy = HM(MIA, UDS)</strong></span><span class="value"><strong>${fmt(m.privacy)}</strong></span>
+            </div>
+            <div class="detail-item"><span class="label">s<sub>LOSS</sub></span><span class="value">${fmt(m.s_loss)}</span></div>
+            <div class="detail-item"><span class="label">s<sub>ZLib</sub></span><span class="value">${fmt(m.s_zlib)}</span></div>
+            <div class="detail-item"><span class="label">s<sub>Min-k</sub></span><span class="value">${fmt(m.s_mink)}</span></div>
+            <div class="detail-item"><span class="label">s<sub>Min-k++</sub></span><span class="value">${fmt(m.s_minkpp)}</span></div>
+            <div class="detail-item summary">
+              <span class="label">MIA</span><span class="value">${fmt(m.privacy_mia)}</span>
+            </div>
+            <div class="detail-item"><span class="label">UDS</span><span class="value">${fmt(m.uds)}</span></div>
+          </div>
+          <div class="detail-card">
+            <h4>Utility</h4>
+            <div class="detail-item summary">
+              <span class="label"><strong>Utility<sub>rel</sub></strong></span><span class="value"><strong>${fmt(m.utility_rel)}</strong></span>
+            </div>
+            <div class="detail-item"><span class="label">ModelUtility (MU)</span><span class="value">${fmt(m.model_utility)}</span></div>
+            <div class="detail-item"><span class="label">Fluency</span><span class="value">${fmt(m.fluency)}</span></div>
+            <div class="detail-item"><span class="label">Utility = HM(MU, Fluency)</span><span class="value">${fmt(m.utility)}</span></div>
+            <div class="detail-sub">
+              <div><strong>MU components:</strong></div>
+              <div>retain: Prob=${fmt(m.retain_q_prob)}, ROUGE=${fmt(m.retain_q_rouge)}, TruthRatio=${fmt(m.retain_truth_ratio)}</div>
+              <div>ra: Prob=${fmt(m.ra_q_prob)}, ROUGE=${fmt(m.ra_q_rouge)}, TruthRatio=${fmt(m.ra_truth_ratio)}</div>
+              <div>wf: Prob=${fmt(m.wf_q_prob)}, ROUGE=${fmt(m.wf_q_rouge)}, TruthRatio=${fmt(m.wf_truth_ratio)}</div>
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  body.innerHTML = html;
+
+  // Update count
+  const nonRefCount = models.filter(m => !m.is_reference).length;
+  const totalLoaded = methodData.models.length;
+  document.getElementById('model_count').textContent =
+    `Showing: ${nonRefCount} models` + (view === 'best' ? ' (top-1 per method)' : '') + ` + full + retain (loaded total: ${totalLoaded})`;
+
+  // Update total count in description
+  document.getElementById('model_total_count').textContent = totalLoaded;
+
+  // Re-attach toggle listeners
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      const isHidden = target.style.display !== 'table-row';
+      target.style.display = isHidden ? 'table-row' : 'none';
+      btn.textContent = isHidden ? 'hide' : 'show';
+    });
+  });
 }
-function getCellValue(tr, idx) { return tr.children[idx].innerText || tr.children[idx].textContent; }
 
-document.querySelectorAll('th').forEach(th => th.addEventListener('click', () => {
-  const table = th.closest('table');
-  Array.from(table.querySelectorAll('tbody tr'))
-    .sort(comparer(Array.from(th.parentNode.children).indexOf(th), this.asc = !this.asc))
-    .forEach(tr => table.querySelector('tbody').appendChild(tr) );
-}));
+function setupTableSorting() {
+  document.querySelectorAll('#method_table th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
 
-</script></body></html>
+      // Toggle sort direction
+      if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+      } else {
+        currentSort.col = col;
+        currentSort.asc = false; // Default descending for numeric (higher is better)
+        if (col === 'model') currentSort.asc = true; // Ascending for model name
+      }
+
+      // Update header styles
+      document.querySelectorAll('#method_table th.sortable').forEach(h => {
+        h.classList.remove('sort-asc', 'sort-desc');
+      });
+      th.classList.add(currentSort.asc ? 'sort-asc' : 'sort-desc');
+
+      renderMethodTable();
+    });
+  });
+}
+
+function setupMethodListeners() {
+  document.getElementById('viewMode').addEventListener('change', () => {
+    currentSort = { col: null, asc: true }; // Reset sort on view change
+    document.querySelectorAll('#method_table th.sortable').forEach(h => {
+      h.classList.remove('sort-asc', 'sort-desc');
+    });
+    // Show/hide rankMetric based on view mode
+    const viewMode = document.getElementById('viewMode').value;
+    document.getElementById('rankMetric').style.display = viewMode === 'best' ? 'inline-block' : 'none';
+    renderMethodTable();
+  });
+  document.getElementById('rankMetric').addEventListener('change', renderMethodTable);
+  document.querySelectorAll('.epoch-filter').forEach(cb => {
+    cb.addEventListener('change', renderMethodTable);
+  });
+
+  // Method filter delegation
+  document.getElementById('method_filters').addEventListener('change', renderMethodTable);
+
+  document.getElementById('checkAll').addEventListener('click', () => {
+    document.querySelectorAll('.method-filter').forEach(cb => cb.checked = true);
+    renderMethodTable();
+  });
+
+  document.getElementById('uncheckAll').addEventListener('click', () => {
+    document.querySelectorAll('.method-filter').forEach(cb => cb.checked = false);
+    renderMethodTable();
+  });
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  loadMetaEval();
+  loadMethodData();
+});
+</script>
+</body>
+</html>

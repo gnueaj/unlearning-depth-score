@@ -1,7 +1,7 @@
 {
   "total_examples": 367,
-  "elapsed_sec": 240.3182291984558,
-  "sec_per_evaluable": 0.6548180632110513,
+  "elapsed_sec": 186.7628355026245,
+  "sec_per_evaluable": 0.5088905599526553,
   "metric": "logprob",
   "em_threshold": 1.0,
   "delta_threshold": 0.05,
@@ -12,8 +12,8 @@
   "mode": "layer",
   "unlearn_model": "simnpo_lr2e5_b35_a1_d1_g025_ep5",
   "gk_count": 0,
-  "avg_uds": 0.45911131542510963,
-  "avg_udr": 0.45911131542510963,
+  "avg_uds": 0.4592430170756279,
+  "avg_udr": 0.4592430170756279,
   "skipped_count": 0,
   "skipped_indices": []
 }

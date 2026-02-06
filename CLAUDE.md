@@ -11,17 +11,18 @@ We report **UDS (Unlearning Depth Score)** as the core metric. Higher = better e
 
 ### Key Outputs
 - **Open-Unlearning Table/HTML**: `docs/openunlearning_alpha_all.html`
+- **HTML Data Files**: `docs/data/` (meta_eval.json, method_results.json)
 - **Paper PDF**: `docs/openunlearning.pdf`
 - **Faithfulness results**: `runs/faithfulness/` (summary.json, results.json, logs/)
   - 60 models (30 P + 30 N), SDPA, 13 metrics including UDS
 - **Meta-eval runs**: `runs/meta_eval/`
   - `table2_faithfulness_v2_eager/` — old eager attention (30+29 models)
-  - `table2_faithfulness_v3_gpu0/`, `v3_gpu1/` — SDPA split runs
-  - `table2_faithfulness_uds_sdpa_gpu0/`, `gpu1/` — UDS SDPA runs
+  - `robustness_filter_list/` — filtered model lists for robustness eval
+  - `robustness_parallel/` — parallel robustness evaluation runs
 - **EP5 / EP10 evaluation results**:
-  - `runs/ep5/{memorization,privacy,utility,uds}/{model}/`
-  - `runs/ep10/{memorization,privacy,utility,uds}/{model}/`
-  - 150 models total (75 configs × 2 epochs)
+  - `runs/ep5/{memorization,privacy,utility,uds,gen_rouge}/{model}/`
+  - `runs/ep10/{memorization,privacy,utility,uds,gen_rouge}/{model}/`
+  - 152 models total (8 methods × varying hyperparameters × 2 epochs + full + retain)
 
 ### Core Scripts
 - UDS experiment: `exp_s1_teacher_forcing.py`
@@ -72,13 +73,13 @@ UDS_i =
 - Results: `runs/faithfulness/summary.json`
 
 ### Robustness (not yet measured)
-- **Quantization** = min(m_after / m_before, 1) — metric stability under 4-bit quantization
-- **Relearning** = min(Δ_retain / Δ_unlearn, 1) — metric change after 1 epoch relearning
+- **Quantization** = min(m_before / m_after, 1) — metric stability under 4-bit NF4 quantization
+- **Relearning** = min((m_ret,after - m_ret,before) / (m_unl,after - m_unl,before), 1) — metric stability after 1-epoch relearning
 - **Robustness** = HM(Quantization, Relearning)
 
 ### Important Notes
-- **ROUGE metrics require generation**: Not stored per-model in ep5/ep10; only computed during faithfulness eval
-- **150 models** for robustness (75 configs × 2 epochs), not 75
+- **ROUGE metrics require generation**: Stored in ep5/ep10 gen_rouge/ folders
+- **152 models** for robustness evaluation
 - Paper uses **Llama-3.2-1B-Instruct** (same as us)
 
 ## EP5/EP10 Stored Metrics
@@ -88,8 +89,7 @@ UDS_i =
 | privacy/ | mia_loss, mia_zlib, mia_min_k, mia_min_kpp |
 | utility/ | retain/ra/wf × {Prob, ROUGE, TruthRatio} |
 | uds/ | uds per example |
-
-**Missing**: forget10 ROUGE/para_rouge/jailbreak_rouge (requires generation, not stored)
+| gen_rouge/ | rouge, para_rouge, jailbreak_rouge (forget10 generation metrics) |
 
 ## GPU Usage
 - Use `--gpu 0` or `--gpu 1` (script sets `CUDA_VISIBLE_DEVICES` internally)

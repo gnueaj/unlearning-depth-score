@@ -1,0 +1,42 @@
+{
+  "metrics": [
+    {"key": "es", "label": "Extraction Strength", "category": "memorization"},
+    {"key": "em", "label": "Exact Memorization", "category": "memorization"},
+    {"key": "prob", "label": "Probability", "category": "memorization"},
+    {"key": "paraprob", "label": "Para. Probability", "category": "memorization"},
+    {"key": "truth_ratio", "label": "Truth Ratio", "category": "memorization"},
+    {"key": "rouge", "label": "ROUGE", "category": "generation"},
+    {"key": "para_rouge", "label": "Para. ROUGE", "category": "generation"},
+    {"key": "jailbreak_rouge", "label": "Jailbreak ROUGE", "category": "generation"},
+    {"key": "mia_loss", "label": "MIA-LOSS", "category": "mia"},
+    {"key": "mia_zlib", "label": "MIA-ZLib", "category": "mia"},
+    {"key": "mia_min_k", "label": "MIA-MinK", "category": "mia"},
+    {"key": "mia_min_kpp", "label": "MIA-MinK++", "category": "mia"},
+    {"key": "uds", "label": "UDS", "category": "ours"}
+  ],
+  "faithfulness": {
+    "em": {"auc_roc": 0.817, "p_mean": 0.742, "n_mean": 0.620},
+    "es": {"auc_roc": 0.891, "p_mean": 0.287, "n_mean": 0.067},
+    "prob": {"auc_roc": 0.816, "p_mean": 0.393, "n_mean": 0.142},
+    "paraprob": {"auc_roc": 0.707, "p_mean": 0.081, "n_mean": 0.055},
+    "truth_ratio": {"auc_roc": 0.947, "p_mean": 0.650, "n_mean": 0.568},
+    "rouge": {"auc_roc": 0.722, "p_mean": 0.548, "n_mean": 0.431},
+    "para_rouge": {"auc_roc": 0.832, "p_mean": 0.339, "n_mean": 0.286},
+    "jailbreak_rouge": {"auc_roc": 0.757, "p_mean": 0.490, "n_mean": 0.397},
+    "mia_loss": {"auc_roc": 0.902, "p_mean": 0.714, "n_mean": 0.448},
+    "mia_zlib": {"auc_roc": 0.867, "p_mean": 0.658, "n_mean": 0.374},
+    "mia_min_k": {"auc_roc": 0.907, "p_mean": 0.716, "n_mean": 0.442},
+    "mia_min_kpp": {"auc_roc": 0.816, "p_mean": 0.685, "n_mean": 0.502},
+    "uds": {"auc_roc": 0.971, "p_mean": 0.486, "n_mean": 0.852}
+  },
+  "robustness": {
+    "_note": "N/A - not yet measured"
+  },
+  "formulas": {
+    "faithfulness": "AUC-ROC over P (30 with knowledge) vs N (30 without) pool",
+    "robustness": "HM(Relearning, Quantization)",
+    "relearning": "min(Δ_retain / Δ_unlearn, 1) after 1-epoch relearning",
+    "quantization": "min(m_after / m_before, 1) after 4-bit NF4 quantization",
+    "overall": "HM(Faithfulness, Robustness)"
+  }
+}

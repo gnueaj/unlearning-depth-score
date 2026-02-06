@@ -1,5 +1,7 @@
 {
   "total_examples": 367,
+  "elapsed_sec": 240.447101354599,
+  "sec_per_evaluable": 0.6551692135002698,
   "metric": "logprob",
   "em_threshold": 1.0,
   "delta_threshold": 0.05,
@@ -10,7 +12,8 @@
   "mode": "layer",
   "unlearn_model": "simnpo_lr2e5_b45_a1_d1_g0125_ep5",
   "gk_count": 0,
-  "avg_udr": 0.3358646210304718,
+  "avg_uds": 0.3332590204356212,
+  "avg_udr": 0.3332590204356212,
   "skipped_count": 0,
   "skipped_indices": []
 }

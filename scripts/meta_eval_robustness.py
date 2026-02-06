@@ -540,6 +540,8 @@ def main():
                         help="Epochs for relearning (paper default: 1)")
     parser.add_argument("--models", nargs="+", default=None,
                         help="Specific model short names to evaluate (from UNLEARN_MODELS)")
+    parser.add_argument("--models_file", type=str, default=None,
+                        help="Path to JSON/TXT file with model short names (one per line or JSON list)")
     parser.add_argument("--skip_relearning", action="store_true",
                         help="Skip relearning evaluation")
     parser.add_argument("--skip_quantization", action="store_true",
@@ -597,7 +599,20 @@ def main():
         metrics = ["uds"]
 
     # Select models to evaluate
-    if args.models:
+    if args.models_file:
+        from patchscope.config import get_model_id
+        mf = Path(args.models_file)
+        if not mf.exists():
+            raise FileNotFoundError(f"--models_file not found: {mf}")
+        if mf.suffix.lower() in {".json"}:
+            model_names = json.loads(mf.read_text())
+        else:
+            model_names = [ln.strip() for ln in mf.read_text().splitlines() if ln.strip()]
+        eval_models = {}
+        for name in model_names:
+            model_id = get_model_id(name)
+            eval_models[name] = model_id
+    elif args.models:
         from patchscope.config import get_model_id
         eval_models = {}
         for name in args.models:
