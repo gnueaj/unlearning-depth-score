@@ -19,12 +19,11 @@ Core claim: output suppression is not enough; internal recoverability must also 
   - `runs/ep5/{memorization,privacy,utility,uds,gen_rouge}/<model>/`
   - `runs/ep10/{memorization,privacy,utility,uds,gen_rouge}/<model>/`
 - Meta-eval runs:
-  - `runs/meta_eval/faithfulness/` (results.json, summary.json, histograms/)
-  - `runs/meta_eval/faithfulness_uds_v2.json` (UDS with s1_cache_v2)
+  - `runs/meta_eval/faithfulness/` (results.json, summary.json, uds_v2.json, histograms/)
   - `runs/meta_eval/robustness_v2/quant/results.json`
   - `runs/meta_eval/robustness_v2/relearn/results.json`
-  - `runs/meta_eval/s1_cache_v2.json` (367 examples, eager attention)
-- Legacy: `runs/archive/`
+  - S1 cache: `runs/meta_eval/s1_cache_v2.json` (367 examples, sdpa attention)
+- Legacy: `runs/legacy/`
 
 ## Canonical Scripts
 - UDS per model: `exp_s1_teacher_forcing.py`
@@ -84,7 +83,7 @@ UDS_i = Σ_{l∈FT} [ Δ^S1_l × clip(Δ^S2_l / Δ^S1_l, 0, 1) ] / Σ_{l∈FT} �
 ### S1 Cache
 - Path: `runs/meta_eval/s1_cache_v2.json` (367 examples)
 - Reused across unlearned models (retain→full is constant)
-- Attention: `eager` for consistency
+- Attention: `sdpa` (default, consistent with ep5/ep10 runs)
 
 ## Method-Level Aggregation (Current Dashboard Contract)
 - `Mem.` from memorization summary
@@ -134,14 +133,15 @@ When changing aggregation, change both builder logic and HTML labels together.
   - Raw results.json은 전체 150개 포함, 필터링은 최종 aggregation에서 적용
 
 ### Current Paths
-- S1 cache: `runs/meta_eval/s1_cache_v2.json` (367 examples, eager attention)
+- S1 cache: `runs/meta_eval/s1_cache_v2.json` (367 examples, sdpa attention)
 - Faithfulness (12 metrics): `runs/meta_eval/faithfulness/results.json`, `summary.json`
-- Faithfulness UDS: `runs/meta_eval/faithfulness_uds_v2.json` (AUC: 0.973)
+- Faithfulness UDS: `runs/meta_eval/faithfulness/uds_v2.json` (AUC: 0.973, eager attention으로 계산됨)
 - Robustness: `runs/meta_eval/robustness_v2/{quant,relearn}/results.json`
 
 ### Notes
-- S1 cache must be consistent between faithfulness and robustness UDS computation
-- Retain model's UDS should be exactly 1.0 (verify with matching S1 cache)
+- Faithfulness UDS는 eager attention으로 계산됨 (내부 일관성)
+- Robustness는 sdpa attention으로 계산됨 (ep5/ep10 metrics_before와 일관성)
+- Retain model's UDS should be exactly 1.0
 
 ## Operational Notes
 - Use `--resume` paths for interrupted long runs.

@@ -32,5 +32,7 @@ venv/
 
 # Archive/Legacy (local only)
 runs/archive/
+runs/legacy/
 scripts/archive_legacy/
-logs/legacy/
+logs/
+runs/method_eval/
