@@ -172,7 +172,7 @@ button.toggle-btn:hover { text-decoration: underline; }
   <h2>Meta-evaluation</h2>
   <div class="card">
     <p style="margin:0 0 12px 0;">
-      This section evaluates <strong>how reliable each unlearning metric is</strong> using the Open-Unlearning benchmark framework.
+      This section evaluates <strong>13 metrics</strong> to measure <strong>how reliable each unlearning metric is</strong> using the Open-Unlearning benchmark framework.
     </p>
     <p style="margin:0 0 12px 0;">
       <strong>Faithfulness</strong>: How well each metric separates knowledge-present (P, 30 models) vs knowledge-absent (N, 30 models), measured by AUC-ROC.<br>
@@ -298,6 +298,7 @@ button.toggle-btn:hover { text-decoration: underline; }
     </div>
   </div>
 
+  <div class="hint" id="model_count">Total: loading...</div>
   <div class="table-wrap">
     <table class="styled" id="method_table">
       <thead>
@@ -308,7 +309,7 @@ button.toggle-btn:hover { text-decoration: underline; }
           <th class="sortable" data-col="privacy">Privacy ↑</th>
           <th class="sortable" data-col="utility_rel">Utility ↑</th>
           <th>Details</th>
-          <th class="sortable" data-col="uds" style="color:#888;" title="Already included in Privacy axis">UDS (Ours) ↑</th>
+          <th class="sortable" data-col="uds" style="color:#888;" title="Already included in Privacy axis">UDS ↑</th>
         </tr>
       </thead>
       <tbody id="method_body">
@@ -316,7 +317,6 @@ button.toggle-btn:hover { text-decoration: underline; }
       </tbody>
     </table>
   </div>
-  <div class="hint" id="model_count">Total: loading...</div>
 </div>
 
 <script>

@@ -1,0 +1,8 @@
+{
+  "model": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_IdkDPO_lr2e-05_beta0.1_alpha2_epoch10",
+  "metrics": {
+    "rouge": 0.24657948553815656,
+    "para_rouge": 0.16488286994207713,
+    "jailbreak_rouge": 0.25884684699560734
+  }
+}
