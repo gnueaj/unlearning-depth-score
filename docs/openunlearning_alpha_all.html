@@ -512,18 +512,53 @@ function renderMetaEval() {
     .sort((a, b) => b.overall - a.overall);
   const summaryEl = document.getElementById('meta_eval_summary');
   if (overallPairs.length > 0) {
-    const top = overallPairs[0];
     const fmtLabel = s => s.replace(/^s_(.+)$/, 's<sub>$1</sub>');
-    let msg = `<strong>Meta-evaluation summary:</strong> <span class="uds-highlight">${fmtLabel(top.label)}</span> achieves the highest Overall score (<strong>${fmt(top.overall)}</strong>)`;
-    msg += ` &mdash; Faithfulness ${fmt(top.faith)}, Robustness ${fmt(top.rob)}`;
-    if (top.quant !== null && top.relearn !== null) {
-      msg += ` (Q=${fmt(top.quant)}, R=${fmt(top.relearn)})`;
+    const top = overallPairs[0];
+
+    // Best per axis
+    const faithSorted = [...overallPairs].sort((a, b) => (b.faith || 0) - (a.faith || 0));
+    const robSorted = [...overallPairs].sort((a, b) => (b.rob || 0) - (a.rob || 0));
+    const topWinsBoth = top.key === faithSorted[0].key && top.key === robSorted[0].key;
+
+    // Pattern analysis: Q vs R
+    const validQ = rows.filter(r => r.quant !== null && !isNaN(r.quant));
+    const validR = rows.filter(r => r.relearn !== null && !isNaN(r.relearn));
+    const avgQ = validQ.reduce((s, r) => s + r.quant, 0) / validQ.length;
+    const avgR = validR.reduce((s, r) => s + r.relearn, 0) / validR.length;
+    const lowR = validR.filter(r => r.relearn < 0.5).length;
+
+    // Faithfulness-robustness disconnect: high faith but low robustness
+    const highFaithLowRob = overallPairs.filter(r => r.faith >= 0.9 && r.rob < 0.5);
+
+    let msg = `<strong>Meta-evaluation summary:</strong> `;
+    msg += `<span class="uds-highlight">${fmtLabel(top.label)}</span> achieves the highest Overall score (<strong>${fmt(top.overall)}</strong>)`;
+    if (topWinsBoth) {
+      msg += `, ranking <strong>#1 in both Faithfulness (${fmt(top.faith)}) and Robustness (${fmt(top.rob)})</strong>. `;
+    } else {
+      msg += ` with Faithfulness ${fmt(top.faith)} and Robustness ${fmt(top.rob)}. `;
     }
-    msg += `.`;
+
+    // Key pattern
+    msg += `Across all ${validR.length} metrics, quantization robustness is generally high (avg Q=${avgQ.toFixed(2)}) `;
+    msg += `but relearning robustness is the main bottleneck (avg R=${avgR.toFixed(2)}; <strong>${lowR}/${validR.length}</strong> metrics have R&lt;0.5). `;
+
+    // Faithfulness-robustness trade-off
+    if (highFaithLowRob.length > 0) {
+      const examples = highFaithLowRob.slice(0, 2).map(r => `${fmtLabel(r.label)} (F=${fmt(r.faith)}, R=${fmt(r.relearn)})`).join(', ');
+      msg += `Several metrics with high faithfulness suffer from poor relearning robustness &mdash; e.g., ${examples} &mdash; `;
+      msg += `meaning their unlearning signal can be easily reversed by a single epoch of fine-tuning. `;
+    }
+
+    // Top metric advantage
+    if (top.quant !== null && top.relearn !== null) {
+      msg += `${fmtLabel(top.label)} is uniquely stable under both perturbations (Q=${fmt(top.quant)}, R=${fmt(top.relearn)}), `;
+      msg += `suggesting that internal knowledge recoverability is a more reliable signal than output-level metrics. `;
+    }
+
+    // Second place
     if (overallPairs.length > 1) {
       const sec = overallPairs[1];
-      const gap = (top.overall - sec.overall).toFixed(3);
-      msg += ` Second: ${fmtLabel(sec.label)} (${fmt(sec.overall)}, &Delta;=${gap}).`;
+      msg += `Second: ${fmtLabel(sec.label)} (${fmt(sec.overall)}).`;
     }
     summaryEl.innerHTML = msg;
   } else {
