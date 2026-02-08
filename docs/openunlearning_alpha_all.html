@@ -530,35 +530,32 @@ function renderMetaEval() {
     // Faithfulness-robustness disconnect: high faith but low robustness
     const highFaithLowRob = overallPairs.filter(r => r.faith >= 0.9 && r.rob < 0.5);
 
-    let msg = `<strong>Meta-evaluation summary:</strong> `;
+    let msg = `<strong>Meta-evaluation summary:</strong><br>`;
+
+    // 1) Winner
     msg += `<span class="uds-highlight">${fmtLabel(top.label)}</span> achieves the highest Overall score (<strong>${fmt(top.overall)}</strong>)`;
     if (topWinsBoth) {
-      msg += `, ranking <strong>#1 in both Faithfulness (${fmt(top.faith)}) and Robustness (${fmt(top.rob)})</strong>. `;
+      msg += `, ranking <strong>#1 in both Faithfulness (${fmt(top.faith)}) and Robustness (${fmt(top.rob)})</strong>.`;
     } else {
-      msg += ` with Faithfulness ${fmt(top.faith)} and Robustness ${fmt(top.rob)}. `;
+      msg += ` &mdash; Faithfulness ${fmt(top.faith)}, Robustness ${fmt(top.rob)}.`;
     }
-
-    // Key pattern
-    msg += `Across all ${validR.length} metrics, quantization robustness is generally high (avg Q=${avgQ.toFixed(2)}) `;
-    msg += `but relearning robustness is the main bottleneck (avg R=${avgR.toFixed(2)}; <strong>${lowR}/${validR.length}</strong> metrics have R&lt;0.5). `;
-
-    // Faithfulness-robustness trade-off
-    if (highFaithLowRob.length > 0) {
-      const examples = highFaithLowRob.slice(0, 2).map(r => `${fmtLabel(r.label)} (F=${fmt(r.faith)}, R=${fmt(r.relearn)})`).join(', ');
-      msg += `Several metrics with high faithfulness suffer from poor relearning robustness &mdash; e.g., ${examples} &mdash; `;
-      msg += `meaning their unlearning signal can be easily reversed by a single epoch of fine-tuning. `;
-    }
-
-    // Top metric advantage
-    if (top.quant !== null && top.relearn !== null) {
-      msg += `${fmtLabel(top.label)} is uniquely stable under both perturbations (Q=${fmt(top.quant)}, R=${fmt(top.relearn)}), `;
-      msg += `suggesting that internal knowledge recoverability is a more reliable signal than output-level metrics. `;
-    }
-
-    // Second place
     if (overallPairs.length > 1) {
       const sec = overallPairs[1];
-      msg += `Second: ${fmtLabel(sec.label)} (${fmt(sec.overall)}).`;
+      msg += ` Second: ${fmtLabel(sec.label)} (${fmt(sec.overall)}).`;
+    }
+
+    // 2) Key pattern
+    msg += `<br>Relearning robustness is the main bottleneck: avg Q=${avgQ.toFixed(2)} vs avg R=${avgR.toFixed(2)} (<strong>${lowR}/${validR.length}</strong> metrics have R&lt;0.5).`;
+
+    // 3) Trade-off example
+    if (highFaithLowRob.length > 0) {
+      const ex = highFaithLowRob[0];
+      msg += `<br>e.g., ${fmtLabel(ex.label)} has high faithfulness (${fmt(ex.faith)}) but R=${fmt(ex.relearn)} &mdash; easily reversed by 1-epoch fine-tuning.`;
+    }
+
+    // 4) Top metric advantage
+    if (top.quant !== null && top.relearn !== null) {
+      msg += `<br>${fmtLabel(top.label)} is uniquely stable under both attacks (Q=${fmt(top.quant)}, R=${fmt(top.relearn)}): internal recoverability is a more reliable signal than output-level metrics.`;
     }
     summaryEl.innerHTML = msg;
   } else {
