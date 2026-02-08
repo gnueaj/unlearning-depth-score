@@ -10,6 +10,7 @@ R formula (Eq. 2):
 """
 
 import json
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -74,19 +75,43 @@ def compute_r(ret_before: float, ret_after: float, unl_before: float, unl_after:
     return max(0.0, min(r, 1.0))
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description="Plot relearning robustness.")
+    parser.add_argument(
+        "--no_filter",
+        action="store_true",
+        help="Use all 150 unlearned models (skip utility/faithfulness filtering).",
+    )
+    parser.add_argument(
+        "--usable_path",
+        type=str,
+        default=None,
+        help="Path to usable_models.json (used only when --no_filter is not set).",
+    )
+    parser.add_argument(
+        "--filter_label",
+        type=str,
+        default=None,
+        help="Optional title label override for filtering condition.",
+    )
+    parser.add_argument(
+        "--out_tag",
+        type=str,
+        default="",
+        help="Optional output filename tag suffix (e.g., utility_only).",
+    )
+    return parser.parse_args()
+
+
 def main():
+    args = parse_args()
     base = resolve_repo_root()
     relearn_path = base / 'runs/meta_eval/robustness/relearn/results.json'
-    usable_path = base / 'runs/meta_eval/robustness/usable_models.json'
     output_dir = base / 'runs/meta_eval/robustness/relearn/plots'
     output_dir.mkdir(parents=True, exist_ok=True)
 
     with open(relearn_path) as f:
         relearn_data = json.load(f)
-    with open(usable_path) as f:
-        usable = json.load(f)
-
-    usable_per_metric = usable['usable_models_per_metric']
     relearn_models = set(relearn_data.keys()) - {'retain'}
 
     # 17 metrics: rows 1-3 standard (12), row 4 sMIA (4), row 5 UDS centered
@@ -99,7 +124,7 @@ def main():
     ]
 
     metric_labels = {
-        'em': 'Exact Match', 'es': 'Extraction Strength', 'truth_ratio': 'Truth Ratio',
+        'em': 'Exact Memorization', 'es': 'Extraction Strength', 'truth_ratio': 'Truth Ratio',
         'prob': 'Prob.', 'rouge': 'ROUGE', 'jailbreak_rouge': 'Jailbreak ROUGE',
         'paraprob': 'Para. Prob.', 'para_rouge': 'Para. ROUGE',
         'mia_loss': 'MIA-LOSS (raw AUC)', 'mia_min_k': 'MIA-MinK (raw AUC)',
@@ -116,6 +141,14 @@ def main():
         's_mia_loss': 'mia_loss', 's_mia_zlib': 'mia_zlib',
         's_mia_min_k': 'mia_min_k', 's_mia_min_kpp': 'mia_min_kpp',
     }
+
+    if args.no_filter:
+        usable_per_metric = {m: sorted(relearn_models) for m in metrics}
+    else:
+        usable_path = Path(args.usable_path) if args.usable_path else (base / 'runs/meta_eval/robustness/usable_models.json')
+        with open(usable_path) as f:
+            usable = json.load(f)
+        usable_per_metric = usable['usable_models_per_metric']
 
     retain = relearn_data.get('retain', {})
     retain_before_raw = retain.get('metrics_before', {})
@@ -178,18 +211,28 @@ def main():
             'retain_shift': round(retain_shift, 4),
             'n_models': n_total,
             'n_unreliable': n_unreliable,
-            'n_usable_total': len(usable_per_metric.get(usable_key, [])),
+            'n_usable_total': len(usable_models_set),
             'r_per_model': {n: round(r, 4) for n, r in zip(model_names, r_values)}
         }
 
-        print(f"{metric:20s}: n={n_total:3d}/{len(usable_per_metric.get(usable_key, [])):3d}  "
+        print(f"{metric:20s}: n={n_total:3d}/{len(usable_models_set):3d}  "
               f"avg_R={avg_r:.4f}  retain_shift={retain_shift:+.4f}  "
               f"unrel={n_unreliable}/{n_total}")
 
+    results_name = 'relearn_robustness_results_nofilter.json' if args.no_filter else 'relearn_robustness_results.json'
+    plot_name = 'relearn_robustness_nofilter.png' if args.no_filter else 'relearn_robustness_usable.png'
+    filter_label = 'No Filtering' if args.no_filter else 'Utility + Faithfulness Filtered'
+    if args.filter_label:
+        filter_label = args.filter_label
+    if args.out_tag:
+        tag = args.out_tag if args.out_tag.startswith("_") else f"_{args.out_tag}"
+        results_name = results_name.replace(".json", f"{tag}.json")
+        plot_name = plot_name.replace(".png", f"{tag}.png")
+
     # Save robustness results
-    with open(output_dir / 'relearn_robustness_results.json', 'w') as f:
+    with open(output_dir / results_name, 'w') as f:
         json.dump(robustness_results, f, indent=2)
-    print(f"\nSaved: {output_dir / 'relearn_robustness_results.json'}")
+    print(f"\nSaved: {output_dir / results_name}")
 
     # === Plot: 5 rows × 4 cols ===
     # Row 0-2: standard 12 metrics, Row 3: sMIA 4, Row 4: UDS centered
@@ -279,12 +322,12 @@ def main():
         ]
         ax.legend(handles=local_handles, loc='lower right', fontsize=7, framealpha=0.95)
 
-    fig.suptitle('Relearning Robustness (17 Metrics)\n(150 Unlearned Models; Utility + Faithfulness Filtered)',
+    fig.suptitle(f'Relearning Robustness (17 Metrics)\n(150 Unlearned Models; {filter_label})',
                  fontsize=14, fontweight='normal', y=0.97)
     fig.subplots_adjust(left=0.035, right=0.995, bottom=0.03, top=0.92, wspace=0.01, hspace=0.48)
-    plt.savefig(output_dir / 'relearn_robustness_usable.png', dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / plot_name, dpi=150, bbox_inches='tight')
     plt.close()
-    print(f"Saved: {output_dir / 'relearn_robustness_usable.png'}")
+    print(f"Saved: {output_dir / plot_name}")
 
 
 if __name__ == '__main__':
