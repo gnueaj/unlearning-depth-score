@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Plot faithfulness histograms for 17 metrics (v2).
+Plot faithfulness histograms for 13 metrics + 4 normalized MIA (v2).
 Row 1: em, es, prob, paraprob
 Row 2: truth_ratio, rouge, para_rouge, jailbreak_rouge
 Row 3: mia_loss, mia_zlib, mia_min_k, mia_min_kpp (raw AUC)
@@ -185,7 +185,7 @@ if p_scores and n_scores:
     ax_uds.grid(True, linestyle='-', linewidth=0.45, alpha=0.25)
     ax_uds.legend(fontsize=7)
 
-plt.suptitle('Faithfulness: P/N Pool Score Distributions (17 Metrics)\n'
+plt.suptitle('Faithfulness: P/N Pool Score Distributions (13 Metrics + 4 Normalized MIA)\n'
              '60 models (30 P + 30 N)',
              fontsize=14, y=0.98)
 out_name = 'faithfulness_all_metrics_v2'

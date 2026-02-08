@@ -178,7 +178,7 @@ button.toggle-btn:hover { text-decoration: underline; }
   <h2>Meta-evaluation</h2>
   <div class="card">
     <p style="margin:0 0 12px 0;">
-      This section evaluates <strong>17 metrics</strong> across 5 categories to measure <strong>how reliable each unlearning metric is</strong>, using the Open-Unlearning benchmark framework.
+      This section evaluates <strong>13 metrics</strong> (+ 4 normalized MIA variants) across 5 categories to measure <strong>how reliable each unlearning metric is</strong>, using the Open-Unlearning benchmark framework.
     </p>
     <p style="margin:0 0 12px 0;">
       <strong>Faithfulness</strong>: How well each metric separates knowledge-present (P, 30 models) vs knowledge-absent (N, 30 models), measured by AUC-ROC.<br>
@@ -186,7 +186,7 @@ button.toggle-btn:hover { text-decoration: underline; }
     </p>
 
     <div class="formula-box" style="margin:0 0 14px 0;">
-      <div><strong>Metric Categories (17 total)</strong></div>
+      <div><strong>Metric Categories (13 + 4 normalized)</strong></div>
 
       <div style="margin-top:10px;">
         <strong>Memorization</strong> (5) &mdash; Does the model still retain memorized target knowledge?<br>

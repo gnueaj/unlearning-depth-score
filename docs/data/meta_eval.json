@@ -268,7 +268,7 @@
     "overall": "HM(Faithfulness, Robustness)"
   },
   "notes": {
-    "robustness_policy": "R & Q computed on utility+faithfulness filtered models; raw metric values for standard metrics; 1-UDS and 1-s_mia for inverted metrics; 17 total metrics (13 standard + 4 normalized MIA)",
+    "robustness_policy": "R & Q computed on utility+faithfulness filtered models; raw metric values for standard metrics; 1-UDS and 1-s_mia for inverted metrics; 13 metrics + 4 normalized MIA variants",
     "robustness_source": "runs/meta_eval/robustness/{quant,relearn}/plots/*_robustness_results.json"
   }
 }

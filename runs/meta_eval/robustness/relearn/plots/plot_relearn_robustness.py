@@ -2,7 +2,7 @@
 """
 Create scatter plots for relearning robustness analysis (Figure 9 style).
 Uses usable_models.json for per-metric filtering.
-17 metrics: 12 standard + 4 sMIA (normalized) + UDS.
+13 metrics (+ 4 normalized MIA variants).
 
 R formula (Eq. 2):
   r = (m^a_ret - m^b_ret) / (m^a_unl - m^b_unl)
@@ -114,7 +114,7 @@ def main():
         relearn_data = json.load(f)
     relearn_models = set(relearn_data.keys()) - {'retain'}
 
-    # 17 metrics: rows 1-3 standard (12), row 4 sMIA (4), row 5 UDS centered
+    # 13 metrics + 4 normalized MIA: rows 0-2 standard (12), row 3 sMIA (4), row 4 UDS centered
     metrics = [
         'em', 'es', 'truth_ratio', 'prob',
         'rouge', 'jailbreak_rouge', 'paraprob', 'para_rouge',
@@ -322,7 +322,7 @@ def main():
         ]
         ax.legend(handles=local_handles, loc='lower right', fontsize=7, framealpha=0.95)
 
-    fig.suptitle(f'Relearning Robustness (17 Metrics)\n(150 Unlearned Models; {filter_label})',
+    fig.suptitle(f'Relearning Robustness (13 Metrics + 4 Normalized MIA)\n(150 Unlearned Models; {filter_label})',
                  fontsize=14, fontweight='normal', y=0.97)
     fig.subplots_adjust(left=0.035, right=0.995, bottom=0.03, top=0.92, wspace=0.01, hspace=0.48)
     plt.savefig(output_dir / plot_name, dpi=150, bbox_inches='tight')

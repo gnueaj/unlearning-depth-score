@@ -165,11 +165,11 @@ Q = min(before / after, 1)
 ### Current Paths
 - S1 cache (eager): `runs/meta_eval/s1_cache_v2.json` (367 examples)
 - S1 cache (sdpa): `runs/meta_eval/s1_cache_sdpa.json` (367 examples)
-- Faithfulness (17 metrics): `runs/meta_eval/faithfulness/results.json`, `summary.json`
+- Faithfulness (13 metrics + 4 normalized MIA): `runs/meta_eval/faithfulness/results.json`, `summary.json`
 - Faithfulness UDS: `runs/meta_eval/faithfulness/uds_v2.json` (AUC: 0.973)
-- Robustness (17 metrics): `runs/meta_eval/robustness/{quant,relearn}/results.json`
+- Robustness (13 metrics + 4 normalized MIA): `runs/meta_eval/robustness/{quant,relearn}/results.json`
 - Robustness plots: `runs/meta_eval/robustness/{quant,relearn}/plots/`
-- Dashboard data: `docs/data/meta_eval.json` (17 metrics)
+- Dashboard data: `docs/data/meta_eval.json` (13 + 4 normalized)
 
 ### Normalized MIA (s_mia) Metrics
 - Formula: `s_mia = clip(1 - |auc_model - auc_retain| / |auc_full - auc_retain|, 0, 1)`
@@ -269,10 +269,10 @@ Before publishing numbers:
 
 ## Recent Updates (2026-02-09)
 - **Robustness 실험 완료**: quant (GPU 0) + relearn (GPU 1), 150 unlearned + 1 retain, 배치 2회 실행
-- **Normalized MIA (s_mia) 4개 추가**: 기존 13 → 17 metrics for faithfulness & robustness
+- **Normalized MIA (s_mia) 4개 추가**: 기존 13 metrics + 4 normalized MIA variants for faithfulness & robustness
   - s_mia는 raw MIA AUC를 retain/full 기준으로 정규화한 값 (post-hoc 계산, 실험 재실행 불필요)
   - Robustness plot scripts에서 on-the-fly 계산 (batch 실험 프로세스가 results.json 덮어쓰는 문제 방지)
-- **`docs/data/meta_eval.json` 업데이트**: 17 metrics (13 standard + 4 mia_normalized), HM(R,Q) aggregation
+- **`docs/data/meta_eval.json` 업데이트**: 13 metrics + 4 normalized MIA, HM(R,Q) aggregation
 - **Faithfulness plot v2**: 5행 레이아웃 (`plot_histograms_v2.py`), row 4 = normalized MIA, row 5 = UDS centered
-- **Robustness plots**: 5행 레이아웃 (`plot_{quant,relearn}_robustness.py`), 17 metrics scatter plots
+- **Robustness plots**: 5행 레이아웃 (`plot_{quant,relearn}_robustness.py`), 13+4 scatter plots
 - **UDS 버그 패치**: `undial_lr3e4_b10_a5_ep5` metrics_before.uds = 0 → 0.8708 (quant/relearn 모두)
