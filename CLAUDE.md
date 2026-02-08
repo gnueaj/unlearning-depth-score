@@ -131,7 +131,8 @@ Q = min(before / after, 1)
 
 #### Direction Policy
 - **대부분 metrics**: 높은 값 = 지식 있음 → raw values 사용
-- **UDS만**: 높은 값 = 지식 없음 → `m = 1 - uds`로 변환 후 사용
+- **UDS**: 높은 값 = 지식 없음 → `m = 1 - uds`로 변환 후 사용
+- **s_mia_***: 높은 값 = 지식 없음 → `m = 1 - s_mia`로 변환 후 사용 (UDS와 동일)
 
 #### Attack Settings (Appendix E.2)
 - **Relearning**: `lr=2e-5`, `batch_size=8`, `grad_accum=4` (effective=32), `epochs=1`
@@ -162,15 +163,28 @@ Q = min(before / after, 1)
 - 모든 메트릭 통과 모델: 4개 (altpo/npo, lr=5e-5, ep10)
 
 ### Current Paths
-- S1 cache: `runs/meta_eval/s1_cache_v2.json` (367 examples, **eager** attention)
-- Faithfulness (12 metrics): `runs/meta_eval/faithfulness/results.json`, `summary.json`
+- S1 cache (eager): `runs/meta_eval/s1_cache_v2.json` (367 examples)
+- S1 cache (sdpa): `runs/meta_eval/s1_cache_sdpa.json` (367 examples)
+- Faithfulness (17 metrics): `runs/meta_eval/faithfulness/results.json`, `summary.json`
 - Faithfulness UDS: `runs/meta_eval/faithfulness/uds_v2.json` (AUC: 0.973)
-- Robustness: `runs/meta_eval/robustness/{quant,relearn}/results.json`
+- Robustness (17 metrics): `runs/meta_eval/robustness/{quant,relearn}/results.json`
+- Robustness plots: `runs/meta_eval/robustness/{quant,relearn}/plots/`
+- Dashboard data: `docs/data/meta_eval.json` (17 metrics)
+
+### Normalized MIA (s_mia) Metrics
+- Formula: `s_mia = clip(1 - |auc_model - auc_retain| / |auc_full - auc_retain|, 0, 1)`
+- Reference values from `runs/ep10/privacy/{retain,full}/summary.json` (privacy_eval.py pipeline)
+- 4 metrics: s_mia_loss, s_mia_zlib, s_mia_min_k, s_mia_min_kpp
+- Direction: higher s_mia = less knowledge (like UDS)
+- Post-hoc script: `scripts/add_smia_metric.py` (for faithfulness results.json)
+- Robustness plot scripts compute s_mia on-the-fly from raw MIA AUC (no pre-computation needed)
+- Usable model filtering: sMIA uses same filter as corresponding raw MIA metric
 
 ### Notes
 - Faithfulness: **eager** attention (s1_cache_v2.json 사용)
-- Robustness: **sdpa** attention 필요 (ep5/ep10과 일관성) - 별도 캐시 생성 필요
+- Robustness: **sdpa** attention (s1_cache_sdpa.json 사용, ep5/ep10과 일관성)
 - Retain model's UDS should be exactly 1.0
+- `undial_lr3e4_b10_a5_ep5` UDS bug: metrics_before에서 uds=0으로 기록됨 → 0.8708로 post-hoc 패치 완료
 
 ## Operational Notes
 - **절대 CUDA_VISIBLE_DEVICES 환경변수 사용하지 말 것** → 스크립트의 `--gpu` 인자 사용
@@ -187,7 +201,8 @@ Q = min(before / after, 1)
 - **S1 cache**: `runs/meta_eval/s1_cache_sdpa.json` (sdpa attention)
 - **Attention**: `--attn_implementation sdpa` (ep5/ep10 metrics와 일관성)
 - **Precomputed metrics_before**: `runs/method_eval/metrics_before.json` (151 models)
-- **13 Metrics**: em, es, prob, paraprob, truth_ratio, rouge, para_rouge, jailbreak_rouge, mia_loss, mia_zlib, mia_min_k, mia_min_kpp, uds
+- **13 base metrics**: em, es, prob, paraprob, truth_ratio, rouge, para_rouge, jailbreak_rouge, mia_loss, mia_zlib, mia_min_k, mia_min_kpp, uds
+- **+4 derived (post-hoc)**: s_mia_loss, s_mia_zlib, s_mia_min_k, s_mia_min_kpp (computed on-the-fly in plot scripts)
 
 #### Quant (GPU 0)
 ```bash
@@ -251,3 +266,13 @@ Before publishing numbers:
 - `usable_models.json` now records explicit provenance (`data_sources`, `provenance`) and per-metric usable counts.
 - In baseline references, `full`/`retain` values in `docs/data/method_results.json` are ep10-based.
 - Kept only ep10 baseline dirs for `full`/`retain` under `runs/ep10/{utility,memorization,privacy}`.
+
+## Recent Updates (2026-02-09)
+- **Robustness 실험 완료**: quant (GPU 0) + relearn (GPU 1), 150 unlearned + 1 retain, 배치 2회 실행
+- **Normalized MIA (s_mia) 4개 추가**: 기존 13 → 17 metrics for faithfulness & robustness
+  - s_mia는 raw MIA AUC를 retain/full 기준으로 정규화한 값 (post-hoc 계산, 실험 재실행 불필요)
+  - Robustness plot scripts에서 on-the-fly 계산 (batch 실험 프로세스가 results.json 덮어쓰는 문제 방지)
+- **`docs/data/meta_eval.json` 업데이트**: 17 metrics (13 standard + 4 mia_normalized), HM(R,Q) aggregation
+- **Faithfulness plot v2**: 5행 레이아웃 (`plot_histograms_v2.py`), row 4 = normalized MIA, row 5 = UDS centered
+- **Robustness plots**: 5행 레이아웃 (`plot_{quant,relearn}_robustness.py`), 17 metrics scatter plots
+- **UDS 버그 패치**: `undial_lr3e4_b10_a5_ep5` metrics_before.uds = 0 → 0.8708 (quant/relearn 모두)

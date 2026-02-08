@@ -61,6 +61,26 @@
       "category": "mia"
     },
     {
+      "key": "s_mia_loss",
+      "label": "MIA-LOSS (normalized)",
+      "category": "mia_normalized"
+    },
+    {
+      "key": "s_mia_min_k",
+      "label": "MIA-MinK (normalized)",
+      "category": "mia_normalized"
+    },
+    {
+      "key": "s_mia_min_kpp",
+      "label": "MIA-MinK++ (normalized)",
+      "category": "mia_normalized"
+    },
+    {
+      "key": "s_mia_zlib",
+      "label": "MIA-ZLib (normalized)",
+      "category": "mia_normalized"
+    },
+    {
       "key": "uds",
       "label": "UDS (Ours)",
       "category": "ours"
@@ -128,76 +148,116 @@
       "n_mean": 0.502
     },
     "uds": {
-      "auc_roc": 0.973,
+      "auc_roc": 0.971,
       "p_mean": 0.486,
-      "n_mean": 0.858
+      "n_mean": 0.852
+    },
+    "s_mia_loss": {
+      "auc_roc": 0.891,
+      "p_mean": 0.46,
+      "n_mean": 0.882
+    },
+    "s_mia_min_k": {
+      "auc_roc": 0.891,
+      "p_mean": 0.453,
+      "n_mean": 0.884
+    },
+    "s_mia_min_kpp": {
+      "auc_roc": 0.799,
+      "p_mean": 0.578,
+      "n_mean": 0.88
+    },
+    "s_mia_zlib": {
+      "auc_roc": 0.87,
+      "p_mean": 0.489,
+      "n_mean": 0.886
     }
   },
   "robustness": {
     "em": {
-      "relearning": 0.37914933139894264,
-      "quantization": 0.9753035706672853,
-      "agg": 0.5460296126434397
+      "relearning": 0.4485,
+      "quantization": 0.9829,
+      "agg": 0.6159
     },
     "es": {
-      "relearning": 0.5472181056107149,
-      "quantization": 0.9899233593039346,
-      "agg": 0.7048199502030511
+      "relearning": 0.6624,
+      "quantization": 0.9743,
+      "agg": 0.7886
     },
     "prob": {
-      "relearning": 0.5122226723600207,
-      "quantization": 0.9835349674495442,
-      "agg": 0.6736237154712743
+      "relearning": 0.4937,
+      "quantization": 0.8726,
+      "agg": 0.6306
     },
     "paraprob": {
-      "relearning": 0.863876873931187,
-      "quantization": 0.9869876031144397,
-      "agg": 0.921337867533473
+      "relearning": 0.8492,
+      "quantization": 0.7652,
+      "agg": 0.805
     },
     "truth_ratio": {
-      "relearning": 0.11938483222835289,
-      "quantization": 0.999349071205699,
-      "agg": 0.2132895424680149
+      "relearning": 0.1344,
+      "quantization": 0.9922,
+      "agg": 0.2367
     },
     "rouge": {
-      "relearning": 0.16459978566907732,
-      "quantization": 0.971186851420958,
-      "agg": 0.28149150970481723
+      "relearning": 0.1216,
+      "quantization": 0.9122,
+      "agg": 0.2146
     },
     "para_rouge": {
-      "relearning": 0.09353750416000904,
-      "quantization": 0.9719115328094796,
-      "agg": 0.1706513890179261
+      "relearning": 0.0366,
+      "quantization": 0.9375,
+      "agg": 0.0704
     },
     "jailbreak_rouge": {
-      "relearning": 0.2706766891791579,
-      "quantization": 0.9474397706422809,
-      "agg": 0.4210596749537491
+      "relearning": 0.1266,
+      "quantization": 0.9864,
+      "agg": 0.2244
     },
     "mia_loss": {
-      "relearning": 0.42406415977514916,
-      "quantization": 0.9704633481639676,
-      "agg": 0.590219586187895
+      "relearning": 0.3551,
+      "quantization": 0.885,
+      "agg": 0.5068
     },
     "mia_zlib": {
-      "relearning": 0.38836584515823586,
-      "quantization": 0.9977990530699169,
-      "agg": 0.5591125169002861
+      "relearning": 0.3259,
+      "quantization": 0.888,
+      "agg": 0.4768
     },
     "mia_min_k": {
-      "relearning": 0.41020211926397365,
-      "quantization": 0.9633418625951331,
-      "agg": 0.575394568839896
+      "relearning": 0.3673,
+      "quantization": 0.8652,
+      "agg": 0.5157
     },
     "mia_min_kpp": {
-      "relearning": 0.27407474942434434,
-      "quantization": 0.987072753719237,
-      "agg": 0.4290247048261372
+      "relearning": 0.2776,
+      "quantization": 0.8036,
+      "agg": 0.4127
     },
     "uds": {
-      "relearning": 0.8303425267918566,
-      "quantization": 0.9681856546979476,
-      "agg": 0.8939817915553515
+      "relearning": 0.9574,
+      "quantization": 0.9745,
+      "agg": 0.9659
+    },
+    "s_mia_loss": {
+      "relearning": 0.4576,
+      "quantization": 0.8151,
+      "agg": 0.5861
+    },
+    "s_mia_min_k": {
+      "relearning": 0.4737,
+      "quantization": 0.7974,
+      "agg": 0.5943
+    },
+    "s_mia_min_kpp": {
+      "relearning": 0.5152,
+      "quantization": 0.9458,
+      "agg": 0.667
+    },
+    "s_mia_zlib": {
+      "relearning": 0.5455,
+      "quantization": 0.8305,
+      "agg": 0.6585
     }
   },
   "formulas": {
@@ -208,7 +268,7 @@
     "overall": "HM(Faithfulness, Robustness)"
   },
   "notes": {
-    "robustness_policy": "R & Q: utility+faithfulness-threshold filters; raw metric values for all Open-Unlearning metrics; UDS only is mapped as 1-UDS",
-    "robustness_source": "runs/meta_eval/robustness_parallel/recomputed_direction_fixed/summary.json"
+    "robustness_policy": "R & Q computed on utility+faithfulness filtered models; raw metric values for standard metrics; 1-UDS and 1-s_mia for inverted metrics; 17 total metrics (13 standard + 4 normalized MIA)",
+    "robustness_source": "runs/meta_eval/robustness/{quant,relearn}/plots/*_robustness_results.json"
   }
 }

@@ -117,6 +117,7 @@ for i, metric in enumerate(METRICS_12):
         ax.set_title(f'{METRIC_NAMES.get(metric, metric)}\nAUC: {auc:.3f}')
         ax.set_ylabel('Count')
         ax.yaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.grid(True, linestyle='-', linewidth=0.45, alpha=0.25)
         ax.legend(fontsize=8)
 
 # Hide all of row 4
@@ -168,6 +169,7 @@ if len(p_scores) > 0 and len(n_scores) > 0:
     ax_uds.set_title(f'1-UDS (Ours)\nAUC: {auc:.3f}', fontweight='bold')
     ax_uds.set_ylabel('Count')
     ax_uds.yaxis.set_major_locator(MaxNLocator(integer=True))
+    ax_uds.grid(True, linestyle='-', linewidth=0.45, alpha=0.25)
     ax_uds.legend(fontsize=8)
 
 plt.suptitle('Faithfulness: P/N Pool Score Distributions (13 Metrics)\n60 models (30 P + 30 N)', fontsize=14)

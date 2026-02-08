@@ -37,6 +37,7 @@ import argparse
 import shutil
 import time
 import gc
+import subprocess
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
@@ -452,6 +453,59 @@ def finetune_on_forget10(model, tokenizer, output_dir: str, lr: float = 2e-5, ep
     return output_dir
 
 
+def finetune_in_subprocess(
+    model_id: str,
+    output_dir: str,
+    gpu: int,
+    lr: float = 2e-5,
+    epochs: int = 1,
+    batch_size: int = 8,
+    grad_accum: int = 4,
+    system_prompt: str = "You are a helpful assistant.",
+    attn_implementation: str = "sdpa",
+) -> bool:
+    """Run finetuning in a separate process to avoid GPU memory leaks.
+
+    Returns True if finetuning succeeded (output_dir contains model files).
+    """
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    script = f'''
+import os, sys
+os.environ["CUDA_VISIBLE_DEVICES"] = "{gpu}"
+sys.path.insert(0, "{repo_root}")
+
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("{model_id}")
+if tokenizer.pad_token is None:
+    tokenizer.pad_token = tokenizer.eos_token
+model = AutoModelForCausalLM.from_pretrained(
+    "{model_id}", torch_dtype=torch.bfloat16, device_map="cuda",
+    attn_implementation="{attn_implementation}",
+)
+
+from scripts.meta_eval_robustness import finetune_on_forget10
+finetune_on_forget10(
+    model, tokenizer, "{output_dir}",
+    lr={lr}, epochs={epochs}, batch_size={batch_size},
+    grad_accum={grad_accum}, system_prompt="{system_prompt}",
+)
+print("FINETUNE_SUCCESS")
+'''
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        capture_output=True, text=True, timeout=600,
+        cwd=repo_root,
+    )
+    success = "FINETUNE_SUCCESS" in result.stdout
+    if not success:
+        print(f"  Subprocess finetune FAILED:")
+        print(f"  stdout: {result.stdout[-500:]}")
+        print(f"  stderr: {result.stderr[-500:]}")
+    return success
+
+
 # ============================================================================
 # Metric computation
 # ============================================================================
@@ -724,13 +778,11 @@ def main():
                 free_memory()
 
             else:  # relearn
-                # Load model for finetuning
-                print("  Loading model...")
-                model = load_model(model_id, dtype="bfloat16", device_map="cuda",
-                                   attn_implementation=args.attn_implementation)
-
                 # Compute metrics_before if not available
                 if "metrics_before" not in results[name]:
+                    print("  Loading model for metrics_before...")
+                    model = load_model(model_id, dtype="bfloat16", device_map="cuda",
+                                       attn_implementation=args.attn_implementation)
                     print("  Computing metrics (before)...")
                     scores_before = compute_all_metrics(
                         model, tokenizer, full_model, prepared_uds, s1_cache,
@@ -738,19 +790,21 @@ def main():
                     )
                     results[name]["metrics_before"] = scores_before
                     results_path.write_text(json.dumps(results, indent=2))
+                    del model
+                    free_memory()
 
-                # Finetune on forget10
-                print("  Finetuning on forget10...")
+                # Finetune on forget10 in subprocess (prevents GPU memory leak)
+                print("  Finetuning on forget10 (subprocess)...")
                 ft_dir = Path(args.out_dir) / f"ft_{name}"
-                finetune_on_forget10(
-                    model, tokenizer, str(ft_dir),
+                ft_ok = finetune_in_subprocess(
+                    model_id, str(ft_dir), gpu=args.gpu,
                     lr=args.relearn_lr, epochs=args.relearn_epochs,
                     batch_size=args.batch_size, grad_accum=args.grad_accum,
                     system_prompt=args.system_prompt,
+                    attn_implementation=args.attn_implementation,
                 )
-
-                del model
-                free_memory()
+                if not ft_ok:
+                    raise RuntimeError("Subprocess finetuning failed")
 
                 # Load finetuned model and compute metrics
                 print("  Loading finetuned model...")
