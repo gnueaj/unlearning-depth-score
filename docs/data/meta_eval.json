@@ -62,22 +62,22 @@
     },
     {
       "key": "s_mia_loss",
-      "label": "MIA-LOSS (normalized)",
+      "label": "s_LOSS",
       "category": "mia_normalized"
     },
     {
       "key": "s_mia_min_k",
-      "label": "MIA-MinK (normalized)",
+      "label": "s_Min-K",
       "category": "mia_normalized"
     },
     {
       "key": "s_mia_min_kpp",
-      "label": "MIA-MinK++ (normalized)",
+      "label": "s_Min-K++",
       "category": "mia_normalized"
     },
     {
       "key": "s_mia_zlib",
-      "label": "MIA-ZLib (normalized)",
+      "label": "s_ZLib",
       "category": "mia_normalized"
     },
     {
@@ -264,7 +264,7 @@
     "faithfulness": "AUC-ROC over P (30 with knowledge) vs N (30 without) pool",
     "robustness": "HM(Relearning, Quantization)",
     "relearning": "min(\u0394_retain / \u0394_unlearn, 1) after 1-epoch relearning",
-    "quantization": "min(m_after / m_before, 1) after 4-bit NF4 quantization",
+    "quantization": "min(m_before / m_after, 1) after 4-bit NF4 quantization",
     "overall": "HM(Faithfulness, Robustness)"
   },
   "notes": {

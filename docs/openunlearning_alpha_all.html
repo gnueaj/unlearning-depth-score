@@ -178,12 +178,57 @@ button.toggle-btn:hover { text-decoration: underline; }
   <h2>Meta-evaluation</h2>
   <div class="card">
     <p style="margin:0 0 12px 0;">
-      This section evaluates <strong>13 metrics</strong> to measure <strong>how reliable each unlearning metric is</strong> using the Open-Unlearning benchmark framework.
+      This section evaluates <strong>17 metrics</strong> across 5 categories to measure <strong>how reliable each unlearning metric is</strong>, using the Open-Unlearning benchmark framework.
     </p>
     <p style="margin:0 0 12px 0;">
       <strong>Faithfulness</strong>: How well each metric separates knowledge-present (P, 30 models) vs knowledge-absent (N, 30 models), measured by AUC-ROC.<br>
-      <strong>Robustness</strong>: Stability of each metric under post-hoc perturbations (quantization, relearning).
+      <strong>Robustness</strong>: Stability of each metric under post-hoc perturbations (4-bit quantization, 1-epoch relearning).
     </p>
+
+    <div class="formula-box" style="margin:0 0 14px 0;">
+      <div><strong>Metric Categories (17 total)</strong></div>
+
+      <div style="margin-top:10px;">
+        <strong>Memorization</strong> (5) &mdash; Does the model still retain memorized target knowledge?<br>
+        <code>ES</code> (Extraction Strength) &mdash; fraction of answer suffix extractable via greedy decoding. <span class="sub-formula">1 &minus; k/T, k = earliest match position (Carlini et al., 2021)</span><br>
+        <code>EM</code> (Exact Memorization) &mdash; token-level position match ratio. <span class="sub-formula">&Sigma; &Iopf;(pred<sub>t</sub> = label<sub>t</sub>) / T &ensp;(continuous [0,1]; Tirumala et al., 2022)</span><br>
+        <code>Prob</code> &mdash; geometric mean of per-token probabilities. <span class="sub-formula">exp(&minus;(1/T) &Sigma; CE<sub>t</sub>)</span><br>
+        <code>ParaProb</code> &mdash; geometric mean of Prob across paraphrased versions of the target.<br>
+        <code>Truth Ratio</code> &mdash; normalized correct vs. incorrect probability. <span class="sub-formula">p<sub>c</sub> / (p<sub>c</sub> + p<sub>w</sub> + &epsilon;), &ensp;p = exp(&minus;avg loss)</span>
+      </div>
+
+      <div style="margin-top:10px;">
+        <strong>Generation</strong> (3) &mdash; Can the model reproduce target knowledge in free-form text?<br>
+        ROUGE-L recall between model generation and ground-truth answer under different prompting strategies.<br>
+        <code>ROUGE</code> standard prompt &middot;
+        <code>Para. ROUGE</code> paraphrased prompt &middot;
+        <code>Jailbreak ROUGE</code> adversarial prompt (prefixed with &ldquo;Sure, here is the answer:&rdquo;)
+      </div>
+
+      <div style="margin-top:10px;">
+        <strong>MIA</strong> (4) &mdash; Membership Inference Attack (raw AUC).<br>
+        Per-sample score for member vs. non-member classification; reported as AUC-ROC.<br>
+        <code>MIA-LOSS</code> &mdash; average cross-entropy. <span class="sub-formula">(1/T) &Sigma; CE<sub>t</sub></span><br>
+        <code>MIA-ZLib</code> &mdash; loss normalized by compression length. <span class="sub-formula">avg_loss / len(zlib(text))</span><br>
+        <code>MIA-Min-K</code> &mdash; mean of the bottom-k% log-probs. <span class="sub-formula">&minus;mean(sorted(log p<sub>t</sub>)[:&lceil;kT&rceil;]), k=0.4</span><br>
+        <code>MIA-Min-K++</code> &mdash; standardized Min-K. <span class="sub-formula">z<sub>t</sub> = (log p<sub>t</sub> &minus; &mu;<sub>t</sub>) / &sigma;<sub>t</sub>, then min-k selection</span>
+      </div>
+
+      <div style="margin-top:10px;">
+        <strong>Normalized MIA</strong> (4, denoted s<sub>*</sub>) &mdash; MIA rescaled to [0, 1] using retain/full as anchors.<br>
+        <span class="sub-formula">clip(1 &minus; |AUC<sub>model</sub> &minus; AUC<sub>retain</sub>| / |AUC<sub>full</sub> &minus; AUC<sub>retain</sub>|, 0, 1)</span><br>
+        <span class="sub-formula">1.0 = indistinguishable from retain (knowledge erased) &middot; 0.0 = same as full (knowledge intact)</span><br>
+        s<sub>LOSS</sub> &middot; s<sub>ZLib</sub> &middot; s<sub>Min-K</sub> &middot; s<sub>Min-K++</sub>
+      </div>
+
+      <div style="margin-top:10px;">
+        <strong>UDS (Ours)</strong> (1) &mdash; Output suppression &ne; knowledge erasure. UDS measures whether knowledge remains recoverable from internal representations via activation patching.<br>
+        <span class="sub-formula">&Delta;<sup>S1</sup><sub>l</sub> = logprob drop patching retain &rarr; full (baseline gap) &ensp;&middot;&ensp; &Delta;<sup>S2</sup><sub>l</sub> = logprob drop patching unlearned &rarr; full (test gap)</span><br>
+        <span class="sub-formula">FT = { l : &Delta;<sup>S1</sup><sub>l</sub> &gt; &tau; } (&tau;=0.05) &ensp;&middot;&ensp; UDS<sub>i</sub> = &Sigma;<sub>l&isin;FT</sub> [&Delta;<sup>S1</sup><sub>l</sub> &middot; clip(&Delta;<sup>S2</sup><sub>l</sub>/&Delta;<sup>S1</sup><sub>l</sub>, 0, 1)] / &Sigma;<sub>l&isin;FT</sub> &Delta;<sup>S1</sup><sub>l</sub></span><br>
+        <span class="sub-formula">UDS = (1/N) &Sigma;<sub>i</sub> UDS<sub>i</sub> (N=367) &ensp;&middot;&ensp; 1.0 = complete erasure &middot; 0.0 = knowledge intact</span>
+      </div>
+    </div>
+
     <p id="meta_eval_summary" style="margin:0 0 12px 0; padding:8px 12px; background:#fffde7; border-radius:4px;">
       <strong>Meta-evaluation summary:</strong> loading...
     </p>
@@ -194,10 +239,10 @@ button.toggle-btn:hover { text-decoration: underline; }
       </div>
       <div style="margin-top:8px;">
         <code>Robustness</code> = HM(Quantization, Relearning)<br>
-        <span class="sub-formula"><code>Quantization</code> = min(m<sub>after</sub> / m<sub>before</sub>, 1)</span><br>
-        <span class="sub-formula"><code>Relearning</code> = min((m<sub>ret,before</sub> - m<sub>ret,after</sub>) / (m<sub>unl,before</sub> - m<sub>unl,after</sub>), 1)</span><br>
-        <span class="sub-formula">Direction handling: raw metric values for all metrics; UDS only uses m = 1 - UDS.</span><br>
-        <span class="sub-formula">Filtering policy: utility (≥0.8) + faithfulness-threshold filtering applied to both.</span>
+        <span class="sub-formula"><code>Quantization (Q)</code> = min(m<sub>before</sub> / m<sub>after</sub>, 1) &mdash; Q &asymp; 1 means metric stays stable after 4-bit quantization</span><br>
+        <span class="sub-formula"><code>Relearning (R)</code> = min(&Delta;<sub>retain</sub> / &Delta;<sub>unlearn</sub>, 1) &mdash; R &asymp; 1 means metric doesn't recover after 1-epoch fine-tuning</span><br>
+        <span class="sub-formula">Direction: raw values for standard metrics; m = 1 &minus; value for UDS and s<sub>*</sub> (inverted direction).</span><br>
+        <span class="sub-formula">Filtering: utility &ge; 0.8 + per-metric faithfulness-threshold (150 models &rarr; per-metric filtered subset).</span>
       </div>
       <div style="margin-top:8px;">
         <code>Overall</code> = HM(Faithfulness, Robustness)
@@ -231,7 +276,8 @@ button.toggle-btn:hover { text-decoration: underline; }
   <h2>Method-level Results</h2>
   <div class="card">
     <p style="margin:0 0 12px 0;">
-      This section evaluates <strong><span id="model_total_count">152</span> models</strong> (8 methods × varying hyperparameters × 2 epochs + full + retain) across three axes.
+      This section evaluates <strong><span id="model_total_count">152</span> models</strong> (8 methods &times; varying hyperparameters &times; 2 epochs + full + retain) across three axes.
+      All unlearned model checkpoints are from the <a href="https://github.com/locuslab/open-unlearning" target="_blank" style="color:#0366d6;">Open-Unlearning</a> framework.
     </p>
     <p style="margin:0 0 12px 0;">
       <strong>Memorization</strong>: How much target knowledge was forgotten. <span class="higher-better">(↑ higher = more forgotten)</span><br>
@@ -251,8 +297,8 @@ button.toggle-btn:hover { text-decoration: underline; }
       </div>
       <div style="margin-top:10px;">
         <strong>Privacy:</strong><br>
-        <code>MIA</code> = HM(s<sub>LOSS</sub>, s<sub>ZLib</sub>, s<sub>Min-k</sub>, s<sub>Min-k++</sub>)<br>
-        <span class="sub-formula">s_* = 1 - |AUC<sub>model</sub> - AUC<sub>retain</sub>| / |AUC<sub>full</sub> - AUC<sub>retain</sub>| (closer to retain = higher)</span><br>
+        <code>MIA</code> = HM(s<sub>LOSS</sub>, s<sub>ZLib</sub>, s<sub>Min-K</sub>, s<sub>Min-K++</sub>)<br>
+        <span class="sub-formula">s<sub>*</sub> = normalized MIA scores (see Metric Categories above)</span><br>
         <code>Privacy</code> = HM(MIA, <span class="uds-highlight">UDS</span>)
       </div>
       <div style="margin-top:10px;">
@@ -386,7 +432,13 @@ function setupMetaSorting() {
     th.addEventListener('click', () => {
       const col = th.dataset.col;
       if (metaSort.col === col) {
-        metaSort.asc = !metaSort.asc;
+        if (metaSort.asc) {
+          // Third click: reset to default (no sort)
+          metaSort.col = null;
+          metaSort.asc = true;
+        } else {
+          metaSort.asc = true;
+        }
       } else {
         metaSort.col = col;
         metaSort.asc = false; // Default descending (higher is better)
@@ -394,7 +446,7 @@ function setupMetaSorting() {
       document.querySelectorAll('#meta_eval th.sortable').forEach(h => {
         h.classList.remove('sort-asc', 'sort-desc');
       });
-      th.classList.add(metaSort.asc ? 'sort-asc' : 'sort-desc');
+      if (metaSort.col) th.classList.add(metaSort.asc ? 'sort-asc' : 'sort-desc');
       renderMetaEval();
     });
   });
@@ -440,7 +492,8 @@ function renderMetaEval() {
     if (r.key === 'uds') classes.push('uds-row');
 
     const isUds = r.key === 'uds';
-    const label = isUds ? `<strong>${r.label}</strong>` : r.label;
+    let label = r.label.replace(/^s_(.+)$/, 's<sub>$1</sub>');
+    if (isUds) label = `<strong>${label}</strong>`;
 
     html += `<tr class="${classes.join(' ')}">
       <td>${label}</td>
@@ -454,20 +507,27 @@ function renderMetaEval() {
   body.innerHTML = html;
 
   // Dynamic summary (avoid stale hardcoded claims)
-  const faithPairs = rows
-    .filter(r => r.faith !== null && !isNaN(r.faith))
-    .sort((a, b) => b.faith - a.faith);
+  const overallPairs = rows
+    .filter(r => r.overall !== null && !isNaN(r.overall))
+    .sort((a, b) => b.overall - a.overall);
   const summaryEl = document.getElementById('meta_eval_summary');
-  if (faithPairs.length > 0) {
-    const top = faithPairs[0];
-    const second = faithPairs.length > 1 ? faithPairs[1] : null;
-    let msg = `<strong>Meta-evaluation summary:</strong> Highest Faithfulness is <span class="uds-highlight">${top.label} (${fmt(top.faith)} AUC-ROC)</span>.`;
-    if (second) {
-      msg += ` Second-highest is ${second.label} (${fmt(second.faith)}).`;
+  if (overallPairs.length > 0) {
+    const top = overallPairs[0];
+    const fmtLabel = s => s.replace(/^s_(.+)$/, 's<sub>$1</sub>');
+    let msg = `<strong>Meta-evaluation summary:</strong> <span class="uds-highlight">${fmtLabel(top.label)}</span> achieves the highest Overall score (<strong>${fmt(top.overall)}</strong>)`;
+    msg += ` &mdash; Faithfulness ${fmt(top.faith)}, Robustness ${fmt(top.rob)}`;
+    if (top.quant !== null && top.relearn !== null) {
+      msg += ` (Q=${fmt(top.quant)}, R=${fmt(top.relearn)})`;
+    }
+    msg += `.`;
+    if (overallPairs.length > 1) {
+      const sec = overallPairs[1];
+      const gap = (top.overall - sec.overall).toFixed(3);
+      msg += ` Second: ${fmtLabel(sec.label)} (${fmt(sec.overall)}, &Delta;=${gap}).`;
     }
     summaryEl.innerHTML = msg;
   } else {
-    summaryEl.innerHTML = "<strong>Meta-evaluation summary:</strong> Faithfulness values are not available yet.";
+    summaryEl.innerHTML = "<strong>Meta-evaluation summary:</strong> Overall values are not available yet.";
   }
 }
 
@@ -630,8 +690,8 @@ function renderMethodTable() {
             <h4>Privacy</h4>
             <div class="detail-item"><span class="label">s<sub>LOSS</sub></span><span class="value">${fmt(m.s_loss)}</span></div>
             <div class="detail-item"><span class="label">s<sub>ZLib</sub></span><span class="value">${fmt(m.s_zlib)}</span></div>
-            <div class="detail-item"><span class="label">s<sub>Min-k</sub></span><span class="value">${fmt(m.s_mink)}</span></div>
-            <div class="detail-item"><span class="label">s<sub>Min-k++</sub></span><span class="value">${fmt(m.s_minkpp)}</span></div>
+            <div class="detail-item"><span class="label">s<sub>Min-K</sub></span><span class="value">${fmt(m.s_mink)}</span></div>
+            <div class="detail-item"><span class="label">s<sub>Min-K++</sub></span><span class="value">${fmt(m.s_minkpp)}</span></div>
             <div class="detail-item summary">
               <span class="label">MIA</span><span class="value">${fmt(m.privacy_mia)}</span>
             </div>
