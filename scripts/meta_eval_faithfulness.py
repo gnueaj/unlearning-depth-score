@@ -203,12 +203,35 @@ def compute_s1_cache(full_model, retain_model, tokenizer, prepared,
 
 def compute_uds_for_model(source_model, full_model, tokenizer, prepared,
                           s1_cache, layer_list, delta_threshold, patch_scope,
-                          batch_size):
-    """Compute per-example UDS for a source model using cached S1 results."""
+                          batch_size, log_path=None, prefix_data=None,
+                          source_name="source"):
+    """Compute per-example UDS for a source model using cached S1 results.
+
+    Args:
+        log_path: If provided, write detailed per-example UDS logs to this file.
+        prefix_data: Original prefix data (needed for log_path to include Q/entity info).
+        source_name: Name of source model (for log headers).
+    """
     device = next(full_model.parameters()).device
     valid = [(i, p) for i, p in enumerate(prepared) if p is not None]
 
+    # Build idx→prefix_data lookup for logging
+    pd_lookup = {}
+    if log_path and prefix_data:
+        for item in prefix_data:
+            pd_lookup[item["idx"]] = item
+
+    log_file = None
+    if log_path:
+        from pathlib import Path
+        Path(log_path).parent.mkdir(parents=True, exist_ok=True)
+        log_file = open(log_path, "w")
+        log_file.write(f"UDS Detail Log: {source_name}\n")
+        log_file.write(f"Delta threshold: {delta_threshold}, Patch scope: {patch_scope}\n")
+        log_file.write(f"Examples: {len(valid)}\n\n")
+
     uds_values = []
+    example_count = 0
 
     for batch_start in range(0, len(valid), batch_size):
         batch = valid[batch_start:batch_start + batch_size]
@@ -240,10 +263,39 @@ def compute_uds_for_model(source_model, full_model, tokenizer, prepared,
 
             s1_deltas = entry["s1_deltas"]
             s1_status = entry["s1_status"]
+            s1_scores = entry.get("s1_scores", [None] * len(layer_list))
 
             ft_layer_indices = [li for li, st in enumerate(s1_status) if st == "LOST"]
+
+            # Logging
+            if log_file:
+                example_count += 1
+                log_file.write("=" * 80 + "\n")
+                pd_item = pd_lookup.get(idx, {})
+                log_file.write(f"[{example_count}/{len(valid)}] Example {idx}\n")
+                if pd_item:
+                    log_file.write(f"  Q: {pd_item.get('question', '')}\n")
+                    log_file.write(f"  Entity: {pd_item.get('gt_entity', pd_item.get('entity', ''))}\n")
+                log_file.write(f"  Full log-prob: {full_score:.3f}\n")
+                log_file.write("=" * 80 + "\n")
+                log_file.write(f"  {'Layer':<6} | {'S1 (Retain→Full)':<28} | {'S2 ({})→Full)'.format(source_name):<28}\n")
+                log_file.write(f"  {'------':<6} | {'-'*28} | {'-'*28}\n")
+                for li in range(len(layer_list)):
+                    s1_d = s1_deltas[li]
+                    s1_st = s1_status[li]
+                    s2_score = s2_scores_all[li][j]
+                    s2_d = full_score - s2_score
+                    s2_st = "LOST" if s2_d > delta_threshold else "KEPT"
+                    log_file.write(f"  L{li:02d}   | Δ={s1_d:.3f} [{s1_st}]" +
+                                   " " * (20 - len(f"Δ={s1_d:.3f} [{s1_st}]")) +
+                                   f" | logp={s2_score:.3f} Δ={s2_d:.3f} [{s2_st}]\n")
+                log_file.write(f"  {'------':<6} | {'-'*28} | {'-'*28}\n")
+                ft_str = ", ".join([str(layer_list[li]) for li in ft_layer_indices])
+                log_file.write(f"  FT layers (S1 LOST): [{ft_str}]\n")
+
             if not ft_layer_indices:
-                # No FT signal → UDS=None (skip for avg)
+                if log_file:
+                    log_file.write(f"  UDS = N/A (no FT layers)\n\n")
                 continue
 
             denom = 0.0
@@ -260,9 +312,21 @@ def compute_uds_for_model(source_model, full_model, tokenizer, prepared,
                 numer += d1 * ratio
 
             if denom > 0:
-                uds_values.append(numer / denom)
+                uds_val = numer / denom
+                uds_values.append(uds_val)
+                if log_file:
+                    log_file.write(f"  UDS = {uds_val:.3f}\n\n")
+            else:
+                if log_file:
+                    log_file.write(f"  UDS = N/A (denom=0)\n\n")
 
     avg_uds = sum(uds_values) / len(uds_values) if uds_values else 0.0
+
+    if log_file:
+        log_file.write("=" * 80 + "\n")
+        log_file.write(f"Average UDS: {avg_uds:.4f} ({len(uds_values)} examples)\n")
+        log_file.close()
+
     return avg_uds, uds_values
 
 
@@ -297,7 +361,7 @@ def main():
     parser.add_argument("--em_scope", type=str, default="entity")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out_dir", type=str, default=None)
-    parser.add_argument("--s1_cache_path", type=str, default="runs/meta_eval/s1_cache.json")
+    parser.add_argument("--s1_cache_path", type=str, default="runs/meta_eval/s1_cache_v2.json")
     parser.add_argument("--keep_cache", action="store_true",
                         help="Don't delete model caches after evaluation (uses ~2.4GB/model)")
     parser.add_argument("--dry_run", action="store_true",

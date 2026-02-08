@@ -60,6 +60,31 @@ from patchscope.meta_eval_utils import (
     compute_mia_metrics,
 )
 
+
+# Pre-computed metrics cache (loaded once)
+_PRECOMPUTED_METRICS: Optional[Dict[str, Dict[str, float]]] = None
+_PRECOMPUTED_PATH = Path("runs/method_eval/metrics_before.json")
+
+
+def load_precomputed_metrics(model_name: str) -> Optional[Dict[str, float]]:
+    """Load pre-computed metrics from runs/method_eval/metrics_before.json.
+
+    Returns dict with all 13 metrics, or None if not found.
+    """
+    global _PRECOMPUTED_METRICS
+
+    # Load cache on first call
+    if _PRECOMPUTED_METRICS is None:
+        if _PRECOMPUTED_PATH.exists():
+            with open(_PRECOMPUTED_PATH) as f:
+                _PRECOMPUTED_METRICS = json.load(f)
+            print(f"  [Cache] Loaded {len(_PRECOMPUTED_METRICS)} models from {_PRECOMPUTED_PATH}")
+        else:
+            _PRECOMPUTED_METRICS = {}
+            print(f"  [Cache] {_PRECOMPUTED_PATH} not found")
+
+    return _PRECOMPUTED_METRICS.get(model_name)
+
 # Import UDS computation utilities
 from exp_s1_teacher_forcing import load_prefix_data
 from scripts.meta_eval_faithfulness import (
@@ -286,13 +311,13 @@ def free_memory() -> None:
 # ============================================================================
 
 def load_model_quantized(model_id: str, device_map: str = "cuda"):
-    """Load a model with 4-bit quantization (default: FP4 + float32)."""
+    """Load a model with 4-bit quantization (NF4 + bfloat16 compute)."""
     from transformers import BitsAndBytesConfig, AutoModelForCausalLM
 
-    # Use Transformers default: FP4 + float32
-    # (load_in_4bit=True without explicit nf4/bfloat16)
     bnb_config = BitsAndBytesConfig(
         load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16,
     )
 
     model = AutoModelForCausalLM.from_pretrained(
@@ -418,6 +443,12 @@ def finetune_on_forget10(model, tokenizer, output_dir: str, lr: float = 2e-5, ep
     model.save_pretrained(output_dir)
     tokenizer.save_pretrained(output_dir)
 
+    # Aggressively free training state to prevent GPU/CPU memory leak
+    model.zero_grad(set_to_none=True)
+    del trainer, training_args, dataset, collator
+    gc.collect()
+    torch.cuda.empty_cache()
+
     return output_dir
 
 
@@ -435,6 +466,9 @@ def compute_all_metrics(
     mem_data,
     mia_data,
     args,
+    log_path=None,
+    prefix_data=None,
+    source_name="source",
 ) -> Dict[str, float]:
     """Compute all 13 metrics for a model."""
     scores = {}
@@ -444,7 +478,8 @@ def compute_all_metrics(
         avg_uds, uds_list = compute_uds_for_model(
             model, full_model, tokenizer, prepared_uds,
             s1_cache, layer_list, args.delta_threshold, args.patch_scope,
-            args.batch_size
+            args.eval_batch_size,
+            log_path=log_path, prefix_data=prefix_data, source_name=source_name,
         )
         scores["uds"] = avg_uds
 
@@ -453,7 +488,7 @@ def compute_all_metrics(
     if mem_metrics_needed:
         mem_scores = compute_mem_metrics(
             model, tokenizer, mem_data,
-            batch_size=args.batch_size,
+            batch_size=args.eval_batch_size,
             max_length=args.max_length,
             use_chat_template=True,
             system_prompt=args.system_prompt,
@@ -467,7 +502,7 @@ def compute_all_metrics(
     if gen_metrics_needed:
         gen_scores = compute_generation_metrics(
             model, tokenizer, mem_data,
-            batch_size=args.batch_size,
+            batch_size=args.eval_batch_size,
             max_length=args.max_length,
             max_new_tokens=args.max_new_tokens,
             use_chat_template=True,
@@ -483,7 +518,7 @@ def compute_all_metrics(
     if mia_metrics_needed:
         mia_scores = compute_mia_metrics(
             model, tokenizer, mia_data,
-            batch_size=args.batch_size,
+            batch_size=args.eval_batch_size,
             k=args.mia_k,
         )
         for k, v in mia_scores.items():
@@ -504,7 +539,9 @@ def main():
     parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--out_dir", type=str, default=None)
     parser.add_argument("--batch_size", type=int, default=8,
-                        help="Per-device batch size (default: 8, matching Open-Unlearning)")
+                        help="Per-device train batch size (default: 8, matching Open-Unlearning)")
+    parser.add_argument("--eval_batch_size", type=int, default=64,
+                        help="Eval batch size (default: 64)")
     parser.add_argument("--grad_accum", type=int, default=4,
                         help="Gradient accumulation steps (default: 4, effective batch=32)")
     parser.add_argument("--delta_threshold", type=float, default=0.05)
@@ -513,18 +550,24 @@ def main():
     parser.add_argument("--max_length", type=int, default=512)
     parser.add_argument("--max_new_tokens", type=int, default=200)
     parser.add_argument("--mia_k", type=float, default=0.4)
-    parser.add_argument("--system_prompt", type=str, default="You are a helpful assistant.")
-    parser.add_argument("--s1_cache_path", type=str, default="runs/meta_eval/s1_cache.json")
+    parser.add_argument("--system_prompt", type=str, default="")
+    parser.add_argument("--s1_cache_path", type=str, default="runs/meta_eval/s1_cache_sdpa.json")
     parser.add_argument("--relearn_lr", type=float, default=2e-5,
                         help="Relearning LR (default: 2e-5, from paper)")
     parser.add_argument("--relearn_epochs", type=int, default=1)
+    parser.add_argument("--attn_implementation", type=str, default="sdpa",
+                        help="Attention implementation: eager, sdpa, flash_attention_2")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--resume", type=str, default=None)
-    parser.add_argument("--clear_cache", action="store_true", default=True,
+    parser.add_argument("--clear_cache", action=argparse.BooleanOptionalAction, default=True,
                         help="Clear HF cache after each model to save disk space")
     parser.add_argument("--metrics", type=str, default="all",
                         help="Comma-separated metrics or 'all'")
     parser.add_argument("--dry_run", action="store_true")
+    parser.add_argument("--start_idx", type=int, default=0,
+                        help="Start index for model list (for parallel runs)")
+    parser.add_argument("--end_idx", type=int, default=None,
+                        help="End index for model list (for parallel runs)")
     args = parser.parse_args()
 
     # Parse metrics
@@ -537,7 +580,7 @@ def main():
     set_seed(args.seed)
 
     if args.out_dir is None:
-        args.out_dir = f"runs/robustness/{args.mode}"
+        args.out_dir = f"runs/meta_eval/robustness/{args.mode}"
     safe_mkdir(args.out_dir)
 
     print("=" * 70)
@@ -560,7 +603,8 @@ def main():
     # Load tokenizer and full model (needed for UDS)
     print("Loading tokenizer and full model...")
     tokenizer = load_tokenizer(TOFU_FULL_MODEL)
-    full_model = load_model(TOFU_FULL_MODEL, dtype="bfloat16", device_map="cuda")
+    full_model = load_model(TOFU_FULL_MODEL, dtype="bfloat16", device_map="cuda",
+                            attn_implementation=args.attn_implementation)
 
     # Prepare UDS data
     layer_list = list(range(16))
@@ -580,10 +624,11 @@ def main():
         s1_cache = {int(k): v for k, v in s1_cache.items()}
     else:
         print("S1 cache not found - will need retain model to compute")
-        retain_model = load_model(TOFU_RETAIN_MODEL, dtype="bfloat16", device_map="cuda")
+        retain_model = load_model(TOFU_RETAIN_MODEL, dtype="bfloat16", device_map="cuda",
+                                   attn_implementation=args.attn_implementation)
         s1_cache = compute_s1_cache(
             full_model, retain_model, tokenizer, prepared_uds,
-            layer_list, args.delta_threshold, args.patch_scope, args.batch_size
+            layer_list, args.delta_threshold, args.patch_scope, args.eval_batch_size
         )
         s1_cache_path.parent.mkdir(parents=True, exist_ok=True)
         s1_cache_path.write_text(json.dumps({str(k): v for k, v in s1_cache.items()}))
@@ -614,6 +659,11 @@ def main():
     # Process each model
     model_items = list(DEFAULT_MODELS.items())
 
+    # Apply index filtering for parallel runs
+    end_idx = args.end_idx if args.end_idx is not None else len(model_items)
+    model_items = model_items[args.start_idx:end_idx]
+    print(f"Processing models [{args.start_idx}:{end_idx}] ({len(model_items)} models)")
+
     for mi, (name, model_id) in enumerate(model_items):
         print(f"\n{'='*60}")
         print(f"[{mi+1}/{len(model_items)}] {name}")
@@ -632,34 +682,41 @@ def main():
         t0 = time.time()
 
         try:
-            # Load original model first (needed for both modes)
-            print("  Loading model...")
-            model = load_model(model_id, dtype="bfloat16", device_map="cuda")
-
-            # Compute metrics_before (needed for both Q and R calculations)
+            # Handle metrics_before (try pre-computed first)
             if "metrics_before" not in results[name]:
-                print("  Computing metrics (before)...")
-                scores_before = compute_all_metrics(
-                    model, tokenizer, full_model, prepared_uds, s1_cache,
-                    layer_list, mem_data, mia_data, args
-                )
-                results[name]["metrics_before"] = scores_before
-                # Save immediately
-                results_path.write_text(json.dumps(results, indent=2))
+                precomputed = load_precomputed_metrics(name)
+                if precomputed is not None:
+                    print("  Using pre-computed metrics (before)")
+                    results[name]["metrics_before"] = precomputed
+                    results_path.write_text(json.dumps(results, indent=2))
 
+            # For quant mode: only load quantized model if we have metrics_before
             if args.mode == "quant":
-                # Unload original model
-                del model
-                free_memory()
+                # If still no metrics_before, need to compute it
+                if "metrics_before" not in results[name]:
+                    print("  Loading model for metrics_before...")
+                    model = load_model(model_id, dtype="bfloat16", device_map="cuda",
+                                       attn_implementation=args.attn_implementation)
+                    print("  Computing metrics (before)...")
+                    scores_before = compute_all_metrics(
+                        model, tokenizer, full_model, prepared_uds, s1_cache,
+                        layer_list, mem_data, mia_data, args
+                    )
+                    results[name]["metrics_before"] = scores_before
+                    results_path.write_text(json.dumps(results, indent=2))
+                    del model
+                    free_memory()
 
                 # Load quantized model and compute metrics
                 print("  Loading quantized model...")
                 quant_model = load_model_quantized(model_id, device_map="cuda")
 
                 print("  Computing metrics (after quant)...")
+                uds_log = os.path.join(args.out_dir, "uds_logs", f"{name}.log")
                 scores = compute_all_metrics(
                     quant_model, tokenizer, full_model, prepared_uds, s1_cache,
-                    layer_list, mem_data, mia_data, args
+                    layer_list, mem_data, mia_data, args,
+                    log_path=uds_log, prefix_data=prefix_data, source_name=f"{name}_quant",
                 )
                 results[name]["metrics_after_quant"] = scores
 
@@ -667,6 +724,21 @@ def main():
                 free_memory()
 
             else:  # relearn
+                # Load model for finetuning
+                print("  Loading model...")
+                model = load_model(model_id, dtype="bfloat16", device_map="cuda",
+                                   attn_implementation=args.attn_implementation)
+
+                # Compute metrics_before if not available
+                if "metrics_before" not in results[name]:
+                    print("  Computing metrics (before)...")
+                    scores_before = compute_all_metrics(
+                        model, tokenizer, full_model, prepared_uds, s1_cache,
+                        layer_list, mem_data, mia_data, args
+                    )
+                    results[name]["metrics_before"] = scores_before
+                    results_path.write_text(json.dumps(results, indent=2))
+
                 # Finetune on forget10
                 print("  Finetuning on forget10...")
                 ft_dir = Path(args.out_dir) / f"ft_{name}"
@@ -682,12 +754,15 @@ def main():
 
                 # Load finetuned model and compute metrics
                 print("  Loading finetuned model...")
-                ft_model = load_model(str(ft_dir), dtype="bfloat16", device_map="cuda")
+                ft_model = load_model(str(ft_dir), dtype="bfloat16", device_map="cuda",
+                                      attn_implementation=args.attn_implementation)
 
                 print("  Computing metrics (after relearn)...")
+                uds_log = os.path.join(args.out_dir, "uds_logs", f"{name}.log")
                 scores_after = compute_all_metrics(
                     ft_model, tokenizer, full_model, prepared_uds, s1_cache,
-                    layer_list, mem_data, mia_data, args
+                    layer_list, mem_data, mia_data, args,
+                    log_path=uds_log, prefix_data=prefix_data, source_name=f"{name}_relearn",
                 )
                 results[name]["metrics_after_relearn"] = scores_after
 
