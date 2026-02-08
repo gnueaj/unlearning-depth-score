@@ -42,4 +42,4 @@ UDS: tofu_data/forget10_filtered_v7_gt.json (367 examples)
 === Output ===
 Results: runs/meta_eval/faithfulness/results.json
 Summary: runs/meta_eval/faithfulness/summary.json
-UDS v2: runs/meta_eval/faithfulness/uds_v2.json (s1_cache_v2 기반, eager attention)
+UDS eager: runs/meta_eval/faithfulness/uds_eager.json (s1_cache_eager 기반, eager attention)

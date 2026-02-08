@@ -194,10 +194,10 @@ button.toggle-btn:hover { text-decoration: underline; }
       </div>
       <div style="margin-top:8px;">
         <code>Robustness</code> = HM(Quantization, Relearning)<br>
-        <span class="sub-formula"><code>Quantization</code> = min(m<sub>after</sub> / m<sub>before</sub>, 1) on lr=1e-5 subset only</span><br>
+        <span class="sub-formula"><code>Quantization</code> = min(m<sub>after</sub> / m<sub>before</sub>, 1)</span><br>
         <span class="sub-formula"><code>Relearning</code> = min((m<sub>ret,before</sub> - m<sub>ret,after</sub>) / (m<sub>unl,before</sub> - m<sub>unl,after</sub>), 1)</span><br>
         <span class="sub-formula">Direction handling: raw metric values for all metrics; UDS only uses m = 1 - UDS.</span><br>
-        <span class="sub-formula">Filtering policy: Relearning uses utility + faithfulness-threshold filtering; Quantization uses lr=1e-5 filtering only.</span>
+        <span class="sub-formula">Filtering policy: utility (≥0.8) + faithfulness-threshold filtering applied to both.</span>
       </div>
       <div style="margin-top:8px;">
         <code>Overall</code> = HM(Faithfulness, Robustness)
@@ -252,7 +252,7 @@ button.toggle-btn:hover { text-decoration: underline; }
       <div style="margin-top:10px;">
         <strong>Privacy:</strong><br>
         <code>MIA</code> = HM(s<sub>LOSS</sub>, s<sub>ZLib</sub>, s<sub>Min-k</sub>, s<sub>Min-k++</sub>)<br>
-        <span class="sub-formula">s_* = 1 - normalized attack success rate (higher = more resistant)</span><br>
+        <span class="sub-formula">s_* = 1 - |AUC<sub>model</sub> - AUC<sub>retain</sub>| / |AUC<sub>full</sub> - AUC<sub>retain</sub>| (closer to retain = higher)</span><br>
         <code>Privacy</code> = HM(MIA, <span class="uds-highlight">UDS</span>)
       </div>
       <div style="margin-top:10px;">
@@ -337,11 +337,11 @@ let metaSort = { col: null, asc: true };
 // Method name display mapping
 const methodDisplayNames = {
   'graddiff': 'GradDiff',
-  'idknll': 'IDKNLL',
-  'idkdpo': 'IDKDPO',
+  'idknll': 'IdkNLL',
+  'idkdpo': 'IdkDPO',
   'npo': 'NPO',
   'altpo': 'AltPO',
-  'undial': 'UnDial',
+  'undial': 'UNDIAL',
   'simnpo': 'SimNPO',
   'rmu': 'RMU'
 };
