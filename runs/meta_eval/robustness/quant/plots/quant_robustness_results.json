@@ -634,7 +634,7 @@
     }
   },
   "s_mia_min_k": {
-    "avg_Q": 0.7974,
+    "avg_Q": 0.7976,
     "n_models": 32,
     "n_unreliable": 17,
     "n_usable_total": 32,
@@ -662,7 +662,7 @@
       "npo_lr5e5_b01_a5_ep10": 1.0,
       "npo_lr5e5_b01_a5_ep5": 1.0,
       "simnpo_lr2e5_b35_a1_d1_g025_ep10": 0.4528,
-      "simnpo_lr2e5_b35_a1_d1_g025_ep5": 0.6111,
+      "simnpo_lr2e5_b35_a1_d1_g025_ep5": 0.6172,
       "simnpo_lr5e5_b35_a1_d1_g0125_ep10": 0.1552,
       "simnpo_lr5e5_b35_a1_d1_g0125_ep5": 0.4691,
       "simnpo_lr5e5_b35_a1_d1_g025_ep10": 1.0,
