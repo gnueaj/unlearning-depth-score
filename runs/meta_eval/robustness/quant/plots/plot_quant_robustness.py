@@ -119,6 +119,11 @@ def parse_args():
         default="",
         help="Optional output filename tag suffix (e.g., utility_only).",
     )
+    parser.add_argument(
+        "--tight_axes",
+        action="store_true",
+        help="Set axis lower bound to data min instead of 0.",
+    )
     return parser.parse_args()
 
 
@@ -233,6 +238,8 @@ def main():
     filter_label = 'No Filtering' if args.no_filter else 'Utility + Faithfulness Filtered'
     if args.filter_label:
         filter_label = args.filter_label
+    if args.tight_axes:
+        filter_label += '; Tight Axes'
     if args.out_tag:
         tag = args.out_tag if args.out_tag.startswith("_") else f"_{args.out_tag}"
         results_name = results_name.replace(".json", f"{tag}.json")
@@ -276,7 +283,10 @@ def main():
             ax.set_visible(False)
             continue
 
-        lo = 0.0
+        if args.tight_axes:
+            lo = max(min(all_vals) * 0.98, 0.0)
+        else:
+            lo = 0.0
         hi = max(max(all_vals) * 1.02, 1e-6)
 
         # Unreliable region gradient (above y=x)
