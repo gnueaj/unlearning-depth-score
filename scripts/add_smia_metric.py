@@ -4,11 +4,11 @@ Post-hoc: add 4 individual sMIA metrics to faithfulness and robustness results.
 
 Adds: s_mia_loss, s_mia_zlib, s_mia_min_k, s_mia_min_kpp
 
-where s_mia_x = clip(1 - |auc_model - auc_retain| / |auc_full - auc_retain|, 0, 1)
+where s_mia_x = clip(1 - |auc_model - auc_retain| / auc_retain, 0, 1)
+(MUSE PrivLeak-style normalization; only retain AUC needed)
 
 Reference values from ep10 privacy summaries (privacy_eval.py):
   retain: runs/ep10/privacy/retain/summary.json
-  full:   runs/ep10/privacy/full/summary.json
 
 Direction: higher s_mia = less knowledge (like UDS).
   - Faithfulness: use 1-s_mia for AUC-ROC (P-pool should have LOW s_mia)
@@ -28,12 +28,6 @@ RETAIN_AUC = {
     "min_k": 0.37731562500000004,
     "min_k++": 0.470575,
 }
-FULL_AUC = {
-    "loss": 0.99588125,
-    "zlib": 0.99625,
-    "min_k": 0.996125,
-    "min_k++": 0.9974625,
-}
 
 # Raw AUC key → (attack name, s_mia output key)
 SMIA_METRICS = {
@@ -47,12 +41,11 @@ SMIA_METRICS = {
 INVERTED_METRICS = {"s_mia_loss", "s_mia_zlib", "s_mia_min_k", "s_mia_min_kpp"}
 
 
-def s_mia(auc_model, auc_retain, auc_full):
-    """Compute scaled MIA for a single attack."""
-    denom = abs(auc_full - auc_retain)
-    if denom <= 1e-12:
+def s_mia(auc_model, auc_retain):
+    """MUSE PrivLeak-style: clip(1 - |AUC_model - AUC_retain| / AUC_retain, 0, 1)"""
+    if auc_retain <= 1e-12:
         return None
-    score = 1.0 - abs(auc_model - auc_retain) / denom
+    score = 1.0 - abs(auc_model - auc_retain) / auc_retain
     return float(np.clip(score, 0.0, 1.0))
 
 
@@ -62,7 +55,7 @@ def compute_smia_individual(metrics_dict):
     for raw_key, (attack, smia_key) in SMIA_METRICS.items():
         raw_auc = metrics_dict.get(raw_key)
         if raw_auc is not None:
-            result[smia_key] = s_mia(raw_auc, RETAIN_AUC[attack], FULL_AUC[attack])
+            result[smia_key] = s_mia(raw_auc, RETAIN_AUC[attack])
     return result
 
 

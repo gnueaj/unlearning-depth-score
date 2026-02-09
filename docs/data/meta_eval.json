@@ -154,23 +154,23 @@
     },
     "s_mia_loss": {
       "auc_roc": 0.891,
-      "p_mean": 0.46,
-      "n_mean": 0.882
+      "p_mean": 0.299,
+      "n_mean": 0.81
     },
     "s_mia_min_k": {
       "auc_roc": 0.891,
-      "p_mean": 0.453,
-      "n_mean": 0.884
+      "p_mean": 0.281,
+      "n_mean": 0.81
     },
     "s_mia_min_kpp": {
       "auc_roc": 0.799,
-      "p_mean": 0.578,
-      "n_mean": 0.88
+      "p_mean": 0.558,
+      "n_mean": 0.866
     },
     "s_mia_zlib": {
       "auc_roc": 0.87,
-      "p_mean": 0.489,
-      "n_mean": 0.886
+      "p_mean": 0.21,
+      "n_mean": 0.741
     }
   },
   "robustness": {
@@ -240,30 +240,30 @@
       "agg": 0.9659
     },
     "s_mia_loss": {
-      "relearning": 0.4576,
+      "relearning": 0.6137,
       "quantization": 0.8151,
-      "agg": 0.5861
+      "agg": 0.7002
     },
     "s_mia_min_k": {
-      "relearning": 0.4737,
-      "quantization": 0.7974,
-      "agg": 0.5943
+      "relearning": 0.672,
+      "quantization": 0.7976,
+      "agg": 0.7294
     },
     "s_mia_min_kpp": {
-      "relearning": 0.5152,
+      "relearning": 0.5286,
       "quantization": 0.9458,
-      "agg": 0.667
+      "agg": 0.6782
     },
     "s_mia_zlib": {
-      "relearning": 0.5455,
+      "relearning": 0.6906,
       "quantization": 0.8305,
-      "agg": 0.6585
+      "agg": 0.7541
     }
   },
   "formulas": {
     "faithfulness": "AUC-ROC over P (30 with knowledge) vs N (30 without) pool",
     "robustness": "HM(Relearning, Quantization)",
-    "relearning": "min(\u0394_retain / \u0394_unlearn, 1) after 1-epoch relearning",
+    "relearning": "min(Δ_retain / Δ_unlearn, 1) after 1-epoch relearning",
     "quantization": "min(m_before / m_after, 1) after 4-bit NF4 quantization",
     "overall": "HM(Faithfulness, Robustness)"
   },

@@ -446,11 +446,11 @@ def _harmonic_mean(values: List[Optional[float]]) -> Optional[float]:
     return float(len(vals) / np.sum(1.0 / (vals + 1e-12)))
 
 
-def _s_mia(auc_model: float, auc_retain: float, auc_full: float) -> Optional[float]:
-    denom = abs(auc_full - auc_retain)
-    if denom <= 1e-12:
+def _s_mia(auc_model: float, auc_retain: float) -> Optional[float]:
+    """MUSE PrivLeak-style: s_mia = clip(1 - |AUC_model - AUC_retain| / AUC_retain, 0, 1)"""
+    if auc_retain <= 1e-12:
         return None
-    score = 1.0 - abs(auc_model - auc_retain) / denom
+    score = 1.0 - abs(auc_model - auc_retain) / auc_retain
     return float(np.clip(score, 0.0, 1.0))
 
 
@@ -662,8 +662,8 @@ def main():
 
         s_mia = {}
         for a in attacks:
-            if a in retain_aucs and a in full_aucs:
-                s_mia[a] = _s_mia(aucs[a], retain_aucs[a], full_aucs[a])
+            if a in retain_aucs:
+                s_mia[a] = _s_mia(aucs[a], retain_aucs[a])
             else:
                 s_mia[a] = None
 

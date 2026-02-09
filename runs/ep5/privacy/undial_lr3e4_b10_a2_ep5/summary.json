@@ -6,28 +6,28 @@
       "auc": 0.679784375,
       "retain_auc": 0.38283124999999996,
       "full_auc": 0.9958281250000001,
-      "s_mia": 0.5155715516494273
+      "s_mia": 0.2243237065939625
     },
     "zlib": {
       "auc": 0.5305624999999999,
       "retain_auc": 0.30548125000000004,
       "full_auc": 0.99625,
-      "s_mia": 0.674158319987695
+      "s_mia": 0.2631912760603151
     },
     "min_k": {
       "auc": 0.8183,
       "retain_auc": 0.37810625,
       "full_auc": 0.99600625,
-      "s_mia": 0.28759710309111497
+      "s_mia": 0.0
     },
     "min_k++": {
       "auc": 0.82895,
       "retain_auc": 0.47179375,
       "full_auc": 0.997425,
-      "s_mia": 0.3205193755127764
+      "s_mia": 0.24298223535178254
     }
   },
-  "privacy_score": 0.39920363802065884,
+  "privacy_score": 3.999999999950509e-12,
   "reference_model": "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90",
   "full_model": "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
 }

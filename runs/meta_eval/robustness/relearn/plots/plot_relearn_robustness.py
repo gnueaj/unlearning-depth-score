@@ -24,7 +24,6 @@ UNREL_FILL_ALPHA = 0.42
 
 # Reference AUC values for sMIA normalization (from ep10 privacy summaries)
 RETAIN_AUC = {"loss": 0.38235312499999996, "zlib": 0.304609375, "min_k": 0.37731562500000004, "min_k++": 0.470575}
-FULL_AUC = {"loss": 0.99588125, "zlib": 0.99625, "min_k": 0.996125, "min_k++": 0.9974625}
 SMIA_MAP = {
     's_mia_loss': ('mia_loss', 'loss'), 's_mia_zlib': ('mia_zlib', 'zlib'),
     's_mia_min_k': ('mia_min_k', 'min_k'), 's_mia_min_kpp': ('mia_min_kpp', 'min_k++'),
@@ -32,11 +31,11 @@ SMIA_MAP = {
 
 
 def compute_s_mia(raw_auc, attack):
-    """s_mia = clip(1 - |auc_model - auc_retain| / |auc_full - auc_retain|, 0, 1)"""
-    denom = abs(FULL_AUC[attack] - RETAIN_AUC[attack])
+    """MUSE PrivLeak-style: clip(1 - |AUC_model - AUC_retain| / AUC_retain, 0, 1)"""
+    denom = RETAIN_AUC[attack]
     if denom <= 1e-12:
         return None
-    return float(np.clip(1.0 - abs(raw_auc - RETAIN_AUC[attack]) / denom, 0.0, 1.0))
+    return float(np.clip(1.0 - abs(raw_auc - denom) / denom, 0.0, 1.0))
 
 
 def get_metric_val(metrics_dict, metric):

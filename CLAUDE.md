@@ -172,8 +172,8 @@ Q = min(before / after, 1)
 - Dashboard data: `docs/data/meta_eval.json` (13 + 4 normalized)
 
 ### Normalized MIA (s_mia) Metrics
-- Formula: `s_mia = clip(1 - |auc_model - auc_retain| / |auc_full - auc_retain|, 0, 1)`
-- Reference values from `runs/ep10/privacy/{retain,full}/summary.json` (privacy_eval.py pipeline)
+- Formula (MUSE PrivLeak-style): `s_mia = clip(1 - |auc_model - auc_retain| / auc_retain, 0, 1)`
+- Reference values from `runs/ep10/privacy/retain/summary.json` (only retain AUC needed)
 - 4 metrics: s_mia_loss, s_mia_zlib, s_mia_min_k, s_mia_min_kpp
 - Direction: higher s_mia = less knowledge (like UDS)
 - Post-hoc script: `scripts/add_smia_metric.py` (for faithfulness results.json)

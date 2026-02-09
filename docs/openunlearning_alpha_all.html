@@ -215,9 +215,9 @@ button.toggle-btn:hover { text-decoration: underline; }
       </div>
 
       <div style="margin-top:10px;">
-        <strong>Normalized MIA</strong> (4, denoted s<sub>*</sub>) &mdash; MIA rescaled to [0, 1] using retain/full as anchors.<br>
-        <span class="sub-formula">clip(1 &minus; |AUC<sub>model</sub> &minus; AUC<sub>retain</sub>| / |AUC<sub>full</sub> &minus; AUC<sub>retain</sub>|, 0, 1)</span><br>
-        <span class="sub-formula">1.0 = indistinguishable from retain (knowledge erased) &middot; 0.0 = same as full (knowledge intact)</span><br>
+        <strong>Normalized MIA</strong> (4, denoted s<sub>*</sub>) &mdash; MUSE PrivLeak-style rescaling using retain as anchor.<br>
+        <span class="sub-formula">clip(1 &minus; |AUC<sub>model</sub> &minus; AUC<sub>retain</sub>| / AUC<sub>retain</sub>, 0, 1)</span><br>
+        <span class="sub-formula">1.0 = indistinguishable from retain (knowledge erased) &middot; 0.0 = large deviation from retain</span><br>
         s<sub>LOSS</sub> &middot; s<sub>ZLib</sub> &middot; s<sub>Min-K</sub> &middot; s<sub>Min-K++</sub>
       </div>
 
