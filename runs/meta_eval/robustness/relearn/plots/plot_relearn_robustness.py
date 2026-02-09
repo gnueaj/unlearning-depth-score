@@ -16,6 +16,9 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 from matplotlib.colors import to_rgba
+from matplotlib.image import BboxImage
+from matplotlib.transforms import Bbox, TransformedBbox
+from matplotlib.legend_handler import HandlerBase
 import matplotlib.gridspec as gridspec
 from pathlib import Path
 
@@ -114,6 +117,24 @@ def _draw_unreliable_gradient(ax, lo, hi, shift=0.0):
     img[..., 3] = np.where(mask, 1.0, 0.0)
     ax.imshow(img, extent=[lo, hi, lo, hi], origin='lower',
               aspect='auto', zorder=0, interpolation='bilinear')
+
+
+class _GradientHandler(HandlerBase):
+    """Legend handler: draws a white → UNREL_COLOR gradient rectangle."""
+    def create_artists(self, legend, orig_handle, xdescent, ydescent,
+                       width, height, fontsize, trans):
+        N = 256
+        base_lin = _srgb_to_linear(np.array(to_rgba(UNREL_COLOR)[:3]))
+        t = np.linspace(0.02, GRADIENT_MAX_BLEND, N)
+        arr = np.ones((1, N, 4))
+        for c in range(3):
+            blended = 1.0 * (1 - t) + base_lin[c] * t
+            arr[0, :, c] = _linear_to_srgb(np.clip(blended, 0, 1))
+        bb = Bbox.from_bounds(xdescent, ydescent, width, height)
+        tbb = TransformedBbox(bb, trans)
+        im = BboxImage(tbb)
+        im.set_data(arr)
+        return [im]
 
 
 def parse_args():
@@ -360,6 +381,7 @@ def main():
         ax.tick_params(labelsize=8)
         ax.grid(True, linestyle='-', linewidth=0.45, alpha=0.25)
 
+        grad_patch = Patch(label='Unreliable\n(Less → More)')
         local_handles = [
             Line2D([0], [0], color='r', linestyle='--', linewidth=1.0, alpha=0.85, label='y = x'),
             Line2D([0], [0], color='r', linestyle=':', linewidth=1.0, alpha=0.65, label='y = x + Δ_ret'),
@@ -367,10 +389,10 @@ def main():
                    markeredgecolor='#1B5E20', markersize=5, label='Unlearn'),
             Line2D([0], [0], marker='*', color='w', markerfacecolor='red',
                    markeredgecolor='darkred', markersize=8, label='Retain'),
-            Patch(facecolor=UNREL_COLOR, edgecolor='none', alpha=0.06, label='Less Unrel.'),
-            Patch(facecolor=UNREL_COLOR, edgecolor='none', alpha=0.65, label='More Unrel.'),
+            grad_patch,
         ]
-        ax.legend(handles=local_handles, loc='lower right', fontsize=7, framealpha=0.95)
+        ax.legend(handles=local_handles, handler_map={grad_patch: _GradientHandler()},
+                  loc='lower right', fontsize=7, framealpha=0.95)
 
     fig.suptitle(f'Relearning Robustness (13 Metrics + 4 Normalized MIA)\n(150 Unlearned Models; {filter_label})',
                  fontsize=14, fontweight='normal', y=0.97)
