@@ -41,28 +41,33 @@
       "category": "generation"
     },
     {
+      "key": "mia_loss",
+      "label": "MIA-LOSS",
+      "category": "mia"
+    },
+    {
       "key": "mia_zlib",
       "label": "MIA-ZLib",
       "category": "mia"
     },
     {
       "key": "mia_min_k",
-      "label": "MIA-MinK",
-      "category": "mia"
-    },
-    {
-      "key": "mia_loss",
-      "label": "MIA-LOSS",
+      "label": "MIA-Min-K",
       "category": "mia"
     },
     {
       "key": "mia_min_kpp",
-      "label": "MIA-MinK++",
+      "label": "MIA-Min-K++",
       "category": "mia"
     },
     {
       "key": "s_mia_loss",
       "label": "s_LOSS",
+      "category": "mia_normalized"
+    },
+    {
+      "key": "s_mia_zlib",
+      "label": "s_ZLib",
       "category": "mia_normalized"
     },
     {
@@ -73,11 +78,6 @@
     {
       "key": "s_mia_min_kpp",
       "label": "s_Min-K++",
-      "category": "mia_normalized"
-    },
-    {
-      "key": "s_mia_zlib",
-      "label": "s_ZLib",
       "category": "mia_normalized"
     },
     {

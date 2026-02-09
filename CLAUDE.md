@@ -15,6 +15,10 @@ Core claim: output suppression is not enough; internal recoverability must also 
 - Dashboard data:
   - `docs/data/method_results.json`
   - `docs/data/meta_eval.json`
+- Dashboard figures (meta-eval details dropdowns):
+  - `docs/figs/faithfulness_histograms.png`
+  - `docs/figs/quant_robustness.png`
+  - `docs/figs/relearn_robustness.png`
 - Method-level runs:
   - `runs/ep5/{memorization,privacy,utility,uds,gen_rouge}/<model>/`
   - `runs/ep10/{memorization,privacy,utility,uds,gen_rouge}/<model>/`
@@ -23,6 +27,8 @@ Core claim: output suppression is not enough; internal recoverability must also 
   - `runs/meta_eval/robustness/quant/results.json`
   - `runs/meta_eval/robustness/relearn/results.json`
   - S1 cache: `runs/meta_eval/s1_cache_v2.json` (367 examples, **eager** attention)
+  - S1 component analysis: `runs/meta_eval/s1_{mlp,attn,mid}_sdpa.log`, `s1_component_deltas.png`
+- Representation analysis survey: `docs/representation_analysis_survey.md`
 - Legacy: `runs/legacy/`
 
 ## Canonical Scripts
@@ -34,6 +40,9 @@ Core claim: output suppression is not enough; internal recoverability must also 
 - Robustness utilities:
   - `scripts/build_robustness_filter_list.py`
   - `scripts/build_robustness_model_list.py`
+- S1 component analysis:
+  - `scripts/s1_component_patching.py` (MLP, attention, mid 패칭)
+  - `scripts/plot_s1_component_deltas.py` (4-component visualization)
 - Legacy scripts: `scripts/legacy/`
 
 ## Data + Prompting Conventions
@@ -276,3 +285,12 @@ Before publishing numbers:
 - **Faithfulness plot v2**: 5행 레이아웃 (`plot_histograms_v2.py`), row 4 = normalized MIA, row 5 = UDS centered
 - **Robustness plots**: 5행 레이아웃 (`plot_{quant,relearn}_robustness.py`), 13+4 scatter plots
 - **UDS 버그 패치**: `undial_lr3e4_b10_a5_ep5` metrics_before.uds = 0 → 0.8708 (quant/relearn 모두)
+- **S1 Component Patching**: 4개 패칭 위치 분석 (Attention, Attn+Residual, MLP, Layer Output)
+  - `scripts/s1_component_patching.py`: `--components mid` 추가 (post_attention_layernorm의 input = residual + attn_out)
+  - 결과: Layer Output (avg delta=0.953) >> MLP (0.173) > Attn+Residual (0.121) > Attention (0.044)
+  - `scripts/plot_s1_component_deltas.py`: Mean + ±1 Std. Dev. 시각화, tab10 colors
+  - 출력: `runs/meta_eval/s1_component_deltas.png`
+- **Dashboard 피규어 드롭다운**: `docs/figs/` 디렉토리 추가, meta-eval 테이블 아래 `<details>` 3개
+  - Faithfulness histograms, Quantization scatter, Relearning scatter
+- **Representation analysis survey**: `docs/representation_analysis_survey.md` 한국어 번역 + 방법 목록 두괄식 추가
+  - 6가지 방법: CKA, Fisher Information, Linear Probing, SVCCA/PWCCA, Logit/Tuned Lens, RSA

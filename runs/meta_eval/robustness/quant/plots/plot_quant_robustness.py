@@ -11,11 +11,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
+from matplotlib.colors import to_rgba
 import matplotlib.gridspec as gridspec
 from pathlib import Path
 
-UNREL_COLOR = '#F6CFCF'
-UNREL_FILL_ALPHA = 0.42
+UNREL_COLOR = '#C62828'
+GRADIENT_MAX_BLEND = 0.8   # max blend ratio at farthest corner (0=white, 1=full color)
+GRADIENT_RES = 256
 
 # Reference AUC values for sMIA normalization (from ep10 privacy summaries)
 RETAIN_AUC = {"loss": 0.38235312499999996, "zlib": 0.304609375, "min_k": 0.37731562500000004, "min_k++": 0.470575}
@@ -50,6 +52,46 @@ def resolve_repo_root() -> Path:
         if (parent / "runs" / "meta_eval").exists() and (parent / "docs").exists():
             return parent
     raise RuntimeError("Could not locate repository root from script path.")
+
+
+def _srgb_to_linear(c):
+    """sRGB [0,1] -> linear RGB [0,1]."""
+    return np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
+
+
+def _linear_to_srgb(c):
+    """linear RGB [0,1] -> sRGB [0,1]."""
+    return np.where(c <= 0.0031308, c * 12.92, 1.055 * np.power(c, 1.0 / 2.4) - 0.055)
+
+
+def _draw_unreliable_gradient(ax, lo, hi, shift=0.0):
+    """Draw gradient fill for unreliable region (above y = x + shift).
+
+    Blends white -> UNREL_COLOR in linear RGB for perceptual uniformity.
+    """
+    x_arr = np.linspace(lo, hi, GRADIENT_RES)
+    y_arr = np.linspace(lo, hi, GRADIENT_RES)
+    X, Y = np.meshgrid(x_arr, y_arr)
+    above = (Y - X - shift) / np.sqrt(2)
+    mask = above > 0
+    max_dist = (hi - lo) / np.sqrt(2)
+    if max_dist < 1e-10:
+        return
+    raw = np.clip(above / max_dist, 0, 1)
+    t = np.where(mask, 0.02 + raw * (GRADIENT_MAX_BLEND - 0.02), 0)
+
+    base_rgb = np.array(to_rgba(UNREL_COLOR)[:3])
+    bg_rgb = np.array([1.0, 1.0, 1.0])
+    base_lin = _srgb_to_linear(base_rgb)
+    bg_lin = _srgb_to_linear(bg_rgb)
+
+    img = np.zeros((GRADIENT_RES, GRADIENT_RES, 4))
+    for c in range(3):
+        blended = bg_lin[c] * (1 - t) + base_lin[c] * t
+        img[..., c] = _linear_to_srgb(np.clip(blended, 0, 1))
+    img[..., 3] = np.where(mask, 1.0, 0.0)
+    ax.imshow(img, extent=[lo, hi, lo, hi], origin='lower',
+              aspect='auto', zorder=0, interpolation='bilinear')
 
 
 def parse_args():
@@ -237,8 +279,8 @@ def main():
         lo = 0.0
         hi = max(max(all_vals) * 1.02, 1e-6)
 
-        # Unreliable region (above y=x)
-        ax.fill_between([lo, hi], [lo, hi], [hi, hi], color=UNREL_COLOR, alpha=UNREL_FILL_ALPHA, zorder=0)
+        # Unreliable region gradient (above y=x)
+        _draw_unreliable_gradient(ax, lo, hi)
 
         # y=x line
         ax.plot([lo, hi], [lo, hi], 'r--', alpha=0.85, linewidth=1.0, zorder=2)
@@ -268,7 +310,8 @@ def main():
             Line2D([0], [0], color='r', linestyle='--', linewidth=1.0, alpha=0.85, label='y = x'),
             Line2D([0], [0], marker='o', color='w', markerfacecolor='#2E7D32',
                    markeredgecolor='#1B5E20', markersize=5, label='Unlearn'),
-            Patch(facecolor=UNREL_COLOR, edgecolor='none', alpha=0.70, label='Unreliable'),
+            Patch(facecolor=UNREL_COLOR, edgecolor='none', alpha=0.06, label='Less Unrel.'),
+            Patch(facecolor=UNREL_COLOR, edgecolor='none', alpha=0.65, label='More Unrel.'),
         ]
         ax.legend(handles=local_handles, loc='lower right', fontsize=7, framealpha=0.95)
 
