@@ -81,6 +81,21 @@
       "category": "mia_normalized"
     },
     {
+      "key": "cka",
+      "label": "CKA",
+      "category": "representation"
+    },
+    {
+      "key": "logit_lens",
+      "label": "Logit Lens",
+      "category": "representation"
+    },
+    {
+      "key": "fisher",
+      "label": "Fisher",
+      "category": "representation"
+    },
+    {
       "key": "uds",
       "label": "UDS (Ours)",
       "category": "ours"
@@ -171,6 +186,21 @@
       "auc_roc": 0.87,
       "p_mean": 0.21,
       "n_mean": 0.741
+    },
+    "cka": {
+      "auc_roc": 0.649,
+      "p_mean": 0.039,
+      "n_mean": 0.117
+    },
+    "logit_lens": {
+      "auc_roc": 0.928,
+      "p_mean": 0.475,
+      "n_mean": 0.795
+    },
+    "fisher": {
+      "auc_roc": 0.698,
+      "p_mean": 0.513,
+      "n_mean": 0.754
     }
   },
   "robustness": {
@@ -268,7 +298,8 @@
     "overall": "HM(Faithfulness, Robustness)"
   },
   "notes": {
-    "robustness_policy": "R & Q computed on utility+faithfulness filtered models; raw metric values for standard metrics; 1-UDS and 1-s_mia for inverted metrics; 13 metrics + 4 normalized MIA variants",
-    "robustness_source": "runs/meta_eval/robustness/{quant,relearn}/plots/*_robustness_results.json"
+    "robustness_policy": "R & Q computed on utility+faithfulness filtered models; raw metric values for standard metrics; 1-UDS and 1-s_mia for inverted metrics; 13 metrics + 4 normalized MIA + 3 representation baselines",
+    "robustness_source": "runs/meta_eval/robustness/{quant,relearn}/plots/*_robustness_results.json",
+    "representation_baselines": "CKA, Logit Lens (fixed decoder), Fisher Information; faithfulness from runs/meta_eval/representation_baselines/faithfulness/; robustness not yet computed"
   }
 }

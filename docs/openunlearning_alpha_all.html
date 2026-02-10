@@ -174,7 +174,7 @@ button.toggle-btn:hover { text-decoration: underline; }
   <h2>Meta-evaluation</h2>
   <div class="card">
     <p style="margin:0 0 12px 0;">
-      This section evaluates <strong>13 metrics</strong> (+ 4 normalized MIA variants) across 5 categories to measure <strong>how reliable each unlearning metric is</strong>, using the Open-Unlearning benchmark framework.
+      This section evaluates <strong>20 metrics</strong> (13 base + 4 normalized MIA + 3 representation baselines) across 6 categories to measure <strong>how reliable each unlearning metric is</strong>, using the Open-Unlearning benchmark framework.
     </p>
     <p style="margin:0 0 12px 0;">
       <strong>Faithfulness</strong>: How well each metric separates knowledge-present (P, 30 models) vs knowledge-absent (N, 30 models), measured by AUC-ROC.<br>
@@ -182,7 +182,7 @@ button.toggle-btn:hover { text-decoration: underline; }
     </p>
 
     <div class="formula-box" style="margin:0 0 14px 0;">
-      <div><strong>Metric Categories (13 + 4 normalized)</strong></div>
+      <div><strong>Metric Categories (13 + 4 normalized + 3 representation)</strong></div>
 
       <div style="margin-top:10px;">
         <strong>Memorization</strong> (5) &mdash; Does the model still retain memorized target knowledge?<br>
@@ -218,6 +218,13 @@ button.toggle-btn:hover { text-decoration: underline; }
       </div>
 
       <div style="margin-top:10px;">
+        <strong>Representation Baselines</strong> (3) &mdash; Representation-level metrics that measure knowledge erasure by comparing hidden-state geometry or parameter sensitivity between unlearned, retain, and full models. All three require the retain model as reference.<br>
+        <code>CKA</code> (Centered Kernel Alignment; Kornblith et al., 2019) &mdash; measures representational similarity between two models by comparing their hidden-state kernel matrices. Per-layer CKA(H<sub>unl</sub>, H<sub>ret</sub>) quantifies how similar unlearned representations are to retain; weighted by how much each layer differs between full and retain. <span class="sub-formula">score = &Sigma;<sub>l</sub> w<sub>l</sub> &middot; CKA(H<sub>unl</sub>, H<sub>ret</sub>)<sub>l</sub>, &ensp; w<sub>l</sub> = 1 &minus; CKA(H<sub>full</sub>, H<sub>ret</sub>)<sub>l</sub>. &ensp; Dataset-level (400 examples).</span><br>
+        <code>Logit Lens</code> (nostalgebraist, 2020) &mdash; probes intermediate hidden states by passing them through the full model&rsquo;s frozen decoder (LayerNorm + lm_head) to read out entity logprobs at each layer. Measures how much knowledge is decodable from each layer&rsquo;s representation. <span class="sub-formula">k<sub>m,l</sub> = logprob(entity | H<sup>l</sup><sub>m</sub> &rarr; decoder<sub>full</sub>), &ensp; d<sub>m,l</sub> = k<sub>full,l</sub> &minus; k<sub>m,l</sub>. &ensp; Per-example, per-layer.</span><br>
+        <code>Fisher</code> (Kirkpatrick et al., 2017) &mdash; diagonal Fisher Information measures parameter sensitivity to forget-set examples. Layers where retain has higher Fisher than full indicate knowledge-relevant parameters. Compares unlearned model&rsquo;s Fisher excess against the full&rarr;retain gap. <span class="sub-formula">F<sub>l</sub> = log1p(mean<sub>&theta;</sub>(g<sup>2</sup><sub>&theta;</sub>)), &ensp; excess<sub>l</sub> = max(F<sub>ret</sub> &minus; F<sub>full</sub>, 0). &ensp; Dataset-level, per-layer mean over all parameters.</span>
+      </div>
+
+      <div style="margin-top:10px;">
         <strong>UDS (Ours)</strong> (1) &mdash; Output suppression &ne; knowledge erasure. UDS measures whether knowledge remains recoverable from internal representations via activation patching.<br>
         <span class="sub-formula">&Delta;<sup>S1</sup><sub>l</sub> = logprob drop patching retain &rarr; full (baseline gap) &ensp;&middot;&ensp; &Delta;<sup>S2</sup><sub>l</sub> = logprob drop patching unlearned &rarr; full (test gap)</span><br>
         <span class="sub-formula">FT = { l : &Delta;<sup>S1</sup><sub>l</sub> &gt; &tau; } (&tau;=0.05) &ensp;&middot;&ensp; UDS<sub>i</sub> = &Sigma;<sub>l&isin;FT</sub> [&Delta;<sup>S1</sup><sub>l</sub> &middot; clip(&Delta;<sup>S2</sup><sub>l</sub>/&Delta;<sup>S1</sup><sub>l</sub>, 0, 1)] / &Sigma;<sub>l&isin;FT</sub> &Delta;<sup>S1</sup><sub>l</sub></span><br>
@@ -246,7 +253,7 @@ button.toggle-btn:hover { text-decoration: underline; }
     </div>
   </div>
 
-  <div class="hint">Per column: <strong>best</strong> value is bold, <u>second-best</u> is underlined. &ensp; <span style="background:#f3f0ff;padding:2px 6px;border-radius:3px;">Shaded</span> = requires retain model as reference.</div>
+  <div class="hint">Per column: <strong>best</strong> value is bold, <u>second-best</u> is underlined. &ensp; <span style="background:#f3f0ff;padding:2px 6px;border-radius:3px;">Purple</span> = requires retain model as reference.</div>
   <div class="table-wrap">
     <table class="styled" id="meta_eval">
       <thead>
@@ -276,14 +283,28 @@ button.toggle-btn:hover { text-decoration: underline; }
   </details>
   <details style="margin-top:10px;">
     <summary style="cursor:pointer;font-weight:600;font-size:14px;color:#444;">Robustness: Quantization Scatter Plots</summary>
-    <div style="margin-top:10px;text-align:center;">
-      <img src="figs/quant_robustness.png" alt="Quantization robustness scatter" style="max-width:700px;width:100%;height:auto;">
+    <div style="margin-top:10px;display:flex;gap:12px;align-items:flex-start;justify-content:center;flex-wrap:wrap;">
+      <div style="text-align:center;flex:1;min-width:340px;">
+        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;">Utility + Faithfulness Filter</div>
+        <img src="figs/quant_robustness.png" alt="Quantization robustness scatter (usable)" style="max-width:100%;height:auto;">
+      </div>
+      <div style="text-align:center;flex:1;min-width:340px;">
+        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;">Utility Filter Only</div>
+        <img src="figs/quant_robustness_utility_only.png" alt="Quantization robustness scatter (utility only)" style="max-width:100%;height:auto;">
+      </div>
     </div>
   </details>
   <details style="margin-top:10px;">
     <summary style="cursor:pointer;font-weight:600;font-size:14px;color:#444;">Robustness: Relearning Scatter Plots</summary>
-    <div style="margin-top:10px;text-align:center;">
-      <img src="figs/relearn_robustness.png" alt="Relearning robustness scatter" style="max-width:700px;width:100%;height:auto;">
+    <div style="margin-top:10px;display:flex;gap:12px;align-items:flex-start;justify-content:center;flex-wrap:wrap;">
+      <div style="text-align:center;flex:1;min-width:340px;">
+        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;">Utility + Faithfulness Filter</div>
+        <img src="figs/relearn_robustness.png" alt="Relearning robustness scatter (usable)" style="max-width:100%;height:auto;">
+      </div>
+      <div style="text-align:center;flex:1;min-width:340px;">
+        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;">Utility Filter Only</div>
+        <img src="figs/relearn_robustness_utility_only.png" alt="Relearning robustness scatter (utility only)" style="max-width:100%;height:auto;">
+      </div>
     </div>
   </details>
 
@@ -503,7 +524,7 @@ function renderMetaEval() {
   let html = '';
   rows.forEach((r, i) => {
     const classes = [];
-    if (r.key === 'uds' || r.key.startsWith('s_mia_')) classes.push('retain-dep');
+    if (r.key === 'uds' || r.key.startsWith('s_mia_') || r.category === 'representation') classes.push('retain-dep');
 
     const isUds = r.key === 'uds';
     let label = r.label.replace(/^s_(.+)$/, 's<sub>$1</sub>');
@@ -555,7 +576,7 @@ function renderMetaEval() {
     }
 
     // 2) Key pattern
-    msg += `<br>Relearning robustness is the main bottleneck: avg Q=${avgQ.toFixed(2)} vs avg R=${avgR.toFixed(2)} (<strong>${lowR}/${validR.length}</strong> metrics have R&lt;0.5).`;
+    msg += `<br>Relearning robustness is the main bottleneck: avg Q=${avgQ.toFixed(2)} vs. avg R=${avgR.toFixed(2)} (<strong>${lowR}/${validR.length}</strong> metrics have R&lt;0.5).`;
 
     // 3) Trade-off example
     if (highFaithLowRob.length > 0) {
