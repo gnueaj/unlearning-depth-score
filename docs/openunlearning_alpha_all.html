@@ -71,6 +71,24 @@ table.styled th.num { text-align: right; }
 /* Meta-eval specific */
 #meta_eval .retain-dep { background: #f3f0ff !important; }
 #meta_eval .retain-dep:hover { background: #ede7f6 !important; }
+#meta_eval .whitebox-dep {
+  background: repeating-linear-gradient(
+    -45deg,
+    #f3f0ff,
+    #f3f0ff 3px,
+    #ece6ff 3px,
+    #ece6ff 6px
+  ) !important;
+}
+#meta_eval .whitebox-dep:hover {
+  background: repeating-linear-gradient(
+    -45deg,
+    #ede7f6,
+    #ede7f6 3px,
+    #e0d6f0 3px,
+    #e0d6f0 6px
+  ) !important;
+}
 #meta_eval th:nth-child(n+2), #meta_eval td:nth-child(n+2) { min-width: 110px; }
 
 /* Method table specific */
@@ -221,7 +239,7 @@ button.toggle-btn:hover { text-decoration: underline; }
         <strong>Representation Baselines</strong> (3) &mdash; Representation-level metrics that measure knowledge erasure by comparing hidden-state geometry or parameter sensitivity between unlearned, retain, and full models. All three require the retain model as reference.<br>
         <code>CKA</code> (Centered Kernel Alignment; Kornblith et al., 2019) &mdash; measures representational similarity between two models by comparing their hidden-state kernel matrices. Per-layer CKA(H<sub>unl</sub>, H<sub>ret</sub>) quantifies how similar unlearned representations are to retain; weighted by how much each layer differs between full and retain. <span class="sub-formula">score = &Sigma;<sub>l</sub> w<sub>l</sub> &middot; CKA(H<sub>unl</sub>, H<sub>ret</sub>)<sub>l</sub>, &ensp; w<sub>l</sub> = 1 &minus; CKA(H<sub>full</sub>, H<sub>ret</sub>)<sub>l</sub>. &ensp; Dataset-level (400 examples).</span><br>
         <code>Logit Lens</code> (nostalgebraist, 2020) &mdash; probes intermediate hidden states by passing them through the full model&rsquo;s frozen decoder (LayerNorm + lm_head) to read out entity logprobs at each layer. Measures how much knowledge is decodable from each layer&rsquo;s representation. <span class="sub-formula">k<sub>m,l</sub> = logprob(entity | H<sup>l</sup><sub>m</sub> &rarr; decoder<sub>full</sub>), &ensp; d<sub>m,l</sub> = k<sub>full,l</sub> &minus; k<sub>m,l</sub>. &ensp; Per-example, per-layer.</span><br>
-        <code>Fisher</code> (Kirkpatrick et al., 2017) &mdash; diagonal Fisher Information measures parameter sensitivity to forget-set examples. Layers where retain has higher Fisher than full indicate knowledge-relevant parameters. Compares unlearned model&rsquo;s Fisher excess against the full&rarr;retain gap. <span class="sub-formula">F<sub>l</sub> = log1p(mean<sub>&theta;</sub>(g<sup>2</sup><sub>&theta;</sub>)), &ensp; excess<sub>l</sub> = max(F<sub>ret</sub> &minus; F<sub>full</sub>, 0). &ensp; Dataset-level, per-layer mean over all parameters.</span>
+        <code>Fisher Masked</code> (Kirkpatrick et al., 2017) &mdash; diagonal Fisher Information with top-p% parameter masking per layer. Focuses on knowledge-relevant parameters where retain has higher sensitivity than full (i.e., forget-set gradients are typically higher in retain). Three mask fractions tested: 0.01%, 0.1%, 1%. <span class="sub-formula">a<sub>i</sub> = max(F<sub>ret,i</sub> &minus; F<sub>full,i</sub>, 0), &ensp; M<sub>l</sub> = top p% of a<sub>i</sub> per layer, &ensp; erasure<sub>l</sub> = 1 &minus; clip(excess<sub>unl</sub>/excess<sub>full</sub>, 0, 1), &ensp; w<sub>l</sub> = excess<sub>full,l</sub>.</span>
       </div>
 
       <div style="margin-top:10px;">
@@ -241,9 +259,9 @@ button.toggle-btn:hover { text-decoration: underline; }
         <code>Faithfulness</code> = AUC-ROC over P/N pools (30 knowledge-present vs 30 knowledge-absent models)
       </div>
       <div style="margin-top:8px;">
-        <code>Robustness</code> = HM(Quantization, Relearning)<br>
-        <span class="sub-formula"><code>Quantization (Q)</code> = min(m<sub>before</sub> / m<sub>after</sub>, 1) &mdash; Q &asymp; 1: metric stable after 4-bit quantization; Q &lt; 1: knowledge leaks back</span><br>
-        <span class="sub-formula"><code>Relearning (R)</code> = min(&Delta;<sub>retain</sub> / &Delta;<sub>unlearn</sub>, 1), &Delta; = m<sub>after</sub> &minus; m<sub>before</sub> &mdash; R &asymp; 1: unlearned model recovers no more than retain; R &lt; 1: recovers faster (fragile)</span><br>
+        <code>Robustness</code> = HM(Q, R) &mdash; <em>symmetric (bidirectional)</em><br>
+        <span class="sub-formula"><code>Quantization (Q)</code> = 1 &minus; |m<sub>after</sub> &minus; m<sub>before</sub>| / (|m<sub>before</sub>| + |m<sub>after</sub>| + &epsilon;) &mdash; penalizes both knowledge recovery <em>and</em> destruction after 4-bit NF4 quantization</span><br>
+        <span class="sub-formula"><code>Relearning (R)</code> = 1 &minus; clip(|&Delta;<sub>unl</sub> &minus; &Delta;<sub>ret</sub>| / (|&Delta;<sub>unl</sub>| + |&Delta;<sub>ret</sub>| + &epsilon;), 0, 1), &Delta; = m<sub>after</sub> &minus; m<sub>before</sub> &mdash; penalizes both over-recovery and under-recovery relative to retain</span><br>
         <span class="sub-formula">Direction: standard metrics use raw values (higher = more knowledge); UDS and s<sub>*</sub> are inverted (m = 1 &minus; value) so that higher m = more knowledge before Q/R computation.</span><br>
         <span class="sub-formula">Filtering: utility &ge; 0.8 + per-metric faithfulness-threshold (150 models &rarr; per-metric filtered subset).</span>
       </div>
@@ -253,7 +271,7 @@ button.toggle-btn:hover { text-decoration: underline; }
     </div>
   </div>
 
-  <div class="hint">Per column: <strong>best</strong> value is bold, <u>second-best</u> is underlined. &ensp; <span style="background:#f3f0ff;padding:2px 6px;border-radius:3px;">Purple</span> = requires retain model as reference.</div>
+  <div class="hint">Per column: <strong>best</strong> value is bold, <u>second-best</u> is underlined. &ensp; <span style="background:#f3f0ff;padding:2px 6px;border-radius:3px;">Purple</span> = retain ref. &ensp; <span style="background:repeating-linear-gradient(-45deg,#f3f0ff,#f3f0ff 3px,#ece6ff 3px,#ece6ff 6px);padding:2px 6px;border-radius:3px;">Hatched</span> = retain ref. + white-box</div>
   <div class="table-wrap">
     <table class="styled" id="meta_eval">
       <thead>
@@ -265,8 +283,8 @@ button.toggle-btn:hover { text-decoration: underline; }
         </tr>
         <tr>
           <th class="sortable num" data-col="rob">Agg. ↑</th>
-          <th class="sortable num" data-col="quant">Quantization ↑</th>
-          <th class="sortable num" data-col="relearn">Relearning ↑</th>
+          <th class="sortable num" data-col="quant">Q ↑</th>
+          <th class="sortable num" data-col="relearn">R ↑</th>
         </tr>
       </thead>
       <tbody id="meta_eval_body">
@@ -365,6 +383,7 @@ button.toggle-btn:hover { text-decoration: underline; }
           <option value="privacy">by Privacy</option>
           <option value="utility_rel">by Utility</option>
           <option value="uds">by UDS</option>
+          <option value="logit_lens">by Logit Lens</option>
         </select>
       </div>
     </div>
@@ -398,6 +417,7 @@ button.toggle-btn:hover { text-decoration: underline; }
           <th class="sortable num" data-col="privacy">Privacy ↑</th>
           <th class="sortable num" data-col="utility_rel">Utility ↑</th>
           <th class="sortable num" data-col="uds" style="color:#888;" title="Already included in Privacy axis">UDS ↑</th>
+          <th class="sortable num" data-col="logit_lens" style="color:#888;" title="Logit Lens erasure score (representation-level)">LL ↑</th>
           <th></th>
         </tr>
       </thead>
@@ -524,7 +544,8 @@ function renderMetaEval() {
   let html = '';
   rows.forEach((r, i) => {
     const classes = [];
-    if (r.key === 'uds' || r.key.startsWith('s_mia_') || r.category === 'representation') classes.push('retain-dep');
+    if (r.key.startsWith('s_mia_')) classes.push('retain-dep');
+    if (r.key === 'uds' || r.category === 'representation') classes.push('whitebox-dep');
 
     const isUds = r.key === 'uds';
     let label = r.label.replace(/^s_(.+)$/, 's<sub>$1</sub>');
@@ -732,12 +753,13 @@ function renderMethodTable() {
       <td class="num">${fmt(m.privacy)}</td>
       <td class="num">${fmt(m.utility_rel)}</td>
       <td class="num" style="color:#888;">${fmt(m.uds)}</td>
+      <td class="num" style="color:#888;">${fmt(m.logit_lens)}</td>
       <td class="expand-cell"><button class="toggle-btn" data-target="${rid}">▼</button></td>
     </tr>`;
 
     // Details row - show all content directly
     html += `<tr id="${rid}" class="details-row">
-      <td colspan="7">
+      <td colspan="8">
         <div class="details-grid">
           <div class="detail-card">
             <h4>Memorization</h4>
@@ -759,6 +781,7 @@ function renderMethodTable() {
               <span class="label">MIA</span><span class="value">${fmt(m.privacy_mia)}</span>
             </div>
             <div class="detail-item"><span class="label">UDS</span><span class="value">${fmt(m.uds)}</span></div>
+            <div class="detail-item"><span class="label">Logit Lens</span><span class="value">${fmt(m.logit_lens)}</span></div>
             <div class="detail-item summary">
               <span class="label"><strong>Privacy = HM(MIA, UDS)</strong></span><span class="value"><strong>${fmt(m.privacy)}</strong></span>
             </div>

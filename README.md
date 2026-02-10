@@ -95,6 +95,32 @@ Results:
 - `runs/meta_eval/robustness_v2/{quant,relearn}/results.json`
 - `runs/meta_eval/s1_cache_v2.json` (367 examples)
 
+### 4) Representation Baselines
+
+To validate that UDS captures something beyond existing representation-level methods, we compare against three baselines. All use the retain model as reference and operate on the same forget set.
+
+**CKA** (Centered Kernel Alignment) — Measures representational geometry similarity between unlearned and retain models, weighted by per-layer importance (how much full differs from retain).
+- `score = Σ_l w_l · CKA(H_unl, H_retain)_l`,  `w_l = 1 - CKA(H_full, H_retain)_l`
+- Dataset-level (400 examples). AUC: 0.648.
+
+**Logit Lens** — Projects each layer's hidden states through the full model's frozen decoder to measure decodable knowledge. Uses the same FT layer selection (τ = 0.05) and UDS-style aggregation.
+- Per-example, per-layer entity logprob readout (367 examples). AUC: 0.927.
+- Key detail: forward hook on `model.model.norm` captures pre-norm hidden state for the last layer (avoids double-norm artifact from `output_hidden_states`).
+
+**Fisher Masked** — Diagonal Fisher Information with top-p% parameter masking per layer. Focuses on knowledge-relevant parameters where retain has higher sensitivity than full.
+- `erasure_l = 1 - clip(excess_unl / excess_full, 0, 1)`, weighted by per-layer `excess_full`
+- Mask fractions: 0.01%, 0.1%, 1%. AUC: 0.708–0.712.
+- Known: layer 1 dominates weight (60–84%), making results nearly identical across mask fractions.
+
+Script: `scripts/compute_representation_baselines.py`
+
+| Method | Faithfulness AUC | Approach |
+|--------|-----------------|----------|
+| CKA | 0.648 | Geometry similarity |
+| Fisher Masked (0.1%) | 0.712 | Parameter sensitivity |
+| Logit Lens | 0.927 | Frozen decoder readout |
+| **UDS (Ours)** | **0.971** | **Activation patching** |
+
 ## Datasets / Prompting Conventions
 
 Two evaluation settings coexist intentionally:

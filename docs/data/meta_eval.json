@@ -91,8 +91,18 @@
       "category": "representation"
     },
     {
-      "key": "fisher",
-      "label": "Fisher",
+      "key": "fisher_masked_0.0001",
+      "label": "Fisher Masked (0.01%)",
+      "category": "representation"
+    },
+    {
+      "key": "fisher_masked_0.001",
+      "label": "Fisher Masked (0.1%)",
+      "category": "representation"
+    },
+    {
+      "key": "fisher_masked_0.01",
+      "label": "Fisher Masked (1%)",
       "category": "representation"
     },
     {
@@ -188,118 +198,133 @@
       "n_mean": 0.741
     },
     "cka": {
-      "auc_roc": 0.649,
-      "p_mean": 0.039,
-      "n_mean": 0.117
+      "auc_roc": 0.648,
+      "p_mean": 0.037,
+      "n_mean": 0.109
     },
     "logit_lens": {
-      "auc_roc": 0.928,
+      "auc_roc": 0.927,
       "p_mean": 0.475,
-      "n_mean": 0.795
+      "n_mean": 0.794
     },
-    "fisher": {
-      "auc_roc": 0.698,
+    "fisher_masked_0.0001": {
+      "auc_roc": 0.708,
+      "p_mean": 0.516,
+      "n_mean": 0.756
+    },
+    "fisher_masked_0.001": {
+      "auc_roc": 0.712,
       "p_mean": 0.513,
-      "n_mean": 0.754
+      "n_mean": 0.753
+    },
+    "fisher_masked_0.01": {
+      "auc_roc": 0.698,
+      "p_mean": 0.511,
+      "n_mean": 0.753
     }
   },
   "robustness": {
     "em": {
-      "relearning": 0.4485,
-      "quantization": 0.9829,
-      "agg": 0.6159
+      "relearning": 0.6051,
+      "quantization": 0.9843,
+      "agg": 0.7495
     },
     "es": {
-      "relearning": 0.6624,
-      "quantization": 0.9743,
-      "agg": 0.7886
+      "relearning": 0.7703,
+      "quantization": 0.97,
+      "agg": 0.8587
     },
     "prob": {
-      "relearning": 0.4937,
-      "quantization": 0.8726,
-      "agg": 0.6306
+      "relearning": 0.6417,
+      "quantization": 0.9238,
+      "agg": 0.7573
     },
     "paraprob": {
-      "relearning": 0.8492,
-      "quantization": 0.7652,
-      "agg": 0.805
+      "relearning": 0.8988,
+      "quantization": 0.8529,
+      "agg": 0.8752
     },
     "truth_ratio": {
-      "relearning": 0.1344,
-      "quantization": 0.9922,
-      "agg": 0.2367
+      "relearning": 0.2343,
+      "quantization": 0.996,
+      "agg": 0.3794
     },
     "rouge": {
-      "relearning": 0.1216,
-      "quantization": 0.9122,
-      "agg": 0.2146
+      "relearning": 0.2025,
+      "quantization": 0.9342,
+      "agg": 0.3329
     },
     "para_rouge": {
-      "relearning": 0.0366,
-      "quantization": 0.9375,
-      "agg": 0.0704
+      "relearning": 0.0637,
+      "quantization": 0.9507,
+      "agg": 0.1194
     },
     "jailbreak_rouge": {
-      "relearning": 0.1266,
-      "quantization": 0.9864,
-      "agg": 0.2244
+      "relearning": 0.1831,
+      "quantization": 0.9713,
+      "agg": 0.3081
     },
     "mia_loss": {
-      "relearning": 0.3551,
-      "quantization": 0.885,
-      "agg": 0.5068
+      "relearning": 0.5192,
+      "quantization": 0.9348,
+      "agg": 0.6676
     },
     "mia_zlib": {
-      "relearning": 0.3259,
-      "quantization": 0.888,
-      "agg": 0.4768
+      "relearning": 0.4874,
+      "quantization": 0.9382,
+      "agg": 0.6415
     },
     "mia_min_k": {
-      "relearning": 0.3673,
-      "quantization": 0.8652,
-      "agg": 0.5157
+      "relearning": 0.5322,
+      "quantization": 0.9231,
+      "agg": 0.6752
     },
     "mia_min_kpp": {
-      "relearning": 0.2776,
-      "quantization": 0.8036,
-      "agg": 0.4127
+      "relearning": 0.4308,
+      "quantization": 0.8826,
+      "agg": 0.579
     },
     "uds": {
-      "relearning": 0.9574,
-      "quantization": 0.9745,
-      "agg": 0.9659
+      "relearning": 0.8997,
+      "quantization": 0.9677,
+      "agg": 0.9325
     },
     "s_mia_loss": {
-      "relearning": 0.6137,
-      "quantization": 0.8151,
-      "agg": 0.7002
+      "relearning": 0.6635,
+      "quantization": 0.7194,
+      "agg": 0.6903
     },
     "s_mia_min_k": {
-      "relearning": 0.672,
-      "quantization": 0.7976,
-      "agg": 0.7294
+      "relearning": 0.6974,
+      "quantization": 0.7104,
+      "agg": 0.7038
     },
     "s_mia_min_kpp": {
-      "relearning": 0.5286,
-      "quantization": 0.9458,
-      "agg": 0.6782
+      "relearning": 0.5655,
+      "quantization": 0.6427,
+      "agg": 0.6016
     },
     "s_mia_zlib": {
-      "relearning": 0.6906,
-      "quantization": 0.8305,
-      "agg": 0.7541
+      "relearning": 0.745,
+      "quantization": 0.7036,
+      "agg": 0.7237
+    },
+    "logit_lens": {
+      "relearning": 0.8502,
+      "quantization": 0.9613,
+      "agg": 0.9023
     }
   },
   "formulas": {
     "faithfulness": "AUC-ROC over P (30 with knowledge) vs N (30 without) pool",
-    "robustness": "HM(Relearning, Quantization)",
-    "relearning": "min(Δ_retain / Δ_unlearn, 1) after 1-epoch relearning",
-    "quantization": "min(m_before / m_after, 1) after 4-bit NF4 quantization",
+    "robustness": "HM(R, Q) \u2014 symmetric (bidirectional)",
+    "relearning": "R = 1 - clip(|\u0394unl - \u0394ret| / (|\u0394unl| + |\u0394ret| + eps), 0, 1) after 1-epoch relearning",
+    "quantization": "Q = 1 - clip(|m_after - m_before| / (|m_before| + |m_after| + eps), 0, 1) after 4-bit NF4 quantization",
     "overall": "HM(Faithfulness, Robustness)"
   },
   "notes": {
-    "robustness_policy": "R & Q computed on utility+faithfulness filtered models; raw metric values for standard metrics; 1-UDS and 1-s_mia for inverted metrics; 13 metrics + 4 normalized MIA + 3 representation baselines",
-    "robustness_source": "runs/meta_eval/robustness/{quant,relearn}/plots/*_robustness_results.json",
-    "representation_baselines": "CKA, Logit Lens (fixed decoder), Fisher Information; faithfulness from runs/meta_eval/representation_baselines/faithfulness/; robustness not yet computed"
+    "robustness_policy": "Symmetric (bidirectional) robustness: penalizes both knowledge recovery AND destruction after perturbation; utility+faithfulness filtered models; raw metric values for standard metrics; 1-UDS and 1-s_mia for inverted metrics; 13 metrics + 4 normalized MIA + logit_lens",
+    "robustness_source": "runs/meta_eval/robustness/{quant,relearn}/plots/sym/*_sym_results.json",
+    "representation_baselines": "CKA, Logit Lens (fixed decoder), Fisher Information, Fisher Masked (0.01%/0.1%/1%); faithfulness from runs/meta_eval/representation_baselines/faithfulness/"
   }
 }

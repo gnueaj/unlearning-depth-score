@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
-"""Pre-download a batch of models from HuggingFace Hub."""
+"""Pre-download a batch of models from HuggingFace Hub.
 
+Usage:
+    python scripts/predownload_batch.py --epoch 10   # Batch 1: ep10 models (75)
+    python scripts/predownload_batch.py --epoch 5    # Batch 2: ep5 models (75)
+    python scripts/predownload_batch.py              # All 150 models
+"""
+
+import argparse
 import os
 import sys
 import time
@@ -11,17 +18,28 @@ from huggingface_hub import snapshot_download
 from scripts.meta_eval_robustness import DEFAULT_MODELS
 
 FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
+RETAIN_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90"
 
 
 def main():
-    start_idx = int(sys.argv[1]) if len(sys.argv) > 1 else 0
-    end_idx = int(sys.argv[2]) if len(sys.argv) > 2 else len(DEFAULT_MODELS)
+    parser = argparse.ArgumentParser(description="Pre-download models by epoch.")
+    parser.add_argument("--epoch", type=int, choices=[5, 10], default=None,
+                        help="Download only ep5 or ep10 models. Default: all.")
+    args = parser.parse_args()
 
-    all_model_ids = list(DEFAULT_MODELS.values())
-    batch = all_model_ids[start_idx:end_idx]
+    # Filter by epoch suffix in short name
+    if args.epoch is not None:
+        suffix = f"_ep{args.epoch}"
+        model_ids = [mid for name, mid in DEFAULT_MODELS.items()
+                     if name.endswith(suffix)]
+        print(f"Epoch {args.epoch}: {len(model_ids)} models")
+    else:
+        model_ids = [mid for name, mid in DEFAULT_MODELS.items()
+                     if name != "retain"]
+        print(f"All: {len(model_ids)} models")
 
-    # Always include full model
-    all_to_download = [FULL_MODEL] + batch
+    # Always include full + retain
+    all_to_download = [FULL_MODEL, RETAIN_MODEL] + model_ids
 
     # Deduplicate
     seen = set()
@@ -31,7 +49,8 @@ def main():
             seen.add(m)
             unique.append(m)
 
-    print(f"Pre-downloading {len(unique)} models (batch [{start_idx}:{end_idx}])")
+    epoch_label = f"ep{args.epoch}" if args.epoch else "all"
+    print(f"Pre-downloading {len(unique)} models ({epoch_label})")
     print(f"=" * 60)
 
     total_start = time.time()

@@ -2,17 +2,23 @@
 """
 Create scatter plots for relearning robustness analysis (Figure 9 style).
 Uses usable_models.json for per-metric filtering.
-13 metrics (+ 4 normalized MIA variants).
+13 metrics (+ 4 normalized MIA variants) + representation baselines (row 5).
 
 R formula (Eq. 2):
   r = (m^a_ret - m^b_ret) / (m^a_unl - m^b_unl)
   R = min(r, 1)
 """
 
+import sys
 import json
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[5]))
+from scripts.plot_style import apply_style
+apply_style()
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 from matplotlib.colors import to_rgba
@@ -167,6 +173,11 @@ def parse_args():
         action="store_true",
         help="Set axis lower bound to data min instead of 0.",
     )
+    parser.add_argument(
+        "--before_filter",
+        action="store_true",
+        help="Utility filter + geometric: only models whose before-value could reach unreliable zone.",
+    )
     return parser.parse_args()
 
 
@@ -182,6 +193,7 @@ def main():
     relearn_models = set(relearn_data.keys()) - {'retain'}
 
     # 13 metrics + 4 normalized MIA: rows 0-2 standard (12), row 3 sMIA (4), row 4 UDS centered
+    # Row 5: representation baselines (logit_lens + 3 fisher_masked)
     metrics = [
         'em', 'es', 'truth_ratio', 'prob',
         'rouge', 'jailbreak_rouge', 'paraprob', 'para_rouge',
@@ -189,6 +201,7 @@ def main():
         's_mia_loss', 's_mia_min_k', 's_mia_min_kpp', 's_mia_zlib',
         'uds',
     ]
+    rep_metrics = ['logit_lens']
 
     metric_labels = {
         'em': 'Exact Memorization', 'es': 'Extraction Strength', 'truth_ratio': 'Truth Ratio',
@@ -201,6 +214,7 @@ def main():
         's_mia_min_k': 'MIA-MinK (normalized)',
         's_mia_min_kpp': 'MIA-MinK++ (normalized)',
         'uds': '1-UDS (Ours)',
+        'logit_lens': 'Logit Lens',
     }
 
     # sMIA uses same usable models as corresponding raw MIA metric
@@ -209,7 +223,26 @@ def main():
         's_mia_min_k': 'mia_min_k', 's_mia_min_kpp': 'mia_min_kpp',
     }
 
-    if args.no_filter:
+    # Load representation baselines robustness_relearn results
+    rep_path = base / 'runs/meta_eval/robustness/relearn/rep_baselines_results.json'
+    rep_data = {}
+    if rep_path.exists():
+        with open(rep_path) as f:
+            rep_data = json.load(f)
+    rep_models = set(rep_data.keys()) - {'retain'}
+
+    utility_models = None  # populated by --before_filter
+    if args.before_filter:
+        # Utility filter + geometric before-value filter (applied per-metric in loop)
+        mr_path = base / 'docs/data/method_results.json'
+        with open(mr_path) as f:
+            mr_data = json.load(f)
+        utility_models = set()
+        for m in mr_data.get('models', []):
+            if m.get('utility_rel', 0) >= 0.8:
+                utility_models.add(m['model'])
+        usable_per_metric = {m: sorted(utility_models & relearn_models) for m in metrics}
+    elif args.no_filter:
         usable_per_metric = {m: sorted(relearn_models) for m in metrics}
     else:
         usable_path = Path(args.usable_path) if args.usable_path else (base / 'runs/meta_eval/robustness/usable_models.json')
@@ -253,6 +286,10 @@ def main():
                 continue
 
             bv = to_knowledge(metric, bv_raw)
+            # Before-filter: geometric constraint - only models that could potentially
+            # reach unreliable zone (before_knowledge < 1.0 - retain_shift)
+            if args.before_filter and bv >= 1.0 - retain_shift:
+                continue
             av = to_knowledge(metric, av_raw)
             model_names.append(model_name)
             bef_all.append(bv)
@@ -286,9 +323,94 @@ def main():
               f"avg_R={avg_r:.4f}  retain_shift={retain_shift:+.4f}  "
               f"unrel={n_unreliable}/{n_total}")
 
-    results_name = 'relearn_robustness_results_nofilter.json' if args.no_filter else 'relearn_robustness_results.json'
-    plot_name = 'relearn_robustness_nofilter.png' if args.no_filter else 'relearn_robustness_usable.png'
-    filter_label = 'No Filtering' if args.no_filter else 'Utility + Faithfulness Filtered'
+    # === Representation baselines (row 5) ===
+    rep_retain = rep_data.get('retain', {})
+    for metric in rep_metrics:
+        bkey = f"{metric}_before"
+        akey = f"{metric}_after"
+        rb_raw = rep_retain.get(bkey)
+        ra_raw = rep_retain.get(akey)
+        if rb_raw is None or ra_raw is None:
+            print(f"{metric:20s}: SKIP (no retain data in rep baselines)")
+            continue
+
+        # Rep baselines: higher = more erased (like UDS), so invert to knowledge direction
+        rb = 1.0 - rb_raw
+        ra = 1.0 - ra_raw
+        retain_shift = ra - rb
+
+        # Use same usable models filtering if available, else use all rep models
+        if args.before_filter:
+            usable_models_set = (utility_models & rep_models) if utility_models else rep_models
+        elif args.no_filter:
+            usable_models_set = rep_models
+        else:
+            # Use UDS usable set as proxy for rep baselines
+            usable_models_set = set(usable_per_metric.get('uds', [])) & rep_models
+
+        bef_all, aft_all = [], []
+        model_names = []
+        r_values = []
+        n_unreliable = 0
+
+        for model_name in sorted(usable_models_set):
+            md = rep_data.get(model_name, {})
+            bv_raw = md.get(bkey)
+            av_raw = md.get(akey)
+            if bv_raw is None or av_raw is None:
+                continue
+
+            bv = 1.0 - bv_raw
+            # Before-filter: geometric constraint
+            if args.before_filter and bv >= 1.0 - retain_shift:
+                continue
+            av = 1.0 - av_raw
+            model_names.append(model_name)
+            bef_all.append(bv)
+            aft_all.append(av)
+
+            r = compute_r(rb, ra, bv, av)
+            r_values.append(r)
+
+            if (av - bv) > retain_shift:
+                n_unreliable += 1
+
+        avg_r = float(np.mean(r_values)) if r_values else 0.0
+        n_total = len(bef_all)
+
+        all_metric_data[metric] = {
+            'bef_all': bef_all, 'aft_all': aft_all,
+            'names': model_names, 'r_values': r_values,
+            'rb': rb, 'ra': ra, 'retain_shift': retain_shift,
+            'avg_r': avg_r, 'n_total': n_total, 'n_unreliable': n_unreliable,
+        }
+        robustness_results[metric] = {
+            'avg_R': round(avg_r, 4),
+            'retain_shift': round(retain_shift, 4),
+            'n_models': n_total,
+            'n_unreliable': n_unreliable,
+            'n_usable_total': len(usable_models_set),
+            'r_per_model': {n: round(r, 4) for n, r in zip(model_names, r_values)}
+        }
+
+        print(f"{metric:20s}: n={n_total:3d}/{len(usable_models_set):3d}  "
+              f"avg_R={avg_r:.4f}  retain_shift={retain_shift:+.4f}  "
+              f"unrel={n_unreliable}/{n_total}")
+
+    if args.before_filter:
+        results_name = 'relearn_robustness_results.json'
+        plot_name = 'relearn_robustness_usable.png'
+        filter_label = 'Utility + Before-Value Filtered'
+        if not args.out_tag:
+            args.out_tag = 'before_filter'
+    elif args.no_filter:
+        results_name = 'relearn_robustness_results_nofilter.json'
+        plot_name = 'relearn_robustness_nofilter.png'
+        filter_label = 'No Filtering'
+    else:
+        results_name = 'relearn_robustness_results.json'
+        plot_name = 'relearn_robustness_usable.png'
+        filter_label = 'Utility + Faithfulness Filtered'
     if args.filter_label:
         filter_label = args.filter_label
     if args.tight_axes:
@@ -304,8 +426,8 @@ def main():
     print(f"\nSaved: {output_dir / results_name}")
 
     # === Plot: 5 rows × 4 cols ===
-    # Row 0-2: standard 12 metrics, Row 3: sMIA 4, Row 4: UDS centered
-    fig = plt.figure(figsize=(13.8, 17.8))
+    # Row 0-2: standard 12 metrics, Row 3: sMIA 4, Row 4: 1-UDS + Logit Lens
+    fig = plt.figure(figsize=(13.8, 18.0))
     gs = gridspec.GridSpec(5, 4, figure=fig)
     metric_axes = {}
 
@@ -318,14 +440,14 @@ def main():
     for i, metric in enumerate(metrics[12:16]):
         metric_axes[metric] = fig.add_subplot(gs[3, i])
 
-    # Row 4: UDS centered
-    metric_axes['uds'] = fig.add_subplot(gs[4, 1:3])
-    fig.add_subplot(gs[4, 0]).set_visible(False)
-    fig.add_subplot(gs[4, 3]).set_visible(False)
+    # Row 4: UDS (left) + Logit Lens (right)
+    metric_axes['uds'] = fig.add_subplot(gs[4, 0:2])
+    metric_axes['logit_lens'] = fig.add_subplot(gs[4, 2:4])
 
     smia_metrics = {'s_mia_loss', 's_mia_zlib', 's_mia_min_k', 's_mia_min_kpp'}
+    all_plot_metrics = metrics + rep_metrics
 
-    for metric in metrics:
+    for metric in all_plot_metrics:
         ax = metric_axes[metric]
         d = all_metric_data.get(metric)
         if d is None:
@@ -371,20 +493,20 @@ def main():
         ax.set_title(
             f"{label}\nR={d['avg_r']:.3f} (n={d['n_total']}, unrel={n_unrel})",
             fontsize=title_fs,
-            fontweight='bold' if metric == 'uds' else 'normal',
+            fontweight='bold' if metric in ('uds', *rep_metrics) else 'normal',
         )
-        ax.set_xlabel('Before Relearning', fontsize=9)
-        ax.set_ylabel('After Relearning', fontsize=9)
+        ax.set_xlabel('Before Relearning', fontsize=10)
+        ax.set_ylabel('After Relearning', fontsize=10)
         ax.set_xlim(lo, hi)
         ax.set_ylim(lo, hi)
         ax.set_aspect('equal', adjustable='box')
-        ax.tick_params(labelsize=8)
+        ax.tick_params(labelsize=9)
         ax.grid(True, linestyle='-', linewidth=0.45, alpha=0.25)
 
-        grad_patch = Patch(label='Unreliable\n(Less → More)')
+        grad_patch = Patch(label='Unreliable\n(Less $\\rightarrow$ More)')
         local_handles = [
             Line2D([0], [0], color='r', linestyle='--', linewidth=1.0, alpha=0.85, label='y = x'),
-            Line2D([0], [0], color='r', linestyle=':', linewidth=1.0, alpha=0.65, label='y = x + Δ_ret'),
+            Line2D([0], [0], color='r', linestyle=':', linewidth=1.0, alpha=0.65, label=r'y = x + $\Delta_{\mathrm{ret}}$'),
             Line2D([0], [0], marker='o', color='w', markerfacecolor='#2E7D32',
                    markeredgecolor='#1B5E20', markersize=5, label='Unlearn'),
             Line2D([0], [0], marker='*', color='w', markerfacecolor='red',
@@ -392,14 +514,17 @@ def main():
             grad_patch,
         ]
         ax.legend(handles=local_handles, handler_map={grad_patch: _GradientHandler()},
-                  loc='lower right', fontsize=7, framealpha=0.95)
+                  loc='lower right', fontsize=9, framealpha=0.95)
 
-    fig.suptitle(f'Relearning Robustness (13 Metrics + 4 Normalized MIA)\n(150 Unlearned Models; {filter_label})',
-                 fontsize=14, fontweight='normal', y=0.97)
-    fig.subplots_adjust(left=0.035, right=0.995, bottom=0.03, top=0.92, wspace=0.01, hspace=0.48)
+    fig.suptitle(f'Relearning Robustness (13 Metrics + 4 Normalized MIA + Logit Lens)\n(150 Unlearned Models; {filter_label})',
+                 fontsize=15, fontweight='normal', y=0.97)
+    fig.subplots_adjust(left=0.035, right=0.995, bottom=0.025, top=0.93, wspace=0.04, hspace=0.40)
     plt.savefig(output_dir / plot_name, dpi=150, bbox_inches='tight')
+    pdf_name = plot_name.replace('.png', '.pdf')
+    plt.savefig(output_dir / pdf_name, bbox_inches='tight')
     plt.close()
     print(f"Saved: {output_dir / plot_name}")
+    print(f"Saved: {output_dir / pdf_name}")
 
 
 if __name__ == '__main__':

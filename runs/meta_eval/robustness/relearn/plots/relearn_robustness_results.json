@@ -771,5 +771,26 @@
       "simnpo_lr5e5_b45_a1_d1_g025_ep10": 0.8938,
       "simnpo_lr5e5_b45_a1_d1_g025_ep5": 0.9107
     }
+  },
+  "logit_lens": {
+    "avg_R": 1.0,
+    "retain_shift": 0.3055,
+    "n_models": 12,
+    "n_unreliable": 0,
+    "n_usable_total": 12,
+    "r_per_model": {
+      "altpo_lr5e5_b01_a1_ep10": 1.0,
+      "altpo_lr5e5_b01_a1_ep5": 1.0,
+      "altpo_lr5e5_b01_a2_ep10": 1.0,
+      "altpo_lr5e5_b01_a2_ep5": 1.0,
+      "altpo_lr5e5_b01_a5_ep10": 1.0,
+      "npo_lr5e5_b01_a2_ep10": 1.0,
+      "npo_lr5e5_b01_a5_ep10": 1.0,
+      "npo_lr5e5_b01_a5_ep5": 1.0,
+      "simnpo_lr5e5_b35_a1_d1_g025_ep10": 1.0,
+      "simnpo_lr5e5_b35_a1_d1_g025_ep5": 1.0,
+      "simnpo_lr5e5_b45_a1_d1_g025_ep10": 1.0,
+      "simnpo_lr5e5_b45_a1_d1_g025_ep5": 1.0
+    }
   }
 }

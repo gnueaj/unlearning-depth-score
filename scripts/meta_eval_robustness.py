@@ -495,7 +495,7 @@ print("FINETUNE_SUCCESS")
 '''
     result = subprocess.run(
         [sys.executable, "-c", script],
-        capture_output=True, text=True, timeout=600,
+        capture_output=True, text=True, timeout=900,
         cwd=repo_root,
     )
     success = "FINETUNE_SUCCESS" in result.stdout

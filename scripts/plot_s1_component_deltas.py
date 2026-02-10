@@ -6,6 +6,10 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from scripts.plot_style import apply_style
+apply_style()
 
 OUT_DIR = Path("runs/meta_eval")
 
@@ -92,8 +96,9 @@ def main():
             for li in range(num_layers):
                 layer_deltas[li].append(cache[idx][li])
         means = [np.mean(d) for d in layer_deltas]
-        sd = [np.std(d) for d in layer_deltas]
-        stats[name] = {"mean": np.array(means), "ci": np.array(sd)}
+        n = len(all_indices)
+        ci95 = [1.96 * np.std(d) / np.sqrt(n) for d in layer_deltas]
+        stats[name] = {"mean": np.array(means), "ci": np.array(ci95)}
 
     # Rename for display
     display_names = {
@@ -122,12 +127,12 @@ def main():
                 markersize=5, linewidth=2, label=label, zorder=3)
         ax.fill_between(layers, m - ci, m + ci, color=colors[name], alpha=0.2, zorder=2)
     # Dummy entry for CI legend
-    ax.fill_between([], [], [], color="gray", alpha=0.2, label="±1 Std. Dev.")
-    ax.set_xlabel("Layer", fontsize=12)
-    ax.set_ylabel("Mean Δ (full_logprob − patched_logprob)", fontsize=12)
-    ax.set_title("S1 Layer-wise Delta by Patching Location (Retain → Full)",
-                  fontsize=13, fontweight="bold")
-    ax.legend(fontsize=10)
+    ax.fill_between([], [], [], color="gray", alpha=0.2, label="95\\% CI")
+    ax.set_xlabel("Layer", fontsize=13)
+    ax.set_ylabel(r"Mean $\Delta$ (full\_logprob $-$ patched\_logprob)", fontsize=13)
+    ax.set_title(r"S1 Layer-wise Delta by Patching Location (Retain $\rightarrow$ Full)",
+                  fontsize=14, fontweight="bold")
+    ax.legend(fontsize=12)
     ax.set_xticks(layers)
     ax.grid(True, alpha=0.3)
 

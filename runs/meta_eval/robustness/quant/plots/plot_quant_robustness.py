@@ -5,10 +5,16 @@ Uses usable_models.json for per-metric filtering.
 13 metrics (+ 4 normalized MIA variants).
 """
 
+import sys
 import json
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[5]))
+from scripts.plot_style import apply_style
+apply_style()
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 from matplotlib.colors import to_rgba
@@ -145,6 +151,17 @@ def parse_args():
         action="store_true",
         help="Set axis lower bound to data min instead of 0.",
     )
+    parser.add_argument(
+        "--before_filter",
+        action="store_true",
+        help="Utility filter + geometric: only models whose before-value could reach unreliable zone.",
+    )
+    parser.add_argument(
+        "--lr_filter",
+        type=str,
+        default=None,
+        help="Filter to specific learning rate (e.g., '1e5' for lr=1e-5). Implies utility filter.",
+    )
     return parser.parse_args()
 
 
@@ -159,7 +176,7 @@ def main():
         quant_data = json.load(f)
     quant_models = set(quant_data.keys()) - {'retain'}
 
-    # 13 metrics + 4 normalized MIA: rows 0-2 standard (12), row 3 sMIA (4), row 4 UDS centered
+    # 13 metrics + 4 normalized MIA: rows 0-2 standard (12), row 3 sMIA (4), row 4 UDS centered, row 5 logit_lens
     metrics = [
         'em', 'es', 'truth_ratio', 'prob',
         'rouge', 'jailbreak_rouge', 'paraprob', 'para_rouge',
@@ -167,6 +184,7 @@ def main():
         's_mia_loss', 's_mia_min_k', 's_mia_min_kpp', 's_mia_zlib',
         'uds',
     ]
+    rep_metrics = ['logit_lens']
 
     metric_labels = {
         'em': 'Exact Memorization', 'es': 'Extraction Strength', 'truth_ratio': 'Truth Ratio',
@@ -179,6 +197,7 @@ def main():
         's_mia_min_k': 'MIA-MinK (normalized)',
         's_mia_min_kpp': 'MIA-MinK++ (normalized)',
         'uds': '1-UDS (Ours)',
+        'logit_lens': 'Logit Lens',
     }
 
     # Inverted: higher = less knowledge → convert to 1-val
@@ -190,7 +209,29 @@ def main():
         's_mia_min_k': 'mia_min_k', 's_mia_min_kpp': 'mia_min_kpp',
     }
 
-    if args.no_filter:
+    # Load representation baselines robustness_quant results
+    rep_path = base / 'runs/meta_eval/robustness/quant/rep_baselines_results.json'
+    rep_data = {}
+    if rep_path.exists():
+        with open(rep_path) as f:
+            rep_data = json.load(f)
+    rep_models = set(rep_data.keys()) - {'retain'}
+
+    utility_models = None  # populated by --before_filter or --lr_filter
+    if args.lr_filter or args.before_filter:
+        # Utility filter (+ optional LR filter)
+        mr_path = base / 'docs/data/method_results.json'
+        with open(mr_path) as f:
+            mr_data = json.load(f)
+        utility_models = set()
+        for m in mr_data.get('models', []):
+            if m.get('utility_rel', 0) >= 0.8:
+                utility_models.add(m['model'])
+        if args.lr_filter:
+            lr_tag = args.lr_filter
+            utility_models = {mid for mid in utility_models if f'_lr{lr_tag}_' in mid}
+        usable_per_metric = {m: sorted(utility_models & quant_models) for m in metrics}
+    elif args.no_filter:
         usable_per_metric = {m: sorted(quant_models) for m in metrics}
     else:
         usable_path = Path(args.usable_path) if args.usable_path else (base / 'runs/meta_eval/robustness/usable_models.json')
@@ -254,9 +295,95 @@ def main():
         print(f"{metric:20s}: n={len(filtered_before):3d}/{len(usable_models):3d}  "
               f"avg_Q={avg_q:.4f}  unrel={n_unreliable}/{len(filtered_before)}")
 
-    results_name = 'quant_robustness_results_nofilter.json' if args.no_filter else 'quant_robustness_results.json'
-    plot_name = 'quant_robustness_nofilter.png' if args.no_filter else 'quant_robustness_usable.png'
-    filter_label = 'No Filtering' if args.no_filter else 'Utility + Faithfulness Filtered'
+    # === Representation baselines (row 5) ===
+    rep_retain = rep_data.get('retain', {})
+    for metric in rep_metrics:
+        bkey = f"{metric}_before"
+        akey = f"{metric}_after"
+        rb_raw = rep_retain.get(bkey)
+        ra_raw = rep_retain.get(akey)
+        if rb_raw is None or ra_raw is None:
+            print(f"{metric:20s}: SKIP (no retain data in rep baselines)")
+            continue
+
+        # Rep baselines: higher = more erased (like UDS), so invert to knowledge direction
+        rb = 1.0 - rb_raw
+        ra = 1.0 - ra_raw
+
+        # Use same usable models filtering if available, else use all rep models
+        if args.lr_filter or args.before_filter:
+            usable_models_set = (utility_models & rep_models) if utility_models else rep_models
+        elif args.no_filter:
+            usable_models_set = rep_models
+        else:
+            usable_models_set = set(usable_per_metric.get('uds', [])) & rep_models
+
+        filtered_before, filtered_after = [], []
+        model_names = []
+        q_values = []
+        n_unreliable = 0
+
+        for model_name in sorted(usable_models_set):
+            md = rep_data.get(model_name, {})
+            bv_raw = md.get(bkey)
+            av_raw = md.get(akey)
+            if bv_raw is None or av_raw is None:
+                continue
+
+            bv = 1.0 - bv_raw
+            av = 1.0 - av_raw
+            model_names.append(model_name)
+            filtered_before.append(bv)
+            filtered_after.append(av)
+
+            if av > bv:
+                n_unreliable += 1
+
+            # Q = min(before/after, 1)
+            if av > 0:
+                q = min(bv / av, 1.0)
+            else:
+                q = 1.0
+            q_values.append(q)
+
+        avg_q = float(np.mean(q_values)) if q_values else 0.0
+
+        all_metric_data[metric] = {
+            'before': filtered_before, 'after': filtered_after,
+            'names': model_names, 'q_values': q_values,
+            'avg_q': avg_q
+        }
+        robustness_results[metric] = {
+            'avg_Q': round(avg_q, 4),
+            'n_models': len(filtered_before),
+            'n_unreliable': n_unreliable,
+            'n_usable_total': len(usable_models_set),
+            'q_per_model': {n: round(q, 4) for n, q in zip(model_names, q_values)}
+        }
+
+        print(f"{metric:20s}: n={len(filtered_before):3d}/{len(usable_models_set):3d}  "
+              f"avg_Q={avg_q:.4f}  unrel={n_unreliable}/{len(filtered_before)}")
+
+    if args.lr_filter:
+        results_name = 'quant_robustness_results.json'
+        plot_name = 'quant_robustness_usable.png'
+        filter_label = f'Utility + LR={args.lr_filter} Filtered'
+        if not args.out_tag:
+            args.out_tag = f'utility_lr{args.lr_filter}'
+    elif args.before_filter:
+        results_name = 'quant_robustness_results.json'
+        plot_name = 'quant_robustness_usable.png'
+        filter_label = 'Utility + Before-Value Filtered'
+        if not args.out_tag:
+            args.out_tag = 'before_filter'
+    elif args.no_filter:
+        results_name = 'quant_robustness_results_nofilter.json'
+        plot_name = 'quant_robustness_nofilter.png'
+        filter_label = 'No Filtering'
+    else:
+        results_name = 'quant_robustness_results.json'
+        plot_name = 'quant_robustness_usable.png'
+        filter_label = 'Utility + Faithfulness Filtered'
     if args.filter_label:
         filter_label = args.filter_label
     if args.tight_axes:
@@ -272,8 +399,8 @@ def main():
     print(f"\nSaved: {output_dir / results_name}")
 
     # === Plot: 5 rows × 4 cols ===
-    # Row 0-2: standard 12 metrics, Row 3: sMIA 4, Row 4: UDS centered
-    fig = plt.figure(figsize=(13.8, 17.8))
+    # Row 0-2: standard 12 metrics, Row 3: sMIA 4, Row 4: 1-UDS + Logit Lens
+    fig = plt.figure(figsize=(13.8, 18.0))
     gs = gridspec.GridSpec(5, 4, figure=fig)
     metric_axes = {}
 
@@ -286,17 +413,19 @@ def main():
     for i, metric in enumerate(metrics[12:16]):
         metric_axes[metric] = fig.add_subplot(gs[3, i])
 
-    # Row 4: UDS centered
-    metric_axes['uds'] = fig.add_subplot(gs[4, 1:3])
-    fig.add_subplot(gs[4, 0]).set_visible(False)
-    fig.add_subplot(gs[4, 3]).set_visible(False)
+    # Row 4: UDS (left) + Logit Lens (right)
+    metric_axes['uds'] = fig.add_subplot(gs[4, 0:2])
+    metric_axes['logit_lens'] = fig.add_subplot(gs[4, 2:4])
 
-    # Row 4 metrics (sMIA) and row 5 (UDS) get special formatting
     smia_metrics = {'s_mia_loss', 's_mia_zlib', 's_mia_min_k', 's_mia_min_kpp'}
+    all_plot_metrics = metrics + rep_metrics
 
-    for metric in metrics:
+    for metric in all_plot_metrics:
         ax = metric_axes[metric]
-        d = all_metric_data[metric]
+        d = all_metric_data.get(metric)
+        if d is None:
+            ax.set_visible(False)
+            continue
         bef, aft = d['before'], d['after']
 
         all_vals = bef + aft
@@ -327,17 +456,17 @@ def main():
         ax.set_title(
             f"{label}\nQ={d['avg_q']:.3f} (n={len(bef)}, unrel={n_unrel})",
             fontsize=title_fs,
-            fontweight='bold' if metric == 'uds' else 'normal',
+            fontweight='bold' if metric in ('uds', *rep_metrics) else 'normal',
         )
-        ax.set_xlabel('Before Quantization', fontsize=9)
-        ax.set_ylabel('After Quantization', fontsize=9)
+        ax.set_xlabel('Before Quantization', fontsize=10)
+        ax.set_ylabel('After Quantization', fontsize=10)
         ax.set_xlim(lo, hi)
         ax.set_ylim(lo, hi)
         ax.set_aspect('equal', adjustable='box')
-        ax.tick_params(labelsize=8)
+        ax.tick_params(labelsize=9)
         ax.grid(True, linestyle='-', linewidth=0.45, alpha=0.25)
 
-        grad_patch = Patch(label='Unreliable\n(Less → More)')
+        grad_patch = Patch(label='Unreliable\n(Less $\\rightarrow$ More)')
         local_handles = [
             Line2D([0], [0], color='r', linestyle='--', linewidth=1.0, alpha=0.85, label='y = x'),
             Line2D([0], [0], marker='o', color='w', markerfacecolor='#2E7D32',
@@ -345,14 +474,17 @@ def main():
             grad_patch,
         ]
         ax.legend(handles=local_handles, handler_map={grad_patch: _GradientHandler()},
-                  loc='lower right', fontsize=7, framealpha=0.95)
+                  loc='lower right', fontsize=9, framealpha=0.95)
 
-    fig.suptitle(f'Quantization Robustness (13 Metrics + 4 Normalized MIA)\n(150 Unlearned Models; {filter_label})',
-                 fontsize=14, fontweight='normal', y=0.97)
-    fig.subplots_adjust(left=0.035, right=0.995, bottom=0.03, top=0.92, wspace=0.01, hspace=0.48)
+    fig.suptitle(f'Quantization Robustness (13 Metrics + 4 Normalized MIA + Logit Lens)\n(150 Unlearned Models; {filter_label})',
+                 fontsize=15, fontweight='normal', y=0.97)
+    fig.subplots_adjust(left=0.035, right=0.995, bottom=0.025, top=0.93, wspace=0.04, hspace=0.40)
     plt.savefig(output_dir / plot_name, dpi=150, bbox_inches='tight')
+    pdf_name = plot_name.replace('.png', '.pdf')
+    plt.savefig(output_dir / pdf_name, bbox_inches='tight')
     plt.close()
     print(f"Saved: {output_dir / plot_name}")
+    print(f"Saved: {output_dir / pdf_name}")
 
 
 if __name__ == '__main__':

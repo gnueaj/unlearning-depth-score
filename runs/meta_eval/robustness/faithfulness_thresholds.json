@@ -1,0 +1,104 @@
+{
+  "em": {
+    "threshold": 0.6134,
+    "accuracy": 0.8,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "es": {
+    "threshold": 0.065,
+    "accuracy": 0.8167,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "prob": {
+    "threshold": 0.2044,
+    "accuracy": 0.7333,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "paraprob": {
+    "threshold": 0.0502,
+    "accuracy": 0.7,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "truth_ratio": {
+    "threshold": 0.5854,
+    "accuracy": 0.95,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "rouge": {
+    "threshold": 0.3931,
+    "accuracy": 0.7167,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "para_rouge": {
+    "threshold": 0.2994,
+    "accuracy": 0.8333,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "jailbreak_rouge": {
+    "threshold": 0.3728,
+    "accuracy": 0.7167,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "mia_loss": {
+    "threshold": 0.6236,
+    "accuracy": 0.85,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "mia_zlib": {
+    "threshold": 0.3753,
+    "accuracy": 0.8333,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "mia_min_k": {
+    "threshold": 0.6196,
+    "accuracy": 0.8667,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "mia_min_kpp": {
+    "threshold": 0.4988,
+    "accuracy": 0.7833,
+    "p_higher": true,
+    "direction": "keep_below"
+  },
+  "uds": {
+    "threshold": 0.7724,
+    "accuracy": 0.9167,
+    "p_higher": false,
+    "direction": "keep_above"
+  },
+  "s_mia_loss": {
+    "threshold": 0.369,
+    "accuracy": 0.85,
+    "p_higher": false,
+    "direction": "keep_above"
+  },
+  "s_mia_zlib": {
+    "threshold": 0.768,
+    "accuracy": 0.8333,
+    "p_higher": false,
+    "direction": "keep_above"
+  },
+  "s_mia_min_k": {
+    "threshold": 0.3579,
+    "accuracy": 0.8667,
+    "p_higher": false,
+    "direction": "keep_above"
+  },
+  "s_mia_min_kpp": {
+    "threshold": 0.6226,
+    "accuracy": 0.7333,
+    "p_higher": false,
+    "direction": "keep_above"
+  }
+}

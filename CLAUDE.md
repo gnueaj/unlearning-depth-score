@@ -28,6 +28,11 @@ Core claim: output suppression is not enough; internal recoverability must also 
   - `runs/meta_eval/robustness/relearn/results.json`
   - S1 cache: `runs/meta_eval/s1_cache_v2.json` (367 examples, **eager** attention)
   - S1 component analysis: `runs/meta_eval/s1_{mlp,attn,mid}_sdpa.log`, `s1_component_deltas.png`
+- Representation baselines:
+  - `runs/meta_eval/representation_baselines/anchor/` (anchor_cache.json, hidden_cache/, fisher_mask.pt)
+  - `runs/meta_eval/representation_baselines/{logit_lens,cka,fisher,fisher_masked}/results.json` (per-method eval_all)
+  - `runs/meta_eval/faithfulness/rep_baselines_{results,summary}.json` (per-method AUC-ROC)
+  - `runs/meta_eval/robustness/{relearn,quant}/rep_baselines_results.json` (per-method robustness)
 - Representation analysis survey: `docs/representation_analysis_survey.md`
 - Legacy: `runs/legacy/`
 
@@ -43,6 +48,7 @@ Core claim: output suppression is not enough; internal recoverability must also 
 - S1 component analysis:
   - `scripts/s1_component_patching.py` (MLP, attention, mid 패칭)
   - `scripts/plot_s1_component_deltas.py` (4-component visualization)
+- Representation baselines: `scripts/compute_representation_baselines.py` (CKA, Logit Lens, Fisher Masked)
 - Legacy scripts: `scripts/legacy/`
 
 ## Data + Prompting Conventions
@@ -95,6 +101,63 @@ UDS_i = Σ_{l∈FT} [ Δ^S1_l × clip(Δ^S2_l / Δ^S1_l, 0, 1) ] / Σ_{l∈FT} �
 - Reused across unlearned models (retain→full is constant)
 - Note: Robustness는 sdpa attention 사용 필요 (ep5/ep10과 일관성) - 별도 캐시 생성 필요
 
+## Representation Baselines
+
+Three representation-level metrics compare UDS against alternative approaches for detecting internal knowledge retention. All three use the retain model as reference and operate on the same 367-example forget set.
+
+Script: `scripts/compute_representation_baselines.py`
+Anchor data: `runs/meta_eval/representation_baselines/anchor/anchor_cache.json`
+
+### CKA (Centered Kernel Alignment)
+- **Idea**: Measures representational geometry similarity between unlearned and retain models, weighted by how much each layer differs between full and retain.
+- **Formula**:
+  ```
+  w_l = 1 - CKA(H_full, H_retain)_l     # layer importance weight
+  score = Σ_l w_l · CKA(H_unl, H_retain)_l / Σ_l w_l
+  ```
+- **Parameters**: 400 examples (Open-Unlearning dataset), dataset-level kernel matrices per layer
+- **Hidden states**: Pre-norm (same hook as Logit Lens), cached in `anchor/hidden_cache/`
+- **Interpretation**: Lower score (1 - CKA) = more different from retain = more knowledge erased
+- **Faithfulness AUC**: 0.648
+
+### Logit Lens
+- **Idea**: Projects each layer's hidden states through the full model's frozen decoder (LayerNorm + lm_head) to measure decodable knowledge at each layer.
+- **Formula**:
+  ```
+  k_{m,l} = mean logprob of entity tokens when decoding H^l_m through full's decoder
+  d_{m,l} = k_{full,l} - k_{m,l}      # knowledge gap at layer l
+  score = Σ_{l∈FT} [Δ^S1_l · clip(d_{m,l} / d_{S1,l}, 0, 1)] / Σ_{l∈FT} Δ^S1_l
+  ```
+- **Parameters**: τ = 0.05 (FT layer threshold, same as UDS), 367 examples (entity-span teacher forcing)
+- **Key implementation detail**: Last layer of `output_hidden_states` has the source model's RMSNorm baked in (post-final-norm). Fix: forward hook on `model.model.norm` captures pre-norm input for last layer. All other layers from `output_hidden_states[l+1]` are pre-norm and safe.
+- **Interpretation**: Same as UDS (1.0 = erased, 0.0 = intact), but uses frozen decoder instead of activation patching
+- **Faithfulness AUC**: 0.927
+
+### Fisher Masked
+- **Idea**: Diagonal Fisher Information measures parameter sensitivity to forget-set examples. Mask to top-p% of parameters (by anchor importance) per layer to focus on knowledge-relevant parameters.
+- **Formula**:
+  ```
+  F_l = log1p(mean_θ(g²_θ))              # per-layer log-Fisher (gradient-based)
+  a_i = max(F_retain_i - F_full_i, 0)     # anchor importance per parameter
+  M_l = top p% of a_i within layer l       # mask (p = 0.01%, 0.1%, 1%)
+  excess_full_l = mean(F_retain[M_l]) - mean(F_full[M_l])
+  excess_unl_l = mean(F_retain[M_l]) - mean(F_unl[M_l])
+  erasure_l = 1 - clip(excess_unl_l / excess_full_l, 0, 1)
+  score = Σ_l w_l · erasure_l / Σ_l w_l   # w_l = excess_full_l
+  ```
+- **Parameters**: 367 examples, per-layer gradient computation, mask fractions: 0.01%, 0.1%, 1%
+- **Anchor data**: `runs/meta_eval/representation_baselines/anchor/fisher_mask.pt` (precomputed from retain/full)
+- **Known limitation**: Layer 1 dominates weight (60-84% of total excess_full), making results nearly identical across mask fractions due to nested masks + ratio normalization. This is a fundamental Fisher characteristic, not an aggregation bug.
+- **Faithfulness AUC**: 0.708 (0.01%), 0.712 (0.1%), 0.698 (1%)
+
+### Summary
+| Method | AUC | Approach | Key Advantage |
+|--------|-----|----------|---------------|
+| CKA | 0.648 | Geometry | Training-free, fast |
+| Fisher Masked (0.1%) | 0.712 | Parameter sensitivity | Focuses on knowledge-relevant params |
+| Logit Lens | 0.927 | Frozen decoder | Layer-wise readout, close to UDS |
+| **UDS** | **0.971** | **Activation patching** | **Direct knowledge recoverability** |
+
 ## Method-Level Aggregation (Current Dashboard Contract)
 - `Mem.` from memorization summary
 - `Privacy` currently includes MIA aggregate and UDS via HM in dashboard pipeline
@@ -113,30 +176,62 @@ When changing aggregation, change both builder logic and HTML labels together.
 
 ### Robustness
 
-#### Formulas (Open-Unlearning Paper Eq. 2, 3)
+#### Symmetric (Bidirectional) Formulas — Main Approach
+
+Open-Unlearning의 one-directional 수식은 knowledge recovery만 페널티를 주고, knowledge destruction은 무시한다. 우리는 양방향을 모두 측정하는 symmetric formulas를 메인으로 사용한다.
+
+**동기 (3 Axioms)**:
+1. **Perturbation Invariance**: 의미 보존 변환(e.g., quantization)은 metric 값을 변화시키지 않아야 함
+2. **Recovery Calibration**: relearning 후 unlearned model의 변화가 retain model의 변화와 일치해야 robust
+3. **Anti-gaming**: one-directional는 overfit(knowledge destruction)을 reward → symmetric은 이를 방지
+
 ```
-# Relearning (Eq. 2): 얼마나 빨리 지식이 복구되는가
-r = (m^a_ret - m^b_ret) / (m^a_unl - m^b_unl)
-R = min(r, 1)
+# Quantization: Q = 1 - clip(|m_after - m_before| / (|m_before| + |m_after| + eps), 0, 1)
+- 방향 무관: after > before (recovery)와 after < before (destruction) 모두 페널티
+- Canberra-like denominator: 스케일 정규화로 near-zero metric과 large metric 동등 비교
+- Direction-invariant: raw metric과 inverted metric에 대해 동일한 결과
 
-# Quantization (Eq. 3): quantization 후 지식이 복구되는가
-# 논문 수식 그대로: q = m^b / m^a, 하지만 논리적으로:
-Q = min(before / after, 1)
-
-- after > before (지식 복구) → Q < 1 (낮음 = 나쁨)
-- after ≤ before (robust) → Q = 1 (높음 = 좋음)
-- Higher Q = more robust
+# Relearning: R = 1 - clip(|Δunl - Δret| / (|Δunl| + |Δret| + eps), 0, 1)
+- Δret = m_ret_after - m_ret_before (retain의 relearning 변화)
+- Δunl = m_unl_after - m_unl_before (unlearned의 relearning 변화)
+- Canberra-like denominator: |Δunl| + |Δret| → Δret ≈ 0일 때 blow-up 방지
+- 완벽한 robustness: Δunl = Δret → R = 1
 ```
 
-#### Scatter Plot 해석 (Figure 10 스타일)
+#### Scatter Plot 해석
 - X축: metric before attack
 - Y축: metric after attack
-- y=x 선 위 (after > before): **Unreliable** (지식 복구됨, 나쁨)
-- y=x 선 아래/위 (after ≤ before): Robust (unlearning 유지)
+- 기준선에서 **양방향으로** 멀어질수록 unreliable (빨간 gradient)
+  - Quant: y = x line 기준
+  - Relearn: y = x + Δ_ret line 기준
 
 #### Aggregation
 - Per-metric robustness = `HM(avg_R, avg_Q)`
 - avg_R = mean([R_model1, R_model2, ...]) for filtered models
+
+#### Symmetric Results (Default Filter)
+| Metric | Q | R | HM |
+|--------|------|------|-----|
+| **UDS** | 0.968 | 0.900 | **0.933** |
+| Logit Lens | 0.961 | 0.850 | 0.902 |
+| Paraprob | 0.853 | 0.899 | 0.875 |
+| ES | 0.970 | 0.770 | 0.859 |
+| s_mia_zlib | 0.704 | 0.745 | 0.724 |
+
+#### Symmetric Robustness Paths
+- Quant results & plots: `runs/meta_eval/robustness/quant/plots/sym/`
+- Relearn results & plots: `runs/meta_eval/robustness/relearn/plots/sym/`
+- Plot scripts: `plot_quant_symmetric.py`, `plot_relearn_symmetric.py`
+- Filter variants: nofilter, default (utility+faithfulness), utility_only, lr_filter, before_filter
+
+#### Legacy One-Directional Formulas (Open-Unlearning Eq. 2, 3)
+```
+# 참고용 — 메인 분석에는 사용하지 않음
+R = min((m^a_ret - m^b_ret) / (m^a_unl - m^b_unl), 1)   # Relearning
+Q = min(before / after, 1)                                 # Quantization
+```
+- Legacy results: `runs/meta_eval/robustness/{quant,relearn}/plots/*_robustness_results.json`
+- Legacy scripts: `plot_quant_robustness.py`, `plot_relearn_robustness.py`
 
 #### Direction Policy
 - **대부분 metrics**: 높은 값 = 지식 있음 → raw values 사용
@@ -294,3 +389,18 @@ Before publishing numbers:
   - Faithfulness histograms, Quantization scatter, Relearning scatter
 - **Representation analysis survey**: `docs/representation_analysis_survey.md` 한국어 번역 + 방법 목록 두괄식 추가
   - 6가지 방법: CKA, Fisher Information, Linear Probing, SVCCA/PWCCA, Logit/Tuned Lens, RSA
+
+## Recent Updates (2026-02-11)
+- **Symmetric (Bidirectional) Robustness 도입**: one-directional (Open-Unlearning) 대신 symmetric formulas를 메인으로 채택
+  - Q = 1 - clip(|m_after - m_before| / (|m_before| + |m_after| + eps), 0, 1) (Canberra-like quantization stability)
+  - R = 1 - clip(|Δunl - Δret| / (|Δunl| + |Δret| + eps), 0, 1) (Canberra-like relearning stability)
+  - 정당화: Perturbation invariance axiom + Recovery calibration axiom + Anti-gaming argument
+  - 기존 one-directional은 legacy로 유지, `plots/` 루트에 보존
+- **Symmetric plot scripts**: `plot_quant_symmetric.py`, `plot_relearn_symmetric.py`
+  - 출력: `runs/meta_eval/robustness/{quant,relearn}/plots/sym/`
+  - 양방향 gradient (기준선에서 멀어질수록 빨간색)
+  - 5개 filter variant: nofilter, default, utility_only, lr_filter(quant), before_filter(relearn)
+- **`docs/data/meta_eval.json`** symmetric robustness 값으로 업데이트
+- **CKA robustness 완료**: quant 151/151, relearn 151/151
+- **Logit Lens robustness 완료**: quant 151/151, relearn 151/151
+- **Fisher Masked robustness 진행 중**: quant 0/151 (미시작), relearn 107/151 (ep5 44개 남음)
