@@ -424,7 +424,7 @@ Before publishing numbers:
   - **제목**: "13 Metrics + 4 Normalized MIA + Rep. Baselines" (CKA, Logit Lens, Fisher 모두 포함)
   - **Axis policy**: truth_ratio만 data min 하한 사용, 나머지는 0부터 시작, max는 min(data_max*1.02, 1.02)로 캡
 - **`docs/data/meta_eval.json`** symmetric robustness 값으로 업데이트
-- **CKA robustness**: broken — quantized 모델에서 "index OOB" 에러, 모든 non-retain 모델 cka=0. Robustness = null
+- **CKA robustness 완료**: quant Q=0.9968, relearn R=0.0134, HM=0.0264 (9 usable models). Relearn 성능 극도로 낮음 (retain_shift=0.91로 retain 자체도 relearn 후 CKA 큰 변화)
 - **Logit Lens robustness 완료**: quant 151/151, relearn 151/151 → Q=0.9613, R=0.8502, HM=0.9023
 - **Fisher Masked robustness 완료**: quant 151/151, relearn 151/151
   - NF4 quantized 모델은 `requires_grad=False` → Fisher(gradient²) 계산 불가

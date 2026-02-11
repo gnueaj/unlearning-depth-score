@@ -257,6 +257,6 @@
   "notes": {
     "robustness_policy": "Symmetric (bidirectional) robustness: penalizes both knowledge recovery AND destruction after perturbation; utility+faithfulness filtered models; raw metric values for standard metrics; 1-UDS and 1-s_mia for inverted metrics; 13 metrics + 4 normalized MIA + logit_lens",
     "robustness_source": "runs/meta_eval/robustness/{quant,relearn}/plots/sym/*_sym_results.json",
-    "representation_baselines": "CKA, Logit Lens (fixed decoder), Fisher Masked (0.01%/0.1%/1%); CKA robustness broken (index OOB with quantized models); Fisher Masked quant computed via dequantization (Q~0.58); for CKA, robustness=null and overall=faithfulness AUC"
+    "representation_baselines": "CKA, Logit Lens (fixed decoder), Fisher Masked (0.01%/0.1%/1%); CKA relearn robustness very low (R=0.013, retain_shift=0.91); Fisher Masked quant computed via dequantization (Q~0.58)"
   }
 }
