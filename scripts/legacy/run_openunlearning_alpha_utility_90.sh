@@ -42,7 +42,7 @@ for alpha in "${ALPHAS[@]}"; do
 
   for m in "${MODELS[@]}"; do
     echo "[${alpha}] utility $m"
-    CUDA_VISIBLE_DEVICES=0 python3 -m patchscope.utility_eval \
+    CUDA_VISIBLE_DEVICES=0 python3 -m uds.utility_eval \
       --model "$m" \
       --batch_size "$BATCH_SIZE" \
       --max_length 512 \

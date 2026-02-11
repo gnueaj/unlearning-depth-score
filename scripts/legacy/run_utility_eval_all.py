@@ -70,7 +70,7 @@ def run_model(model: str, gpu: int):
     log_path = out_path / "run.log"
 
     cmd = [
-        sys.executable, "-m", "patchscope.utility_eval",
+        sys.executable, "-m", "uds.utility_eval",
         "--model", model,
         "--out_dir", str(out_path),
         "--batch_size", "4",

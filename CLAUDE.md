@@ -284,7 +284,11 @@ Q = min(before / after, 1)                                 # Quantization
 - Dashboard data: `docs/data/meta_eval.json` (13 + 4 normalized)
 
 ### Normalized MIA (s_mia) Metrics
-- Formula (MUSE PrivLeak-style): `s_mia = clip(1 - |auc_model - auc_retain| / auc_retain, 0, 1)`
+- Naming convention:
+  - `normalized = |auc_model - auc_retain| / auc_retain` (deviation ratio; higher = more knowledge)
+  - `s_mia = clip(1 - normalized, 0, 1)` (inverted; higher = erased, like UDS)
+- Faithfulness histogram row 4: plots **normalized** values (1 - s_mia, P on right)
+- Privacy formula: uses **s_mia** directly → `MIA = HM(s_LOSS, s_ZLib, s_Min-K, s_Min-K++)`
 - Reference values from `runs/ep10/privacy/retain/summary.json` (only retain AUC needed)
 - 4 metrics: s_mia_loss, s_mia_zlib, s_mia_min_k, s_mia_min_kpp
 - Direction: higher s_mia = less knowledge (like UDS)

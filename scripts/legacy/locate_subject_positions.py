@@ -204,7 +204,7 @@ def validate_with_cosine_similarity(
     Returns:
         Dict with aggregated cosine similarity analysis
     """
-    from patchscope.core import get_all_layers_hidden
+    from uds.core import get_all_layers_hidden
 
     device = next(retain_model.parameters()).device
     inputs = tokenizer(prompt, return_tensors="pt").to(device)
@@ -357,8 +357,8 @@ def main():
         print(f"\n[Cosine Validation Mode] Loading models...")
         os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
 
-        from patchscope.models import load_model
-        from patchscope.utils import parse_layers
+        from uds.models import load_model
+        from uds.utils import parse_layers
 
         retain_model = load_model(TOFU_RETAIN_MODEL, dtype="bfloat16", device_map="cuda")
         full_model = load_model(TOFU_FULL_MODEL, dtype="bfloat16", device_map="cuda")

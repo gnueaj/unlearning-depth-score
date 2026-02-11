@@ -1,6 +1,6 @@
 #!/bin/bash
 # Patchscope: Unlearning Audit
-# Usage: ./run_patchscope.sh [MODE]
+# Usage: ./run_uds.sh [MODE]
 
 set -e
 
@@ -9,27 +9,27 @@ MODE=${1:-default}
 case $MODE in
     "default"|"qa")
         echo "[Patchscope] QA probe (direct knowledge query)..."
-        python -m patchscope.run --probe_type qa
+        python -m uds.run --probe_type qa
         ;;
     "cloze")
         echo "[Patchscope] Cloze probe (fill-in-the-blank)..."
-        python -m patchscope.run --probe_type cloze
+        python -m uds.run --probe_type cloze
         ;;
     "choice")
         echo "[Patchscope] Choice probe (most stable)..."
-        python -m patchscope.run --probe_type choice
+        python -m uds.run --probe_type choice
         ;;
     "debug")
         echo "[Patchscope] Debug mode (source=target sanity check)..."
-        python -m patchscope.run --debug
+        python -m uds.run --debug
         ;;
     "full")
         echo "[Patchscope] Full analysis (5 examples, all probes)..."
-        python -m patchscope.run --num_examples 5 --probe_type choice
+        python -m uds.run --num_examples 5 --probe_type choice
         ;;
     "quick")
         echo "[Patchscope] Quick test..."
-        python -m patchscope.run --preset quick
+        python -m uds.run --preset quick
         ;;
     *)
         echo "Patchscope: Unlearning Audit via Hidden State Patching"

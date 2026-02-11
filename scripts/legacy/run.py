@@ -9,9 +9,9 @@ Three probe types for knowledge detection:
 3. Choice Probe: "(A) X (B) Y\nAnswer: (" → probability comparison
 
 Usage:
-    python -m patchscope.run                    # Default QA probe
-    python -m patchscope.run --preset choice    # Multiple-choice (most stable)
-    python -m patchscope.run --debug            # Sanity check (source=target)
+    python -m uds.run                    # Default QA probe
+    python -m uds.run --preset choice    # Multiple-choice (most stable)
+    python -m uds.run --debug            # Sanity check (source=target)
 """
 
 import os
@@ -190,8 +190,8 @@ def build_probe_prompt(
         )
 
 
-def run_patchscope(config: PatchscopeConfig, save_log: bool = True):
-    """Main patchscope analysis."""
+def run_uds(config: PatchscopeConfig, save_log: bool = True):
+    """Main uds analysis."""
     set_seed(config.seed)
 
     # Update out_dir with model name if using default
@@ -504,12 +504,12 @@ Unlearning Models (use short name with --source_model):
   ... (see config.py UNLEARN_MODELS for full list)
 
 Examples:
-  python -m patchscope.run                              # Default (SimNPO)
-  python -m patchscope.run --source_model npo           # Use NPO model
-  python -m patchscope.run --source_model idknll        # Use IdkNLL model
-  python -m patchscope.run --source_model graddiff      # Use GradDiff model
-  python -m patchscope.run --preset choice              # Multiple-choice probe
-  python -m patchscope.run --debug                      # Sanity check
+  python -m uds.run                              # Default (SimNPO)
+  python -m uds.run --source_model npo           # Use NPO model
+  python -m uds.run --source_model idknll        # Use IdkNLL model
+  python -m uds.run --source_model graddiff      # Use GradDiff model
+  python -m uds.run --preset choice              # Multiple-choice probe
+  python -m uds.run --debug                      # Sanity check
         """
     )
 
@@ -529,7 +529,7 @@ Examples:
 
     args = parser.parse_args()
     config = build_config_from_args(args)
-    run_patchscope(config)
+    run_uds(config)
 
 
 if __name__ == "__main__":

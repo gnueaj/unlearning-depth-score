@@ -28,7 +28,7 @@ for MODEL in $MODELS; do
     # 1. Memorization
     if [ ! -f "runs/ep10/memorization/$MODEL/summary.json" ]; then
         echo "  [1/4] Memorization..."
-        python3 -m patchscope.memorization_eval \
+        python3 -m uds.memorization_eval \
             --model "$MODEL" \
             --hf_dataset locuslab/TOFU \
             --hf_config forget10_perturbed \
@@ -43,7 +43,7 @@ for MODEL in $MODELS; do
     # 2. Privacy
     if [ ! -f "runs/ep10/privacy/$MODEL/summary.json" ]; then
         echo "  [2/4] Privacy..."
-        python3 -m patchscope.privacy_eval \
+        python3 -m uds.privacy_eval \
             --model "$MODEL" \
             --use_chat_template \
             --out_dir "runs/ep10/privacy/$MODEL" \
@@ -56,7 +56,7 @@ for MODEL in $MODELS; do
     # 3. Utility
     if [ ! -f "runs/ep10/utility/$MODEL/summary.json" ]; then
         echo "  [3/4] Utility..."
-        python3 -m patchscope.utility_eval \
+        python3 -m uds.utility_eval \
             --model "$MODEL" \
             --use_chat_template \
             --out_dir "runs/ep10/utility/$MODEL" \
@@ -114,7 +114,7 @@ EOF
     echo "  [Cleanup] Removing HF cache for $MODEL..."
     python3 << EOF
 from pathlib import Path
-from patchscope.unlearn_models import UNLEARN_MODELS_FULL
+from uds.unlearn_models import UNLEARN_MODELS_FULL
 import shutil
 
 model_name = '$MODEL'

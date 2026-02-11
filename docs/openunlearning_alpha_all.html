@@ -240,8 +240,8 @@ button.toggle-btn:hover { text-decoration: underline; }
 
       <div style="margin-top:10px;">
         <strong>Normalized MIA</strong> (4, denoted s<sub>*</sub>) &mdash; MUSE PrivLeak-style rescaling using retain as anchor.<br>
-        <span class="sub-formula">clip(1 &minus; |AUC<sub>model</sub> &minus; AUC<sub>retain</sub>| / AUC<sub>retain</sub>, 0, 1)</span><br>
-        <span class="sub-formula">1.0 = indistinguishable from retain (knowledge erased) &middot; 0.0 = large deviation from retain</span><br>
+        <span class="sub-formula">normalized<sub>*</sub> = |AUC<sub>model</sub> &minus; AUC<sub>retain</sub>| / AUC<sub>retain</sub> &ensp;(deviation ratio; higher = more knowledge)</span><br>
+        <span class="sub-formula">s<sub>*</sub> = clip(1 &minus; normalized<sub>*</sub>, 0, 1) &ensp;(inverted; 1.0 = erased, 0.0 = large deviation from retain)</span><br>
         s<sub>LOSS</sub> &middot; s<sub>ZLib</sub> &middot; s<sub>Min-K</sub> &middot; s<sub>Min-K++</sub>
       </div>
 
@@ -362,7 +362,7 @@ button.toggle-btn:hover { text-decoration: underline; }
       <div style="margin-top:10px;">
         <strong>Privacy:</strong><br>
         <code>MIA</code> = HM(s<sub>LOSS</sub>, s<sub>ZLib</sub>, s<sub>Min-K</sub>, s<sub>Min-K++</sub>)<br>
-        <span class="sub-formula">s<sub>*</sub> = normalized MIA scores (see Metric Categories above)</span> &middot; <code>Privacy</code> = HM(MIA, <span class="uds-highlight">UDS</span>)
+        <span class="sub-formula">s<sub>*</sub> = clip(1 &minus; |AUC &minus; AUC<sub>ret</sub>| / AUC<sub>ret</sub>, 0, 1)</span> &middot; <code>Privacy</code> = HM(MIA, <span class="uds-highlight">UDS</span>)
       </div>
       <div style="margin-top:10px;">
         <strong>Utility:</strong><br>

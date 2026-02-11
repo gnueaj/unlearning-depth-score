@@ -17,7 +17,7 @@ import json
 from pathlib import Path
 from typing import Dict, List
 
-from patchscope.meta_eval_utils import normalize_metrics_list
+from uds.meta_eval_utils import normalize_metrics_list
 
 
 def load_module(path: Path):

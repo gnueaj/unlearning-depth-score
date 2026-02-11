@@ -83,7 +83,12 @@
     "logit_lens_after": 0.5381239090282686,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.6591072331084764,
+    "fisher_masked_0.001_before": 0.6539370011376284,
+    "fisher_masked_0.01_before": 0.6465971140640493,
+    "fisher_masked_0.0001_after": 0.9925467360125565,
+    "fisher_masked_0.001_after": 0.9836037293829013,
+    "fisher_masked_0.01_after": 0.9719394293940514
   },
   "altpo_lr5e5_b01_a1_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha1_epoch10",
@@ -104,7 +109,12 @@
     "logit_lens_after": 0.7933918163088128,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.8755853254422292,
+    "fisher_masked_0.001_before": 0.8614705205454161,
+    "fisher_masked_0.01_before": 0.8559875965477879,
+    "fisher_masked_0.0001_after": 0.9982560237911321,
+    "fisher_masked_0.001_after": 0.995694697550896,
+    "fisher_masked_0.01_after": 0.9941943561799023
   },
   "altpo_lr5e5_b01_a5_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha5_epoch10",
@@ -112,7 +122,12 @@
     "logit_lens_after": 0.7549888658405736,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.8623019840896265,
+    "fisher_masked_0.001_before": 0.8549604250331926,
+    "fisher_masked_0.01_before": 0.8490853247691568,
+    "fisher_masked_0.0001_after": 0.9957062444659338,
+    "fisher_masked_0.001_after": 0.9910728283752226,
+    "fisher_masked_0.01_after": 0.9877799247429713
   },
   "graddiff_lr1e5_a1_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha1_epoch10",
@@ -765,7 +780,12 @@
     "logit_lens_after": 0.43086082642808987,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 1.0,
+    "fisher_masked_0.001_before": 0.9997318499767689,
+    "fisher_masked_0.01_before": 0.9996129586532989,
+    "fisher_masked_0.0001_after": 1.0,
+    "fisher_masked_0.001_after": 0.9996610881650828,
+    "fisher_masked_0.01_after": 0.9998709862177664
   },
   "graddiff_lr1e5_a2_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha2_epoch5",
@@ -773,7 +793,12 @@
     "logit_lens_after": 0.350040121320245,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.997564390509087,
+    "fisher_masked_0.001_before": 0.9920150849008951,
+    "fisher_masked_0.01_before": 0.9857762210756962,
+    "fisher_masked_0.0001_after": 0.9988500350250104,
+    "fisher_masked_0.001_after": 0.9957636011575406,
+    "fisher_masked_0.01_after": 0.993468681966634
   },
   "graddiff_lr1e5_a5_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha5_epoch5",

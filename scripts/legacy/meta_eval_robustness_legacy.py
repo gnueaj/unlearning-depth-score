@@ -47,9 +47,9 @@ from datasets import load_dataset
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from patchscope.models import load_model, load_tokenizer, get_num_layers
-from patchscope.utils import set_seed, safe_mkdir
-from patchscope.meta_eval_utils import (
+from uds.models import load_model, load_tokenizer, get_num_layers
+from uds.utils import set_seed, safe_mkdir
+from uds.meta_eval_utils import (
     MEM_METRICS,
     GENERATION_METRICS,
     MIA_METRICS,
@@ -696,7 +696,7 @@ def main():
 
     # Select models to evaluate
     if args.models_file:
-        from patchscope.config import get_model_id
+        from uds.config import get_model_id
         mf = Path(args.models_file)
         if not mf.exists():
             raise FileNotFoundError(f"--models_file not found: {mf}")
@@ -709,7 +709,7 @@ def main():
             model_id = get_model_id(name)
             eval_models[name] = model_id
     elif args.models:
-        from patchscope.config import get_model_id
+        from uds.config import get_model_id
         eval_models = {}
         for name in args.models:
             model_id = get_model_id(name)

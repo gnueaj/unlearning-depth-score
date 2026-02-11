@@ -60,7 +60,7 @@ for ((i=START; i<END && i<TOTAL; i++)); do
         echo "  [MEM] SKIP (exists)"
     else
         echo "  [MEM] Running..."
-        python -m patchscope.memorization_eval \
+        python -m uds.memorization_eval \
             --model "$MODEL" \
             --hf_dataset locuslab/TOFU \
             --hf_config forget10_perturbed \
@@ -75,7 +75,7 @@ for ((i=START; i<END && i<TOTAL; i++)); do
         echo "  [PRIV] SKIP (exists)"
     else
         echo "  [PRIV] Running..."
-        python -m patchscope.privacy_eval \
+        python -m uds.privacy_eval \
             --model "$MODEL" \
             --use_chat_template \
             --batch_size 32 \
@@ -88,7 +88,7 @@ for ((i=START; i<END && i<TOTAL; i++)); do
         echo "  [UTIL] SKIP (exists)"
     else
         echo "  [UTIL] Running..."
-        python -m patchscope.utility_eval \
+        python -m uds.utility_eval \
             --model "$MODEL" \
             --use_chat_template \
             --batch_size 32 \

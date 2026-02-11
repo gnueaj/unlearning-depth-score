@@ -25,7 +25,7 @@ run_worker() {
   for ((i=start; i<${#MODELS[@]}; i+=step)); do
     m="${MODELS[$i]}"
     echo "[gpu${gpu}][mem] $m"
-    python3 -m patchscope.memorization_eval \
+    python3 -m uds.memorization_eval \
       --hf_dataset locuslab/TOFU \
       --hf_config forget10_perturbed \
       --model "$m" \
@@ -36,7 +36,7 @@ run_worker() {
       --out_dir "$OUT_MEM/$m"
 
     echo "[gpu${gpu}][privacy] $m"
-    python3 -m patchscope.privacy_eval \
+    python3 -m uds.privacy_eval \
       --model "$m" \
       --reference_model retain \
       --full_model full \
@@ -50,7 +50,7 @@ run_worker() {
       --out_dir "$OUT_PRIV/$m"
 
     echo "[gpu${gpu}][utility] $m"
-    python3 -m patchscope.utility_eval \
+    python3 -m uds.utility_eval \
       --model "$m" \
       --batch_size "$BATCH_SIZE" \
       --max_length 512 \

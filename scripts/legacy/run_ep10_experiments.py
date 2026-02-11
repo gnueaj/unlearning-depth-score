@@ -59,7 +59,7 @@ def run_memorization(models: list, gpu: int, out_dir: str, resume: bool = True):
     for i, model in enumerate(remaining):
         print(f"  [{i+1}/{len(remaining)}] {model}")
         cmd = [
-            sys.executable, '-m', 'patchscope.memorization_eval',
+            sys.executable, '-m', 'uds.memorization_eval',
             '--model', model,
             '--hf_dataset', 'locuslab/TOFU',
             '--hf_config', 'forget10_perturbed',
@@ -89,7 +89,7 @@ def run_privacy(models: list, gpu: int, out_dir: str, resume: bool = True):
     for i, model in enumerate(remaining):
         print(f"  [{i+1}/{len(remaining)}] {model}")
         cmd = [
-            sys.executable, '-m', 'patchscope.privacy_eval',
+            sys.executable, '-m', 'uds.privacy_eval',
             '--model', model,
             '--use_chat_template',
             '--batch_size', '32',
@@ -116,7 +116,7 @@ def run_utility(models: list, gpu: int, out_dir: str, resume: bool = True):
     for i, model in enumerate(remaining):
         print(f"  [{i+1}/{len(remaining)}] {model}")
         cmd = [
-            sys.executable, '-m', 'patchscope.utility_eval',
+            sys.executable, '-m', 'uds.utility_eval',
             '--model', model,
             '--use_chat_template',
             '--batch_size', '32',

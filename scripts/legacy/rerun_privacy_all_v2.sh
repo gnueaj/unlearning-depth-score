@@ -13,7 +13,7 @@ for alpha in "${ALPHAS[@]}"; do
       continue
     fi
     echo "[$alpha] $m" | tee -a "$LOG"
-    CUDA_VISIBLE_DEVICES=0 python3 -m patchscope.privacy_eval \
+    CUDA_VISIBLE_DEVICES=0 python3 -m uds.privacy_eval \
       --model "$m" \
       --reference_model retain \
       --full_model full \

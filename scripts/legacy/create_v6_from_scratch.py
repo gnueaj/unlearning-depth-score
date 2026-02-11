@@ -18,7 +18,7 @@ from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from patchscope.utils import set_seed
+from uds.utils import set_seed
 from scripts.manual_prefix_v6 import ALL_MANUAL_PREFIX
 
 TOFU_FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"

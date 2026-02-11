@@ -24,7 +24,7 @@ MODEL="full"
 OUT_BASE="runs/ep10"
 
 echo "[MEM] Running..."
-python -m patchscope.memorization_eval \
+python -m uds.memorization_eval \
     --model "$MODEL" \
     --hf_dataset locuslab/TOFU \
     --hf_config forget10_perturbed \
@@ -33,14 +33,14 @@ python -m patchscope.memorization_eval \
     --out_dir "$OUT_BASE/memorization/$MODEL" 2>&1 | tail -3
 
 echo "[PRIV] Running..."
-python -m patchscope.privacy_eval \
+python -m uds.privacy_eval \
     --model "$MODEL" \
     --use_chat_template \
     --batch_size 32 \
     --out_dir "$OUT_BASE/privacy/$MODEL" 2>&1 | tail -3
 
 echo "[UTIL] Running..."
-python -m patchscope.utility_eval \
+python -m uds.utility_eval \
     --model "$MODEL" \
     --use_chat_template \
     --batch_size 32 \
@@ -52,7 +52,7 @@ echo "=== RETAIN Model ==="
 MODEL="retain"
 
 echo "[MEM] Running..."
-python -m patchscope.memorization_eval \
+python -m uds.memorization_eval \
     --model "$MODEL" \
     --hf_dataset locuslab/TOFU \
     --hf_config forget10_perturbed \
@@ -61,14 +61,14 @@ python -m patchscope.memorization_eval \
     --out_dir "$OUT_BASE/memorization/$MODEL" 2>&1 | tail -3
 
 echo "[PRIV] Running..."
-python -m patchscope.privacy_eval \
+python -m uds.privacy_eval \
     --model "$MODEL" \
     --use_chat_template \
     --batch_size 32 \
     --out_dir "$OUT_BASE/privacy/$MODEL" 2>&1 | tail -3
 
 echo "[UTIL] Running..."
-python -m patchscope.utility_eval \
+python -m uds.utility_eval \
     --model "$MODEL" \
     --use_chat_template \
     --batch_size 32 \

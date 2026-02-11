@@ -67,11 +67,5 @@ while [[ ! -f "$ROBUST_SUM" ]]; do
   sleep 120
  done
 
-# Rebuild HTML/MD
-python3 scripts/build_openunlearning_alpha_all.py \
-  --out_dir docs \
-  --ep5_dir runs/ep5 \
-  --ep10_dir runs/ep10 \
-  > "$LOG_DIR/build_html.log" 2>&1
-
-echo "[done] HTML/MD updated" | tee -a "$LOG_DIR/build_html.log"
+# Rebuild HTML/MD (legacy builder removed)
+echo "[done] skipped HTML/MD rebuild (scripts/legacy/build_openunlearning_alpha_all.py removed)" | tee -a "$LOG_DIR/build_html.log"

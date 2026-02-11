@@ -11,6 +11,6 @@ while true; do
   sleep 60
 done
 
-echo "[queue] utility runs done. Building combined table/HTML..."
-python3 scripts/build_openunlearning_alpha_all.py --out_dir docs/0202
+echo "[queue] utility runs done."
+echo "[queue] skipped: scripts/legacy/build_openunlearning_alpha_all.py was removed."
 echo "[queue] done"
