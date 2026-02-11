@@ -1,8 +1,10 @@
-# Faithfulness Results (13 Metrics)
+# Faithfulness Results (13 Metrics + 4 Normalized MIA + 3 Representation Baselines)
 
 60 P/N pool models (30 positive + 30 negative)
 
 ## AUC-ROC Summary
+
+### Output-level Metrics (13)
 
 | Metric | AUC-ROC | P Mean | N Mean |
 |--------|---------|--------|--------|
@@ -20,19 +22,43 @@
 | MIA-MinK++ | 0.816 | 0.685 | 0.502 |
 | **1-UDS (Ours)** | **0.973** | 0.486 | 0.858 |
 
+### Normalized MIA (4)
+
+Naming convention:
+- `normalized = |AUC_model - AUC_retain| / AUC_retain` (deviation ratio; higher = more knowledge)
+- `s_* = clip(1 - normalized, 0, 1)` (inverted; 1.0 = erased, 0.0 = large deviation)
+- Histogram row 4 plots **normalized** values (1 - s_mia) so P is on the right
+
+| Metric | AUC-ROC |
+|--------|---------|
+| s_mia_loss (normalized) | see summary.json |
+| s_mia_zlib (normalized) | see summary.json |
+| s_mia_min_k (normalized) | see summary.json |
+| s_mia_min_kpp (normalized) | see summary.json |
+
+### Representation Baselines (3)
+
+| Metric | AUC-ROC |
+|--------|---------|
+| CKA | 0.648 |
+| Fisher Masked (0.1%) | 0.712 |
+| Logit Lens | 0.927 |
+
 ## Files
 
-- `results.json`: Raw metric values for 60 models × 13 metrics
-- `summary.json`: Per-metric AUC-ROC (12 metrics, excl. UDS)
-- `histograms/`: P/N pool distribution visualizations
+- `results.json`: Raw metric values for 60 models × 13 metrics + UDS
+- `summary.json`: Per-metric AUC-ROC
+- `rep_baselines_results.json`: Representation baseline scores per model
+- `rep_baselines_summary.json`: Per-method AUC-ROC for rep baselines
+- `histograms/`: P/N pool distribution visualizations (v2: 5 rows)
 
 ## UDS Note
 
-UDS values computed with `s1_cache_v2.json` (367 examples).
+UDS values computed with `s1_cache_v2.json` (367 examples, eager attention).
 Results stored in `../faithfulness_uds_v2.json`.
 
 ## Regenerate Histograms
 
 ```bash
-python runs/meta_eval/faithfulness/plot_histograms.py
+python runs/meta_eval/faithfulness/plot_histograms_v2.py
 ```

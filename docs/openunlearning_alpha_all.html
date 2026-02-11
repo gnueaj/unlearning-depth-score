@@ -70,6 +70,7 @@ table.styled th.num { text-align: right; }
 
 /* Meta-eval specific */
 #meta_eval td:first-child, #meta_eval th:first-child { min-width: 160px; }
+#meta_eval th.num, #meta_eval td.num { min-width: 100px; }
 .tag { display:inline-block; font-size:9px; font-weight:600; padding:1px 5px; border-radius:8px; margin-left:3px; vertical-align:middle; color:#fff; letter-spacing:0.3px; }
 .tag-O { background:#4285f4; }
 .tag-R { background:#ea8600; }
@@ -292,9 +293,9 @@ button.toggle-btn:hover { text-decoration: underline; }
           <th colspan="3" style="text-align:center;">Robustness</th>
         </tr>
         <tr>
-          <th class="sortable num" data-col="rob">Agg. ↑</th>
-          <th class="sortable num" data-col="quant">Q ↑</th>
-          <th class="sortable num" data-col="relearn">R ↑</th>
+          <th class="sortable num" data-col="rob">Aggregate ↑</th>
+          <th class="sortable num" data-col="quant">Quantization ↑</th>
+          <th class="sortable num" data-col="relearn">Relearning ↑</th>
         </tr>
       </thead>
       <tbody id="meta_eval_body">

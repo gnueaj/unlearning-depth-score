@@ -167,18 +167,26 @@ N-pool (30 models): score 높아야 함 (지식 없음 → retain-like → 1)
 Direction: higher = less knowledge (UDS, s_mia와 동일)
 → inverted_metrics에 추가
 
+s_mia naming convention:
+  normalized = |AUC_model - AUC_retain| / AUC_retain  (deviation ratio; higher = more knowledge)
+  s_mia = clip(1 - normalized, 0, 1)  (inverted; higher = erased, like UDS)
+
 AUC-ROC(P vs N 분리도)
 ```
 
-### 3.2 Robustness
+### 3.2 Robustness (Symmetric Formulas)
 
 ```
 inverted_metrics (UDS, s_mia와 동일 처리):
   m = 1 - score   ← 높을수록 지식 있음으로 변환
 
-Quantization: Q = min(m_before / m_after, 1)
-Relearning:   R = min(Δ_retain / Δ_unlearn, 1)
-Agg: HM(Q, R)
+Quantization: Q = 1 - clip(|m_after - m_before| / (|m_before| + |m_after| + eps), 0, 1)
+  → 양방향 페널티: recovery와 destruction 모두
+
+Relearning:   R = 1 - clip(|Δ_unl - Δ_ret| / (|Δ_unl| + |Δ_ret| + eps), 0, 1)
+  → Δ = m_after - m_before, retain의 변화와 일치해야 robust
+
+Agg: HM(avg_Q, avg_R)
 ```
 
 ### 3.3 Score 보고 구조

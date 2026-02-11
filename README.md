@@ -7,7 +7,7 @@ The central question is not only whether output behavior changes, but whether ta
 ## What This Repo Produces
 
 - Method-level results across 152 models (8 methods × hyperparameters × 2 epochs + full + retain)
-- Meta-evaluation (Faithfulness / Robustness) with 22 metrics
+- Meta-evaluation (Faithfulness / Robustness) with 13 metrics + 4 normalized MIA + 3 representation baselines
 - Unified dashboard and machine-readable data
 
 Primary dashboard:
@@ -69,6 +69,8 @@ UDS script: `exp_s1_teacher_forcing.py`
 Per-model evaluation is organized into:
 - **Memorization** (`Mem.`) = HM(1-ES, 1-EM, 1-ParaProb, 1-TruthRatio)
 - **Privacy** = HM(MIA, UDS), where MIA = HM(s_LOSS, s_ZLib, s_Min-K, s_Min-K++)
+  - `normalized = |AUC_model - AUC_retain| / AUC_retain` (deviation ratio; higher = more knowledge)
+  - `s_* = clip(1 - normalized, 0, 1)` (inverted; 1.0 = erased, 0.0 = large deviation from retain)
 - **Utility** = HM(ModelUtility, Fluency), normalized vs full model per epoch
 - **Overall** = HM(Mem., Privacy, Utility)
 
@@ -127,13 +129,23 @@ Script: `scripts/compute_representation_baselines.py`
 
 Two evaluation settings coexist intentionally:
 
-1. **UDS setting**
-   - `tofu_data/forget10_filtered_v7_gt.json` (367 examples)
-   - raw `Question/Answer` style patching
+1. **UDS setting** — `tofu_data/forget10_filtered_v7_gt.json` (367 examples)
+   - raw `Question/Answer` style, entity span annotations for teacher forcing
+   - Used by: **UDS**, **Logit Lens**, **Fisher Masked**
 
-2. **Open-Unlearning-style setting**
-   - 400-example perturbed evaluation protocol
+2. **Open-Unlearning-style setting** — HuggingFace `locuslab/TOFU` `forget10_perturbed` (400 examples)
    - chat template + system prompt (`You are a helpful assistant.`)
+   - paraphrase/perturbed answer variants included
+   - Used by: **EM, ES, Prob, ParaProb, Truth Ratio, ROUGE, Para-ROUGE, Jailbreak-ROUGE, MIA-\*, CKA**
+
+### Dataset-Metric Mapping
+
+| Dataset | Metrics | Key Property |
+|---------|---------|-------------|
+| v7_gt (367, local) | UDS, Logit Lens, Fisher Masked | Entity span annotation → token-level teacher forcing |
+| forget10_perturbed (400, HF) | EM, ES, Prob, ParaProb, Truth Ratio, ROUGE, Para-ROUGE, Jailbreak-ROUGE, MIA-LOSS/ZLib/MinK/MinK++, CKA | Paraphrase/perturbed answers → generation + MIA eval |
+
+CKA is the only representation baseline using the 400-example dataset — it builds dataset-level kernel matrices and does not require entity annotations.
 
 Do not merge these settings without explicitly documenting the change.
 

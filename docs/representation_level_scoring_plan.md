@@ -92,13 +92,18 @@ activation 자체가 아니라, forget-set loss에 대한 민감도 구조를 �
 - `s_l = 1 / (1 + d_l / tau_l)` 도 가능
 
 ### 3.3 MIA/AUC 류 retain-only 정규화 (full 미사용)
-질문한 조건(1 최대, retain과 같을 때 1)에 맞는 식:
 
-- `s_l = clip((1 - auc_l^m) / (1 - auc_l^r + eps), 0, 1)`
+**현재 채택된 방식 (MUSE PrivLeak-style):**
+- `normalized = |AUC_model - AUC_retain| / AUC_retain` (deviation ratio; higher = more knowledge)
+- `s_mia = clip(1 - normalized, 0, 1)` (inverted; 1.0 = erased, 0.0 = large deviation from retain)
 
 성질:
-- `auc_l^m = auc_l^r`이면 `s_l = 1`
-- `auc_l^m`가 1에 가까울수록(privacy leak 큼) `s_l`는 0으로 감소
+- `AUC_model = AUC_retain`이면 `s_mia = 1` (완전 삭제)
+- `|AUC_model - AUC_retain|`가 클수록 `s_mia`는 0으로 감소 (지식 잔존)
+- 양방향: AUC가 retain보다 높거나 낮아도 모두 페널티
+
+**이전 초안 (참고용, 미사용):**
+- `s_l = clip((1 - auc_l^m) / (1 - auc_l^r + eps), 0, 1)`
 
 ---
 

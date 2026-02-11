@@ -52,12 +52,22 @@ Core claim: output suppression is not enough; internal recoverability must also 
 - Legacy scripts: `scripts/legacy/`
 
 ## Data + Prompting Conventions
-- **UDS**: `tofu_data/forget10_filtered_v7_gt.json` (367)
-  - raw `Question/Answer` style patch evaluation
+- **UDS setting**: `tofu_data/forget10_filtered_v7_gt.json` (367 examples)
+  - raw `Question/Answer` style, entity span annotations for teacher forcing
   - default: `patch_scope=span`, `em_scope=entity`, `delta_threshold=0.05`
-- **Open-Unlearning-style metrics**: 400-example perturbed protocol
+  - **Metrics**: UDS, Logit Lens, Fisher Masked
+- **Open-Unlearning-style**: HF `locuslab/TOFU` `forget10_perturbed` (400 examples)
   - chat template + system prompt (`You are a helpful assistant.`)
-  - includes generation metrics and MIA metrics
+  - paraphrase/perturbed answer variants → generation + MIA eval
+  - **Metrics**: EM, ES, Prob, ParaProb, Truth Ratio, ROUGE, Para-ROUGE, Jailbreak-ROUGE, MIA-*, CKA
+
+### Dataset-Metric Mapping
+| Dataset | Metrics | Key Property |
+|---------|---------|-------------|
+| v7_gt (367, local) | UDS, Logit Lens, Fisher Masked | Entity span annotation → token-level teacher forcing |
+| forget10_perturbed (400, HF) | EM, ES, Prob, ParaProb, Truth Ratio, ROUGE, Para-ROUGE, Jailbreak-ROUGE, MIA-*, CKA | Paraphrase/perturbed answers → generation + MIA |
+
+CKA is the only rep baseline using 400 examples (dataset-level kernel matrix, no entity annotation needed).
 
 Do not mix these two evaluation settings silently.
 
