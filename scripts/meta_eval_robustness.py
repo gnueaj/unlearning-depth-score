@@ -48,9 +48,9 @@ from datasets import load_dataset
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from patchscope.models import load_model, load_tokenizer
-from patchscope.utils import set_seed, safe_mkdir
-from patchscope.meta_eval_utils import (
+from uds.models import load_model, load_tokenizer
+from uds.utils import set_seed, safe_mkdir
+from uds.meta_eval_utils import (
     MEM_METRICS,
     GENERATION_METRICS,
     MIA_METRICS,

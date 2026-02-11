@@ -33,10 +33,10 @@ from tqdm import tqdm
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from patchscope.models import load_model, load_tokenizer, get_num_layers
-from patchscope.core import generate_baseline
-from patchscope.utils import set_seed, safe_mkdir, parse_layers
-from patchscope.config import get_model_id
+from uds.models import load_model, load_tokenizer, get_num_layers
+from uds.core import generate_baseline
+from uds.utils import set_seed, safe_mkdir, parse_layers
+from uds.config import get_model_id
 
 
 TOFU_FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"

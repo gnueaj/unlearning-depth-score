@@ -19,8 +19,8 @@ import torch
 # Ensure repo root on sys.path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from patchscope.models import load_model, load_tokenizer
-from patchscope.meta_eval_utils import (
+from uds.models import load_model, load_tokenizer
+from uds.meta_eval_utils import (
     load_forget10_perturbed,
     compute_generation_metrics,
 )
@@ -105,8 +105,8 @@ def main():
             if out_path.exists():
                 continue
 
-            # resolve model id via patchscope.config
-            from patchscope.config import get_model_id
+            # resolve model id via uds.config
+            from uds.config import get_model_id
             model_id = get_model_id(name)
             print(f"[{i}/{len(models)}] {name} -> {model_id}")
 

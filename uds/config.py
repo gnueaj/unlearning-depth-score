@@ -86,7 +86,7 @@ class PatchscopeConfig:
 # =============================================================================
 
 # Import full model registry (398 models)
-from patchscope.unlearn_models import UNLEARN_MODELS_FULL
+from .unlearn_models import UNLEARN_MODELS_FULL
 
 # Shorthand aliases for convenience (default configs)
 UNLEARN_ALIASES = {

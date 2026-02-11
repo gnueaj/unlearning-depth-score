@@ -34,10 +34,10 @@ from sklearn.metrics import roc_auc_score
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from patchscope.models import load_model, load_tokenizer, get_num_layers
-from patchscope.core import generate_baseline
-from patchscope.utils import set_seed, safe_mkdir
-from patchscope.meta_eval_utils import (
+from uds.models import load_model, load_tokenizer, get_num_layers
+from uds.core import generate_baseline
+from uds.utils import set_seed, safe_mkdir
+from uds.meta_eval_utils import (
     MEM_METRICS,
     GENERATION_METRICS,
     MIA_METRICS,

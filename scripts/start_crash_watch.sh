@@ -54,7 +54,7 @@ if command -v nvidia-smi >/dev/null 2>&1; then
   start_job nvidia_query bash -lc "while true; do date +'%F %T'; nvidia-smi --query-gpu=index,uuid,pci.bus_id,temperature.gpu,fan.speed,pstate,power.draw,memory.used,utilization.gpu --format=csv,noheader; echo; sleep 5; done"
 fi
 
-PROC_FILTER='meta_eval_robustness.py|meta_eval_faithfulness.py|exp_s1_teacher_forcing.py|patchscope\\.|python .*meta_eval_|python .*exp_s1_teacher_forcing.py'
+PROC_FILTER='meta_eval_robustness.py|meta_eval_faithfulness.py|exp_s1_teacher_forcing.py|uds\\.|python .*meta_eval_|python .*exp_s1_teacher_forcing.py'
 start_job process_watch bash -lc "self=\$\$; while true; do date +'%F %T'; ps -eo pid,ppid,etime,%cpu,%mem,cmd | awk -v self=\"\$self\" 'NR==1 || (\$1 != self && \$0 !~ /awk -v self=/ && \$0 ~ /$PROC_FILTER/)'; echo; sleep 5; done"
 
 echo "Crash watch started."

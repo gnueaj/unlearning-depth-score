@@ -867,11 +867,11 @@ Pipeline:
 
 기존 codebase에서 제공하는 것들:
 
-- **Hidden state extraction**: `patchscope/core.py::get_all_layers_hidden()` — 한 forward pass에서 모든 지정 layers의 hidden states 추출
+- **Hidden state extraction**: `uds/core.py::get_all_layers_hidden()` — 한 forward pass에서 모든 지정 layers의 hidden states 추출
 - **Entity span identification**: `exp_s1_teacher_forcing.py::get_eval_span()` — entity tokens 위치 식별
 - **FT layer identification**: UDS S1 stage에서 `Delta^S1_l > tau`인 layers 식별
 - **S1 cache**: `runs/meta_eval/s1_cache_v2.json` — per-example S1 deltas 저장 (가중치로 재사용 가능)
-- **Model loading**: `patchscope/models.py::load_model()` — HuggingFace model loading 처리
+- **Model loading**: `uds/models.py::load_model()` — HuggingFace model loading 처리
 
 새 방법 추가 방법:
 1. `get_all_layers_hidden()`으로 representation 추출 (position=None for all positions)

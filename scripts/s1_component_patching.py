@@ -24,7 +24,7 @@ from tqdm import tqdm
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from patchscope.models import load_model, load_tokenizer, get_num_layers
+from uds.models import load_model, load_tokenizer, get_num_layers
 from exp_s1_teacher_forcing import (
     load_prefix_data,
     build_logprob_ctx,
