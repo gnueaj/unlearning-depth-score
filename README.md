@@ -104,7 +104,7 @@ To validate that UDS captures something beyond existing representation-level met
 
 **CKA** (Centered Kernel Alignment) — Measures representational geometry similarity between unlearned and retain models, weighted by per-layer importance (how much full differs from retain).
 - `score = Σ_l w_l · CKA(H_unl, H_retain)_l`,  `w_l = 1 - CKA(H_full, H_retain)_l`
-- Dataset-level (400 examples). AUC: 0.648.
+- Dataset-level (367 examples, v7_gt). AUC: 0.648.
 
 **Logit Lens** — Projects each layer's hidden states through the full model's frozen decoder to measure decodable knowledge. Uses the same FT layer selection (τ = 0.05) and UDS-style aggregation.
 - Per-example, per-layer entity logprob readout (367 examples). AUC: 0.927.
@@ -131,21 +131,19 @@ Two evaluation settings coexist intentionally:
 
 1. **UDS setting** — `tofu_data/forget10_filtered_v7_gt.json` (367 examples)
    - raw `Question/Answer` style, entity span annotations for teacher forcing
-   - Used by: **UDS**, **Logit Lens**, **Fisher Masked**
+   - Used by: **UDS**, **CKA**, **Logit Lens**, **Fisher Masked** (all representation-level metrics)
 
 2. **Open-Unlearning-style setting** — HuggingFace `locuslab/TOFU` `forget10_perturbed` (400 examples)
    - chat template + system prompt (`You are a helpful assistant.`)
    - paraphrase/perturbed answer variants included
-   - Used by: **EM, ES, Prob, ParaProb, Truth Ratio, ROUGE, Para-ROUGE, Jailbreak-ROUGE, MIA-\*, CKA**
+   - Used by: **EM, ES, Prob, ParaProb, Truth Ratio, ROUGE, Para-ROUGE, Jailbreak-ROUGE, MIA-\***
 
 ### Dataset-Metric Mapping
 
 | Dataset | Metrics | Key Property |
 |---------|---------|-------------|
-| v7_gt (367, local) | UDS, Logit Lens, Fisher Masked | Entity span annotation → token-level teacher forcing |
-| forget10_perturbed (400, HF) | EM, ES, Prob, ParaProb, Truth Ratio, ROUGE, Para-ROUGE, Jailbreak-ROUGE, MIA-LOSS/ZLib/MinK/MinK++, CKA | Paraphrase/perturbed answers → generation + MIA eval |
-
-CKA is the only representation baseline using the 400-example dataset — it builds dataset-level kernel matrices and does not require entity annotations.
+| v7_gt (367, local) | UDS, CKA, Logit Lens, Fisher Masked | Entity span annotation → teacher forcing + representation analysis |
+| forget10_perturbed (400, HF) | EM, ES, Prob, ParaProb, Truth Ratio, ROUGE, Para-ROUGE, Jailbreak-ROUGE, MIA-LOSS/ZLib/MinK/MinK++ | Paraphrase/perturbed answers → generation + MIA eval |
 
 Do not merge these settings without explicitly documenting the change.
 
