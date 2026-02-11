@@ -141,7 +141,8 @@ def parse_args():
     parser.add_argument("--usable_path", type=str, default=None)
     parser.add_argument("--filter_label", type=str, default=None)
     parser.add_argument("--out_tag", type=str, default="")
-    parser.add_argument("--tight_axes", action="store_true")
+    parser.add_argument("--tight_axes", action="store_true",
+                        help="(Deprecated) No longer used; truth_ratio always gets tight axes.")
     parser.add_argument("--utility_only", action="store_true",
                         help="Filter by utility_rel >= 0.8 only.")
     parser.add_argument("--before_filter", action="store_true",
@@ -167,7 +168,7 @@ def main():
         's_mia_loss', 's_mia_min_k', 's_mia_min_kpp', 's_mia_zlib',
         'uds',
     ]
-    rep_metrics = ['logit_lens']
+    rep_metrics = ['cka', 'logit_lens', 'fisher_masked_0.0001', 'fisher_masked_0.001', 'fisher_masked_0.01']
 
     metric_labels = {
         'em': 'Exact Memorization', 'es': 'Extraction Strength',
@@ -178,7 +179,11 @@ def main():
         'mia_min_kpp': 'MIA-MinK++ (raw AUC)', 'mia_zlib': 'MIA-ZLib (raw AUC)',
         's_mia_loss': 'MIA-LOSS (normalized)', 's_mia_zlib': 'MIA-ZLib (normalized)',
         's_mia_min_k': 'MIA-MinK (normalized)', 's_mia_min_kpp': 'MIA-MinK++ (normalized)',
-        'uds': '1-UDS (Ours)', 'logit_lens': '1-Logit Lens',
+        'uds': r'\textbf{1-UDS (Ours)}', 'logit_lens': '1-Logit Lens',
+        'cka': '1-CKA',
+        'fisher_masked_0.0001': r'1-Fisher (0.01\%)',
+        'fisher_masked_0.001': r'1-Fisher (0.1\%)',
+        'fisher_masked_0.01': r'1-Fisher (1\%)',
     }
 
     usable_key_map = {
@@ -307,7 +312,10 @@ def main():
         elif args.no_filter:
             usable_set = rep_models
         else:
-            usable_set = set(usable_per_metric.get('uds', [])) & rep_models
+            if metric in usable_per_metric:
+                usable_set = set(usable_per_metric[metric]) & rep_models
+            else:
+                usable_set = rep_models  # no faithfulness filter for unknown rep metrics
 
         bef_all, aft_all = [], []
         model_names, r_values = [], []
@@ -382,8 +390,6 @@ def main():
         filter_label = 'Utility + Faithfulness Filtered'
     if args.filter_label:
         filter_label = args.filter_label
-    if args.tight_axes:
-        filter_label += '; Tight Axes'
     if args.out_tag:
         tag = args.out_tag if args.out_tag.startswith("_") else f"_{args.out_tag}"
         results_name = results_name.replace(".json", f"{tag}.json")
@@ -402,10 +408,12 @@ def main():
         metric_axes[m] = fig.add_subplot(gs[r, c])
     for i, m in enumerate(metrics[12:16]):
         metric_axes[m] = fig.add_subplot(gs[3, i])
-    metric_axes['uds'] = fig.add_subplot(gs[4, 0:2])
-    metric_axes['logit_lens'] = fig.add_subplot(gs[4, 2:4])
+    metric_axes['cka'] = fig.add_subplot(gs[4, 0])
+    metric_axes['fisher_masked_0.001'] = fig.add_subplot(gs[4, 1])
+    metric_axes['logit_lens'] = fig.add_subplot(gs[4, 2])
+    metric_axes['uds'] = fig.add_subplot(gs[4, 3])
 
-    all_plot_metrics = metrics + rep_metrics
+    all_plot_metrics = [m for m in metrics + rep_metrics if m in metric_axes]
     for metric in all_plot_metrics:
         ax = metric_axes[metric]
         d = all_metric_data.get(metric)
@@ -421,11 +429,11 @@ def main():
             ax.set_visible(False)
             continue
 
-        if args.tight_axes:
+        if metric == 'truth_ratio':
             lo = max(min(all_vals) * 0.98, 0.0)
         else:
             lo = 0.0
-        hi = max(max(all_vals) * 1.02, 1e-6)
+        hi = min(max(max(all_vals) * 1.02, 1e-6), 1.02)
 
         # Symmetric gradient around y = x + retain_shift
         _draw_sym_gradient(ax, lo, hi, shift=retain_shift)
@@ -451,7 +459,6 @@ def main():
             f"{label}\n$R$={d['avg_r']:.3f} (n={d['n_total']}, "
             f"over={d['n_over']}, under={d['n_under']})",
             fontsize=11,
-            fontweight='bold' if metric in ('uds', *rep_metrics) else 'normal',
         )
         ax.set_xlabel('Before Relearning', fontsize=10)
         ax.set_ylabel('After Relearning', fontsize=10)
@@ -475,9 +482,18 @@ def main():
         ax.legend(handles=local_handles, handler_map={grad_patch: _GradientHandler()},
                   loc='lower right', fontsize=8, framealpha=0.95)
 
-    fig.suptitle(f'Relearning Robustness (13 Metrics + 4 Normalized MIA + Logit Lens)\n(150 Unlearned Models; {filter_label})',
+    # Compute utility-only count for reference
+    if utility_models is not None:
+        n_util = len(utility_models & relearn_models)
+    else:
+        mr_path = base / 'docs/data/method_results.json'
+        with open(mr_path) as f:
+            mr_data = json.load(f)
+        n_util = sum(1 for m in mr_data.get('models', [])
+                     if m.get('utility_rel', 0) >= 0.8 and m['model'] in relearn_models)
+    fig.suptitle(f'Relearning Robustness (13 Metrics + 4 Normalized MIA + Rep. Baselines)\n(150 Unlearned Models; {filter_label})',
                  fontsize=15, fontweight='normal', y=0.99)
-    fig.subplots_adjust(left=0.035, right=0.995, bottom=0.025, top=0.945,
+    fig.subplots_adjust(left=0.035, right=0.995, bottom=0.025, top=0.935,
                         wspace=0.04, hspace=0.40)
     plt.savefig(output_dir / plot_name, dpi=150, bbox_inches='tight')
     pdf_name = plot_name.replace('.png', '.pdf')

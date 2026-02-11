@@ -993,6 +993,54 @@ def free_memory() -> None:
     torch.cuda.empty_cache()
 
 
+def dequantize_model(quant_model):
+    """Dequantize a 4-bit quantized model for gradient computation.
+
+    Replaces Linear4bit layers with standard nn.Linear using dequantized weights.
+    Required for Fisher computation since quantized params have requires_grad=False.
+    Matches dtype to the model's non-quantized parameters (e.g. embeddings).
+    """
+    import bitsandbytes as bnb
+
+    # Detect dtype from non-quantized params (embedding/layernorm)
+    target_dtype = torch.bfloat16
+    for p in quant_model.parameters():
+        if p.dtype in (torch.float16, torch.bfloat16, torch.float32):
+            target_dtype = p.dtype
+            break
+    print(f"  Target dtype for dequantization: {target_dtype}")
+
+    replacements = {}
+    for name, module in quant_model.named_modules():
+        if isinstance(module, bnb.nn.Linear4bit):
+            weight = bnb.functional.dequantize_4bit(
+                module.weight.data, module.weight.quant_state
+            ).to(target_dtype)
+
+            new_linear = torch.nn.Linear(
+                module.in_features, module.out_features,
+                bias=module.bias is not None,
+                dtype=target_dtype,
+                device=weight.device,
+            )
+            new_linear.weight.data = weight
+            if module.bias is not None:
+                new_linear.bias.data = module.bias.data.to(target_dtype)
+
+            replacements[name] = new_linear
+
+    for name, new_module in replacements.items():
+        parts = name.split('.')
+        parent = quant_model
+        for part in parts[:-1]:
+            parent = getattr(parent, part)
+        setattr(parent, parts[-1], new_module)
+
+    n_replaced = len(replacements)
+    print(f"  Dequantized {n_replaced} Linear4bit layers to {target_dtype}")
+    return quant_model
+
+
 # ============================================================================
 # Per-model evaluation
 # ============================================================================
@@ -1861,16 +1909,6 @@ def main():
                     after["logit_lens"] = ll_res["score"]
                     del hidden_q, ll_q
 
-                if "fisher_masked" in methods:
-                    print(f"  Computing Fisher Masked (quantized)...")
-                    fisher_raw_q = compute_layer_fisher(
-                        quant_model, tokenizer, contexts, args.fisher_batch_size, return_raw=True
-                    )
-                    for f in FISHER_MASK_FRACS:
-                        res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
-                        after[f"fisher_masked_{f}"] = res["score"]
-                    del fisher_raw_q
-
                 if "cka" in methods:
                     print(f"  Computing CKA (quantized)...")
                     hidden_q = extract_hidden_states(quant_model, tokenizer, contexts, args.batch_size)
@@ -1880,6 +1918,18 @@ def main():
                     )
                     after["cka"] = cka_res["score"]
                     del hidden_q
+
+                if "fisher_masked" in methods:
+                    # Dequantize NF4 → bfloat16 so gradients can flow
+                    print(f"  Dequantizing for Fisher computation...")
+                    dequantize_model(quant_model)
+                    fisher_raw_q = compute_layer_fisher(
+                        quant_model, tokenizer, contexts, args.fisher_batch_size, return_raw=True
+                    )
+                    for f in FISHER_MASK_FRACS:
+                        res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+                        after[f"fisher_masked_{f}"] = res["score"]
+                    del fisher_raw_q
 
                 del quant_model
                 free_memory()

@@ -40,18 +40,6 @@ from .core import (
     build_token_identity_prompt,
     pick_single_token_string,
 )
-from .probes import (
-    ProbeResult,
-    build_qa_probe,
-    build_qa_probe_with_chat,
-    build_cloze_probe,
-    build_cloze_from_qa,
-    build_choice_probe,
-    build_binary_choice_probe,
-    build_tofu_probes,
-    extract_entity_from_tofu_answer,
-    TOFU_WRONG_ANSWERS,
-)
 from .utils import (
     set_seed,
     safe_mkdir,
@@ -97,17 +85,6 @@ __all__ = [
     # Core - Legacy
     "build_token_identity_prompt",
     "pick_single_token_string",
-    # Probes
-    "ProbeResult",
-    "build_qa_probe",
-    "build_qa_probe_with_chat",
-    "build_cloze_probe",
-    "build_cloze_from_qa",
-    "build_choice_probe",
-    "build_binary_choice_probe",
-    "build_tofu_probes",
-    "extract_entity_from_tofu_answer",
-    "TOFU_WRONG_ANSWERS",
     # Utils
     "set_seed",
     "safe_mkdir",

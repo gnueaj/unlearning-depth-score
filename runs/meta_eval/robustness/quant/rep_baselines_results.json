@@ -5,7 +5,12 @@
     "logit_lens_after": 0.8702443053627501,
     "cka_before": 0.9973453293709688,
     "cka_after": 0.19162710029350835,
-    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 1.0,
+    "fisher_masked_0.001_before": 1.0,
+    "fisher_masked_0.01_before": 1.0,
+    "fisher_masked_0.0001_after": 1.0,
+    "fisher_masked_0.001_after": 1.0,
+    "fisher_masked_0.01_after": 1.0
   },
   "altpo_lr1e5_b01_a1_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha1_epoch10",
@@ -13,7 +18,12 @@
     "logit_lens_after": 0.43226655553224436,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.14070282657074723,
+    "fisher_masked_0.001_before": 0.13884984989767046,
+    "fisher_masked_0.01_before": 0.13931211762329093,
+    "fisher_masked_0.0001_after": 0.23087086972637116,
+    "fisher_masked_0.001_after": 0.2307751638109072,
+    "fisher_masked_0.01_after": 0.23360357052424793
   },
   "altpo_lr1e5_b01_a2_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha2_epoch10",
@@ -21,7 +31,12 @@
     "logit_lens_after": 0.39870292873044294,
     "cka_before": 0.0008905200940206442,
     "cka_after": 0.0,
-    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.21189809513021737,
+    "fisher_masked_0.001_before": 0.20905311837156867,
+    "fisher_masked_0.01_before": 0.2079639596500211,
+    "fisher_masked_0.0001_after": 0.32916188798822954,
+    "fisher_masked_0.001_after": 0.3289172845477582,
+    "fisher_masked_0.01_after": 0.33182996832514033
   },
   "altpo_lr1e5_b01_a5_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha5_epoch10",
@@ -29,7 +44,12 @@
     "logit_lens_after": 0.38213186839799956,
     "cka_before": 0.01288914911707905,
     "cka_after": 0.0,
-    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.2533961274907667,
+    "fisher_masked_0.001_before": 0.2518752503112756,
+    "fisher_masked_0.01_before": 0.2503452276193386,
+    "fisher_masked_0.0001_after": 0.5521252892609194,
+    "fisher_masked_0.001_after": 0.550015681170155,
+    "fisher_masked_0.01_after": 0.5519730497020057
   },
   "altpo_lr2e5_b01_a1_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.1_alpha1_epoch10",
@@ -37,7 +57,12 @@
     "logit_lens_after": 0.6136727900375846,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.8264164451929414,
+    "fisher_masked_0.001_before": 0.8174789596178571,
+    "fisher_masked_0.01_before": 0.8098004490433482,
+    "fisher_masked_0.0001_after": 0.9950956877820442,
+    "fisher_masked_0.001_after": 0.989238609168481,
+    "fisher_masked_0.01_after": 0.9822726552609315
   },
   "altpo_lr2e5_b01_a2_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.1_alpha2_epoch10",
@@ -45,7 +70,12 @@
     "logit_lens_after": 0.6018619601589102,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.882693601392821,
+    "fisher_masked_0.001_before": 0.873611780234146,
+    "fisher_masked_0.01_before": 0.8643090802719184,
+    "fisher_masked_0.0001_after": 0.9969265317719332,
+    "fisher_masked_0.001_after": 0.9924024100298364,
+    "fisher_masked_0.01_after": 0.9871913218683035
   },
   "altpo_lr2e5_b01_a5_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.1_alpha5_epoch10",
@@ -61,7 +91,12 @@
     "logit_lens_after": 0.7968365582995331,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.9732546177977496,
+    "fisher_masked_0.001_before": 0.9603733319222312,
+    "fisher_masked_0.01_before": 0.9488135287191923,
+    "fisher_masked_0.0001_after": 0.9996161266765312,
+    "fisher_masked_0.001_after": 0.9986666969503928,
+    "fisher_masked_0.01_after": 0.9988066175292922
   },
   "altpo_lr5e5_b01_a2_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha2_epoch10",
@@ -300,273 +335,312 @@
     "logit_lens_before": 0.4905587960001859,
     "logit_lens_after": 0.5377744823950158,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr1e5_b01_a2_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.1_alpha2_epoch10",
     "logit_lens_before": 0.49931583089937737,
     "logit_lens_after": 0.54669382718046,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr1e5_b01_a5_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr1e-05_beta0.1_alpha5_epoch10",
     "logit_lens_before": 0.4604657348394908,
     "logit_lens_after": 0.489797102920164,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr2e5_b01_a1_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.1_alpha1_epoch10",
     "logit_lens_before": 0.5853383467594301,
     "logit_lens_after": 0.6304955115295449,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr2e5_b01_a2_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.1_alpha2_epoch10",
     "logit_lens_before": 0.6353039279373865,
     "logit_lens_after": 0.681387398053727,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr2e5_b01_a5_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.1_alpha5_epoch10",
     "logit_lens_before": 0.6541436144389143,
     "logit_lens_after": 0.6935823985270382,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr5e5_b01_a1_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha1_epoch10",
     "logit_lens_before": 0.6995556970721567,
     "logit_lens_after": 0.725168980311026,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr5e5_b01_a2_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha2_epoch10",
     "logit_lens_before": 0.7125027126576312,
     "logit_lens_after": 0.7460254028871897,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr5e5_b01_a5_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha5_epoch10",
     "logit_lens_before": 0.7447986007945708,
     "logit_lens_after": 0.7634929091700356,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr1e5_l5_s10_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff10_epoch10",
     "logit_lens_before": 0.1648241620851366,
     "logit_lens_after": 0.38186978235391433,
     "cka_before": 1.699755609314946e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr1e5_l10_s10_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff10_epoch10",
     "logit_lens_before": 0.12733188333423562,
     "logit_lens_after": 0.3425581595055372,
     "cka_before": 5.7144545116537745e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr1e5_l15_s10_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff10_epoch10",
     "logit_lens_before": 0.008524123907163032,
     "logit_lens_after": 0.2649770138029236,
     "cka_before": 0.00038236806472994526,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr2e5_l5_s10_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff10_epoch10",
     "logit_lens_before": 0.7050682368223168,
     "logit_lens_after": 0.8146853691057495,
     "cka_before": 1.699755609314946e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr2e5_l10_s10_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff10_epoch10",
     "logit_lens_before": 0.6693560988778859,
     "logit_lens_after": 0.7898315829468857,
     "cka_before": 5.7144545116537745e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr2e5_l15_s10_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff10_epoch10",
     "logit_lens_before": 0.021342973328739193,
     "logit_lens_after": 0.277964068451742,
     "cka_before": 0.00038236806472994526,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr5e5_l5_s10_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff10_epoch10",
     "logit_lens_before": 0.9624808326291844,
     "logit_lens_after": 0.9670719269694464,
     "cka_before": 1.699755609314946e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr5e5_l10_s10_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff10_epoch10",
     "logit_lens_before": 0.8698940802293151,
     "logit_lens_after": 0.9110885356757401,
     "cka_before": 5.7144545116537745e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr5e5_l15_s10_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff10_epoch10",
     "logit_lens_before": 0.053115169690599665,
     "logit_lens_after": 0.3094966063841129,
     "cka_before": 0.00038236806472994526,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr1e5_b35_a1_d1_g0125_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.125_ep10",
     "logit_lens_before": 0.13347932705540205,
     "logit_lens_after": 0.2949915067151415,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr1e5_b35_a1_d1_g025_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.25_ep10",
     "logit_lens_before": 0.20484655998040488,
     "logit_lens_after": 0.32319985494947606,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr1e5_b45_a1_d1_g0125_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.125_ep10",
     "logit_lens_before": 0.13807953188824135,
     "logit_lens_after": 0.2956002988247937,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr1e5_b45_a1_d1_g025_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.25_ep10",
     "logit_lens_before": 0.20445652349130622,
     "logit_lens_after": 0.32709629941623697,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr2e5_b35_a1_d1_g0125_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.125_ep10",
     "logit_lens_before": 0.39677288151542445,
     "logit_lens_after": 0.47845757706444275,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr2e5_b35_a1_d1_g025_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.25_ep10",
     "logit_lens_before": 0.4449152942451141,
     "logit_lens_after": 0.530169283646873,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr2e5_b45_a1_d1_g0125_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.125_ep10",
     "logit_lens_before": 0.3726282286285331,
     "logit_lens_after": 0.47061254127678415,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr2e5_b45_a1_d1_g025_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.25_ep10",
     "logit_lens_before": 0.4306078658639888,
     "logit_lens_after": 0.5222825849008746,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr5e5_b35_a1_d1_g0125_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.125_ep10",
     "logit_lens_before": 0.6432280082018864,
     "logit_lens_after": 0.679973903896423,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr5e5_b35_a1_d1_g025_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.25_ep10",
     "logit_lens_before": 0.7220786658586318,
     "logit_lens_after": 0.7500953789886607,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr5e5_b45_a1_d1_g0125_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.125_ep10",
     "logit_lens_before": 0.6157122479101675,
     "logit_lens_after": 0.6557290767899904,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr5e5_b45_a1_d1_g025_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.25_ep10",
     "logit_lens_before": 0.7007678807005966,
     "logit_lens_after": 0.7306944175108226,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e5_b10_a1_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha1_epoch10",
     "logit_lens_before": 0.18050480463052532,
     "logit_lens_after": 0.33161000276938196,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e5_b10_a2_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha2_epoch10",
     "logit_lens_before": 0.1550414557011845,
     "logit_lens_after": 0.32046895936699943,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e5_b10_a5_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha5_epoch10",
     "logit_lens_before": 0.11479946915915638,
     "logit_lens_after": 0.2943061210523773,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e4_b10_a1_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha1_epoch10",
     "logit_lens_before": 0.5279504264633045,
     "logit_lens_after": 0.5483606619048171,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e4_b10_a2_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha2_epoch10",
     "logit_lens_before": 0.5499405607961683,
     "logit_lens_after": 0.5666231357101609,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e4_b10_a5_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha5_epoch10",
     "logit_lens_before": 0.5256574712435611,
     "logit_lens_after": 0.5561501419727756,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr3e4_b10_a1_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha1_epoch10",
     "logit_lens_before": 0.6092975378045439,
     "logit_lens_after": 0.6072562421359677,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr3e4_b10_a2_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha2_epoch10",
     "logit_lens_before": 0.6074849563295448,
     "logit_lens_after": 0.6034102972556845,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr3e4_b10_a5_ep10": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha5_epoch10",
     "logit_lens_before": 0.6617041589693332,
     "logit_lens_after": 0.6579868866759981,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "altpo_lr1e5_b01_a1_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha1_epoch5",
@@ -574,7 +648,12 @@
     "logit_lens_after": 0.43807056061598987,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.02001602515844596,
+    "fisher_masked_0.001_before": 0.02016722143032814,
+    "fisher_masked_0.01_before": 0.0230297419007591,
+    "fisher_masked_0.0001_after": 0.13597804063863267,
+    "fisher_masked_0.001_after": 0.13682382462977635,
+    "fisher_masked_0.01_after": 0.1401587761109053
   },
   "altpo_lr1e5_b01_a2_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha2_epoch5",
@@ -582,7 +661,12 @@
     "logit_lens_after": 0.4000764653497069,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.03144949418906289,
+    "fisher_masked_0.001_before": 0.032639940199607996,
+    "fisher_masked_0.01_before": 0.03435882843098823,
+    "fisher_masked_0.0001_after": 0.1750516315298329,
+    "fisher_masked_0.001_after": 0.1756823580717371,
+    "fisher_masked_0.01_after": 0.17909696619493135
   },
   "altpo_lr1e5_b01_a5_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr1e-05_beta0.1_alpha5_epoch5",
@@ -590,7 +674,12 @@
     "logit_lens_after": 0.3502131971218973,
     "cka_before": 0.04074505613316826,
     "cka_after": 0.0,
-    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.06213950631570981,
+    "fisher_masked_0.001_before": 0.06272492733280992,
+    "fisher_masked_0.01_before": 0.06446759053101121,
+    "fisher_masked_0.0001_after": 0.26598080292516746,
+    "fisher_masked_0.001_after": 0.26613563843005694,
+    "fisher_masked_0.01_after": 0.2695280684508542
   },
   "altpo_lr2e5_b01_a1_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.1_alpha1_epoch5",
@@ -598,7 +687,12 @@
     "logit_lens_after": 0.48493533014410545,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.16770302144982113,
+    "fisher_masked_0.001_before": 0.16543398243410723,
+    "fisher_masked_0.01_before": 0.166905078357596,
+    "fisher_masked_0.0001_after": 0.30452532679407995,
+    "fisher_masked_0.001_after": 0.30239739367033397,
+    "fisher_masked_0.01_after": 0.3030960095600301
   },
   "altpo_lr2e5_b01_a2_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.1_alpha2_epoch5",
@@ -606,7 +700,12 @@
     "logit_lens_after": 0.48513043127369876,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.29501991128196087,
+    "fisher_masked_0.001_before": 0.2910103118227172,
+    "fisher_masked_0.01_before": 0.2904364644824697,
+    "fisher_masked_0.0001_after": 0.507176119685684,
+    "fisher_masked_0.001_after": 0.5026685108128541,
+    "fisher_masked_0.01_after": 0.5009074926625371
   },
   "altpo_lr2e5_b01_a5_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr2e-05_beta0.1_alpha5_epoch5",
@@ -614,7 +713,12 @@
     "logit_lens_after": 0.4803386424801793,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.3572371765418312,
+    "fisher_masked_0.001_before": 0.35203687738195716,
+    "fisher_masked_0.01_before": 0.3488155285043383,
+    "fisher_masked_0.0001_after": 0.6503625321617125,
+    "fisher_masked_0.001_after": 0.6439781932298989,
+    "fisher_masked_0.01_after": 0.6405273880091156
   },
   "altpo_lr5e5_b01_a1_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha1_epoch5",
@@ -622,7 +726,12 @@
     "logit_lens_after": 0.7674503060474359,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.6329707530716732,
+    "fisher_masked_0.001_before": 0.6213567246172338,
+    "fisher_masked_0.01_before": 0.6145047386548999,
+    "fisher_masked_0.0001_after": 0.9667626922526764,
+    "fisher_masked_0.001_after": 0.9433960708804228,
+    "fisher_masked_0.01_after": 0.9179751239151129
   },
   "altpo_lr5e5_b01_a2_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha2_epoch5",
@@ -630,7 +739,12 @@
     "logit_lens_after": 0.7536019231989917,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.6735157204556508,
+    "fisher_masked_0.001_before": 0.6627114766290804,
+    "fisher_masked_0.01_before": 0.6582729030181624,
+    "fisher_masked_0.0001_after": 0.8702003438595834,
+    "fisher_masked_0.001_after": 0.8595245710197231,
+    "fisher_masked_0.01_after": 0.8537661553070036
   },
   "altpo_lr5e5_b01_a5_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_AltPO_lr5e-05_beta0.1_alpha5_epoch5",
@@ -638,7 +752,12 @@
     "logit_lens_after": 0.723118834934059,
     "cka_before": 0.0,
     "cka_after": 0.0,
-    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
+    "fisher_masked_0.0001_before": 0.6048884321139067,
+    "fisher_masked_0.001_before": 0.5990853416350563,
+    "fisher_masked_0.01_before": 0.5943139641388194,
+    "fisher_masked_0.0001_after": 0.7506022864813807,
+    "fisher_masked_0.001_after": 0.7458418291135414,
+    "fisher_masked_0.01_after": 0.7460148539305372
   },
   "graddiff_lr1e5_a1_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_GradDiff_lr1e-05_alpha1_epoch5",
@@ -893,244 +1012,279 @@
     "logit_lens_before": 0.6315975517412096,
     "logit_lens_after": 0.6764388505344129,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr2e5_b01_a5_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr2e-05_beta0.1_alpha5_epoch5",
     "logit_lens_before": 0.6572698674167732,
     "logit_lens_after": 0.7027333039350561,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr5e5_b01_a1_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha1_epoch5",
     "logit_lens_before": 0.7031840855188694,
     "logit_lens_after": 0.7299640372611795,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr5e5_b01_a2_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha2_epoch5",
     "logit_lens_before": 0.7014488866644143,
     "logit_lens_after": 0.7348698658844529,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "npo_lr5e5_b01_a5_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_NPO_lr5e-05_beta0.1_alpha5_epoch5",
     "logit_lens_before": 0.7468228684995645,
     "logit_lens_after": 0.7711926430431147,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr1e5_l5_s10_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer5_scoeff10_epoch5",
     "logit_lens_before": 0.14140827510863216,
     "logit_lens_after": 0.368032896347638,
     "cka_before": 1.699755609314946e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr1e5_l10_s10_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer10_scoeff10_epoch5",
     "logit_lens_before": 0.10794295519064268,
     "logit_lens_after": 0.33396753622905195,
     "cka_before": 5.7144545116537745e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr1e5_l15_s10_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr1e-05_layer15_scoeff10_epoch5",
     "logit_lens_before": 0.0075306698207324866,
     "logit_lens_after": 0.26474897406360026,
     "cka_before": 0.00038236806472994526,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr2e5_l5_s10_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer5_scoeff10_epoch5",
     "logit_lens_before": 0.6465517142554061,
     "logit_lens_after": 0.7780338417109056,
     "cka_before": 1.699755609314946e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr2e5_l10_s10_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer10_scoeff10_epoch5",
     "logit_lens_before": 0.54981447828416,
     "logit_lens_after": 0.715247111939047,
     "cka_before": 5.7144545116537745e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr2e5_l15_s10_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr2e-05_layer15_scoeff10_epoch5",
     "logit_lens_before": 0.019848634444815026,
     "logit_lens_after": 0.2771804016002649,
     "cka_before": 0.00038236806472994526,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr5e5_l5_s10_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer5_scoeff10_epoch5",
     "logit_lens_before": 0.9605607697750413,
     "logit_lens_after": 0.9664582551523553,
     "cka_before": 1.699755609314946e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr5e5_l10_s10_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer10_scoeff10_epoch5",
     "logit_lens_before": 0.8637878380941005,
     "logit_lens_after": 0.9057583848392013,
     "cka_before": 5.7144545116537745e-05,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "rmu_lr5e5_l15_s10_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_RMU_lr5e-05_layer15_scoeff10_epoch5",
     "logit_lens_before": 0.049554982390883455,
     "logit_lens_after": 0.30593353853902533,
     "cka_before": 0.00038236806472994526,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr1e5_b35_a1_d1_g0125_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.125_ep5",
     "logit_lens_before": 0.10514344089870531,
     "logit_lens_after": 0.29237003378206305,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr1e5_b35_a1_d1_g025_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b3.5_a1_d1_g0.25_ep5",
     "logit_lens_before": 0.17140656276292926,
     "logit_lens_after": 0.3221283187292399,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr1e5_b45_a1_d1_g0125_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.125_ep5",
     "logit_lens_before": 0.10686265734938087,
     "logit_lens_after": 0.2919857940729358,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr1e5_b45_a1_d1_g025_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr1e-05_b4.5_a1_d1_g0.25_ep5",
     "logit_lens_before": 0.17401081857488532,
     "logit_lens_after": 0.3248360380835917,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr2e5_b35_a1_d1_g0125_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.125_ep5",
     "logit_lens_before": 0.3312362265077957,
     "logit_lens_after": 0.45519518149985605,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr2e5_b35_a1_d1_g025_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b3.5_a1_d1_g0.25_ep5",
     "logit_lens_before": 0.4076428083627246,
     "logit_lens_after": 0.5125046917481431,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr2e5_b45_a1_d1_g0125_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.125_ep5",
     "logit_lens_before": 0.31530440033073465,
     "logit_lens_after": 0.4464987197748414,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr2e5_b45_a1_d1_g025_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr2e-05_b4.5_a1_d1_g0.25_ep5",
     "logit_lens_before": 0.39791576794621797,
     "logit_lens_after": 0.5083107707026666,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr5e5_b35_a1_d1_g0125_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.125_ep5",
     "logit_lens_before": 0.6437005951944659,
     "logit_lens_after": 0.6885673208951658,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr5e5_b35_a1_d1_g025_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b3.5_a1_d1_g0.25_ep5",
     "logit_lens_before": 0.7254566207261631,
     "logit_lens_after": 0.7529907442796876,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr5e5_b45_a1_d1_g0125_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.125_ep5",
     "logit_lens_before": 0.618040864427076,
     "logit_lens_after": 0.6699167186471584,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "simnpo_lr5e5_b45_a1_d1_g025_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_SimNPO_lr5e-05_b4.5_a1_d1_g0.25_ep5",
     "logit_lens_before": 0.7032952161075203,
     "logit_lens_after": 0.7449457912848861,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e5_b10_a1_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha1_epoch5",
     "logit_lens_before": 0.16282896251101908,
     "logit_lens_after": 0.3302227065834374,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e5_b10_a2_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha2_epoch5",
     "logit_lens_before": 0.13963830381466524,
     "logit_lens_after": 0.3175905690363285,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e5_b10_a5_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr1e-05_beta10_alpha5_epoch5",
     "logit_lens_before": 0.10383944554427817,
     "logit_lens_after": 0.2954215871675211,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e4_b10_a1_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha1_epoch5",
     "logit_lens_before": 0.5406573996036209,
     "logit_lens_after": 0.5533537758026957,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5360051 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e4_b10_a2_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha2_epoch5",
     "logit_lens_before": 0.5648458749531057,
     "logit_lens_after": 0.5805396589732033,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr1e4_b10_a5_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0001_beta10_alpha5_epoch5",
     "logit_lens_before": 0.5521907084265417,
     "logit_lens_after": 0.5802320892169024,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr3e4_b10_a1_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha1_epoch5",
     "logit_lens_before": 0.6275609872851435,
     "logit_lens_after": 0.6243904586809124,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr3e4_b10_a2_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha2_epoch5",
     "logit_lens_before": 0.6700138813191587,
     "logit_lens_after": 0.6719465109858559,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 6277785 is out of bounds for dimension 0 with size 4096"
   },
   "undial_lr3e4_b10_a5_ep5": {
     "model_id": "open-unlearning/unlearn_tofu_Llama-3.2-1B-Instruct_forget10_UNDIAL_lr0.0003_beta10_alpha5_epoch5",
     "logit_lens_before": 0.7337426313314158,
     "logit_lens_after": 0.7353494517017914,
     "cka_before": 0.0,
-    "cka_after": 0.0
+    "cka_after": 0.0,
+    "error": "index 5312592 is out of bounds for dimension 0 with size 4096"
   }
 }

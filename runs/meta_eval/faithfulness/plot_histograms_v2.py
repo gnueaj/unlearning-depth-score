@@ -98,11 +98,11 @@ METRIC_NAMES = {
 }
 
 # Row 5: representation baselines + UDS
-REP_METHODS = ['cka', 'logit_lens', 'fisher_masked_0.001']
+REP_METHODS = ['cka', 'fisher_masked_0.001', 'logit_lens']
 REP_NAMES = {
     'cka': '$1-$CKA',
-    'logit_lens': '$1-$Logit Lens',
     'fisher_masked_0.001': '$1-$Fisher Masked (0.1\\%)',
+    'logit_lens': '$1-$Logit Lens',
 }
 
 # ---------- Output directory ----------
@@ -146,7 +146,7 @@ def plot_metric(ax, metric, p_higher=True, bold_title=False, title_fontsize=None
     threshold = _compute_best_threshold(p_scores, n_scores, p_higher=True)
     if threshold is not None:
         ax.axvline(threshold, color='black', linestyle='--', linewidth=1.5,
-                   label='Threshold')
+                   dashes=(5, 3), label='Threshold')
         xlo, xhi = ax.get_xlim()
         dx = (xhi - xlo) * 0.02
         if threshold > xlo + (xhi - xlo) * 0.65:
@@ -155,7 +155,7 @@ def plot_metric(ax, metric, p_higher=True, bold_title=False, title_fontsize=None
             ha_, off = 'left', dx
         ax.text(threshold + off, 0.65, f'{threshold:.2f}',
                 transform=ax.get_xaxis_transform(),
-                fontsize=12, va='top', ha=ha_, color='black', zorder=10,
+                fontsize=14, va='top', ha=ha_, color='black', zorder=10,
                 path_effects=[pe.withStroke(linewidth=2, foreground='white')])
 
     auc = auc_data.get(metric, {}).get('auc_roc', 0)
@@ -166,7 +166,14 @@ def plot_metric(ax, metric, p_higher=True, bold_title=False, title_fontsize=None
     ax.set_ylabel('Count')
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.grid(True, linestyle='-', linewidth=0.45, alpha=0.25)
-    ax.legend(fontsize=11, loc='upper right', handlelength=1.5)
+    ax.legend(fontsize=11, loc='upper right', handlelength=1.9)
+
+
+
+# Threshold overrides (in raw/erasure space; will be converted to 1-score space)
+THRESHOLD_OVERRIDES = {
+    'fisher_masked_0.001': 0.6420,
+}
 
 
 def plot_rep_baseline(ax, method, bold_title=False):
@@ -198,10 +205,13 @@ def plot_rep_baseline(ax, method, bold_title=False):
     ax.hist(p_scores, bins=bins, alpha=0.6, label='P (with know.)', color='green')
     ax.hist(n_scores, bins=bins, alpha=0.6, label='N (no know.)', color='red')
 
-    threshold = _compute_best_threshold(p_scores, n_scores, p_higher=True)
+    if method in THRESHOLD_OVERRIDES:
+        threshold = 1.0 - THRESHOLD_OVERRIDES[method]  # convert raw→1-score space
+    else:
+        threshold = _compute_best_threshold(p_scores, n_scores, p_higher=True)
     if threshold is not None:
         ax.axvline(threshold, color='black', linestyle='--', linewidth=1.5,
-                   label='Threshold')
+                   dashes=(5, 3), label='Threshold')
         xlo, xhi = ax.get_xlim()
         dx = (xhi - xlo) * 0.02
         if threshold > xlo + (xhi - xlo) * 0.65:
@@ -210,7 +220,7 @@ def plot_rep_baseline(ax, method, bold_title=False):
             ha_, off = 'left', dx
         ax.text(threshold + off, 0.65, f'{threshold:.2f}',
                 transform=ax.get_xaxis_transform(),
-                fontsize=12, va='top', ha=ha_, color='black', zorder=10,
+                fontsize=14, va='top', ha=ha_, color='black', zorder=10,
                 path_effects=[pe.withStroke(linewidth=2, foreground='white')])
 
     auc = rep_auc_data.get(method, {}).get('auc_roc', 0)
@@ -220,7 +230,7 @@ def plot_rep_baseline(ax, method, bold_title=False):
     ax.set_ylabel('Count')
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.grid(True, linestyle='-', linewidth=0.45, alpha=0.25)
-    ax.legend(fontsize=11, loc='upper right', handlelength=1.5)
+    ax.legend(fontsize=11, loc='upper right', handlelength=1.9)
 
 
 # Rows 1-3: standard metrics (12, P has higher values)
@@ -231,7 +241,7 @@ for i, metric in enumerate(METRICS_STANDARD):
 for i, metric in enumerate(METRICS_SCALED):
     plot_metric(axes_flat[12 + i], metric, p_higher=False)
 
-# Row 5: CKA, Logit Lens, Fisher, UDS
+# Row 5: CKA, Fisher, Logit Lens, UDS
 # Positions 16, 17, 18 = representation baselines
 for i, method in enumerate(REP_METHODS):
     plot_rep_baseline(axes_flat[16 + i], method)
@@ -260,7 +270,7 @@ if p_scores_uds and n_scores_uds:
     threshold = _compute_best_threshold(p_scores_uds, n_scores_uds, p_higher=True)
     if threshold is not None:
         ax_uds.axvline(threshold, color='black', linestyle='--', linewidth=1.5,
-                       label='Threshold')
+                       dashes=(5, 3), label='Threshold')
         xlo, xhi = ax_uds.get_xlim()
         dx = (xhi - xlo) * 0.02
         if threshold > xlo + (xhi - xlo) * 0.65:
@@ -269,14 +279,14 @@ if p_scores_uds and n_scores_uds:
             ha_, off = 'left', dx
         ax_uds.text(threshold + off, 0.65, f'{threshold:.2f}',
                     transform=ax_uds.get_xaxis_transform(),
-                    fontsize=12, va='top', ha=ha_, color='black', zorder=10,
+                    fontsize=14, va='top', ha=ha_, color='black', zorder=10,
                     path_effects=[pe.withStroke(linewidth=2, foreground='white')])
     auc = auc_data.get('uds', {}).get('auc_roc', 0)
     ax_uds.set_title(f'$1-$UDS (Ours)\nAUC: {auc:.3f}', fontweight='bold')
     ax_uds.set_ylabel('Count')
     ax_uds.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax_uds.grid(True, linestyle='-', linewidth=0.45, alpha=0.25)
-    ax_uds.legend(fontsize=11, loc='upper right', handlelength=1.5)
+    ax_uds.legend(fontsize=11, loc='upper right', handlelength=1.9)
 
 plt.suptitle('Faithfulness: P/N Pool Score Distributions (60 models: 30 P + 30 N)\n'
              '13 Metrics + 4 Normalized MIA + 3 Representation Baselines',
