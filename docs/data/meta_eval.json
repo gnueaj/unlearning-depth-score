@@ -1,115 +1,27 @@
 {
   "metrics": [
-    {
-      "key": "es",
-      "label": "Extraction Strength",
-      "category": "memorization"
-    },
-    {
-      "key": "em",
-      "label": "Exact Memorization",
-      "category": "memorization"
-    },
-    {
-      "key": "truth_ratio",
-      "label": "Truth Ratio",
-      "category": "memorization"
-    },
-    {
-      "key": "paraprob",
-      "label": "Para. Probability",
-      "category": "memorization"
-    },
-    {
-      "key": "para_rouge",
-      "label": "Para. ROUGE",
-      "category": "generation"
-    },
-    {
-      "key": "prob",
-      "label": "Probability",
-      "category": "memorization"
-    },
-    {
-      "key": "rouge",
-      "label": "ROUGE",
-      "category": "generation"
-    },
-    {
-      "key": "jailbreak_rouge",
-      "label": "Jailbreak ROUGE",
-      "category": "generation"
-    },
-    {
-      "key": "mia_loss",
-      "label": "MIA-LOSS",
-      "category": "mia"
-    },
-    {
-      "key": "mia_zlib",
-      "label": "MIA-ZLib",
-      "category": "mia"
-    },
-    {
-      "key": "mia_min_k",
-      "label": "MIA-Min-K",
-      "category": "mia"
-    },
-    {
-      "key": "mia_min_kpp",
-      "label": "MIA-Min-K++",
-      "category": "mia"
-    },
-    {
-      "key": "s_mia_loss",
-      "label": "s_LOSS",
-      "category": "mia_normalized"
-    },
-    {
-      "key": "s_mia_zlib",
-      "label": "s_ZLib",
-      "category": "mia_normalized"
-    },
-    {
-      "key": "s_mia_min_k",
-      "label": "s_Min-K",
-      "category": "mia_normalized"
-    },
-    {
-      "key": "s_mia_min_kpp",
-      "label": "s_Min-K++",
-      "category": "mia_normalized"
-    },
-    {
-      "key": "cka",
-      "label": "CKA",
-      "category": "representation"
-    },
-    {
-      "key": "logit_lens",
-      "label": "Logit Lens",
-      "category": "representation"
-    },
-    {
-      "key": "fisher_masked_0.0001",
-      "label": "Fisher Masked (0.01%)",
-      "category": "representation"
-    },
-    {
-      "key": "fisher_masked_0.001",
-      "label": "Fisher Masked (0.1%)",
-      "category": "representation"
-    },
-    {
-      "key": "fisher_masked_0.01",
-      "label": "Fisher Masked (1%)",
-      "category": "representation"
-    },
-    {
-      "key": "uds",
-      "label": "UDS (Ours)",
-      "category": "ours"
-    }
+    { "key": "es",       "label": "Extraction Strength", "category": "memorization",    "tags": ["O"] },
+    { "key": "em",       "label": "Exact Memorization",  "category": "memorization",    "tags": ["O"] },
+    { "key": "truth_ratio", "label": "Truth Ratio",      "category": "memorization",    "tags": ["O"] },
+    { "key": "paraprob", "label": "Para. Probability",   "category": "memorization",    "tags": ["O"] },
+    { "key": "para_rouge", "label": "Para. ROUGE",       "category": "generation",      "tags": ["O"] },
+    { "key": "prob",     "label": "Probability",         "category": "memorization",    "tags": ["O"] },
+    { "key": "rouge",    "label": "ROUGE",               "category": "generation",      "tags": ["O"] },
+    { "key": "jailbreak_rouge", "label": "Jailbreak ROUGE", "category": "generation",   "tags": ["O"] },
+    { "key": "mia_loss", "label": "MIA-LOSS",            "category": "mia",             "tags": ["O"] },
+    { "key": "mia_zlib", "label": "MIA-ZLib",            "category": "mia",             "tags": ["O"] },
+    { "key": "mia_min_k", "label": "MIA-Min-K",          "category": "mia",             "tags": ["O"] },
+    { "key": "mia_min_kpp", "label": "MIA-Min-K++",      "category": "mia",             "tags": ["O"] },
+    { "key": "s_mia_loss", "label": "s_LOSS",            "category": "mia_normalized",  "tags": ["O", "R"] },
+    { "key": "s_mia_zlib", "label": "s_ZLib",            "category": "mia_normalized",  "tags": ["O", "R"] },
+    { "key": "s_mia_min_k", "label": "s_Min-K",          "category": "mia_normalized",  "tags": ["O", "R"] },
+    { "key": "s_mia_min_kpp", "label": "s_Min-K++",      "category": "mia_normalized",  "tags": ["O", "R"] },
+    { "key": "cka",      "label": "CKA",                 "category": "representation",  "tags": ["R", "I"] },
+    { "key": "fisher_masked_0.001",  "label": "Fisher Masked (0.1%)",  "category": "representation", "tags": ["R", "I"] },
+    { "key": "fisher_masked_0.0001", "label": "Fisher Masked (0.01%)", "category": "representation", "tags": ["R", "I"] },
+    { "key": "fisher_masked_0.01",   "label": "Fisher Masked (1%)",    "category": "representation", "tags": ["R", "I"] },
+    { "key": "logit_lens", "label": "Logit Lens",        "category": "representation",  "tags": ["O", "R", "I"] },
+    { "key": "uds",      "label": "UDS (Ours)",          "category": "ours",            "tags": ["O", "R", "I"] }
   ],
   "faithfulness": {
     "em": {
@@ -310,9 +222,29 @@
       "agg": 0.7237
     },
     "logit_lens": {
-      "relearning": 0.8502,
-      "quantization": 0.9613,
-      "agg": 0.9023
+      "relearning": 0.8116,
+      "quantization": 0.9587,
+      "agg": 0.8791
+    },
+    "cka": {
+      "relearning": 0.0134,
+      "quantization": 0.9968,
+      "agg": 0.0264
+    },
+    "fisher_masked_0.0001": {
+      "relearning": 0.945,
+      "quantization": null,
+      "agg": null
+    },
+    "fisher_masked_0.001": {
+      "relearning": 0.946,
+      "quantization": null,
+      "agg": null
+    },
+    "fisher_masked_0.01": {
+      "relearning": 0.9399,
+      "quantization": null,
+      "agg": null
     }
   },
   "formulas": {
@@ -320,11 +252,11 @@
     "robustness": "HM(R, Q) \u2014 symmetric (bidirectional)",
     "relearning": "R = 1 - clip(|\u0394unl - \u0394ret| / (|\u0394unl| + |\u0394ret| + eps), 0, 1) after 1-epoch relearning",
     "quantization": "Q = 1 - clip(|m_after - m_before| / (|m_before| + |m_after| + eps), 0, 1) after 4-bit NF4 quantization",
-    "overall": "HM(Faithfulness, Robustness)"
+    "overall": "HM(Faithfulness, Robustness); N/A if Robustness is N/A"
   },
   "notes": {
     "robustness_policy": "Symmetric (bidirectional) robustness: penalizes both knowledge recovery AND destruction after perturbation; utility+faithfulness filtered models; raw metric values for standard metrics; 1-UDS and 1-s_mia for inverted metrics; 13 metrics + 4 normalized MIA + logit_lens",
     "robustness_source": "runs/meta_eval/robustness/{quant,relearn}/plots/sym/*_sym_results.json",
-    "representation_baselines": "CKA, Logit Lens (fixed decoder), Fisher Information, Fisher Masked (0.01%/0.1%/1%); faithfulness from runs/meta_eval/representation_baselines/faithfulness/"
+    "representation_baselines": "CKA, Logit Lens (fixed decoder), Fisher Masked (0.01%/0.1%/1%); CKA robustness broken (index OOB with quantized models); Fisher Masked quant not computed; for these, robustness=null and overall=faithfulness AUC"
   }
 }

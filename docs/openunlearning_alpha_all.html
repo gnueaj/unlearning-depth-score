@@ -69,33 +69,43 @@ table.styled td.num { text-align: right; }
 table.styled th.num { text-align: right; }
 
 /* Meta-eval specific */
-#meta_eval .retain-dep { background: #f3f0ff !important; }
-#meta_eval .retain-dep:hover { background: #ede7f6 !important; }
-#meta_eval .whitebox-dep {
-  background: repeating-linear-gradient(
-    -45deg,
-    #f3f0ff,
-    #f3f0ff 3px,
-    #ece6ff 3px,
-    #ece6ff 6px
-  ) !important;
+#meta_eval td:first-child, #meta_eval th:first-child { min-width: 160px; }
+.tag { display:inline-block; font-size:9px; font-weight:600; padding:1px 5px; border-radius:8px; margin-left:3px; vertical-align:middle; color:#fff; letter-spacing:0.3px; }
+.tag-O { background:#4285f4; }
+.tag-R { background:#ea8600; }
+.tag-I { background:#34a853; }
+.rank-top1 {
+  font-weight: 700;
 }
-#meta_eval .whitebox-dep:hover {
-  background: repeating-linear-gradient(
-    -45deg,
-    #ede7f6,
-    #ede7f6 3px,
-    #e0d6f0 3px,
-    #e0d6f0 6px
-  ) !important;
+.rank-top2 {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1.5px;
 }
-#meta_eval th:nth-child(n+2), #meta_eval td:nth-child(n+2) { min-width: 110px; }
+.rank-bot1 {
+  color: #c62828;
+  font-weight: 700;
+}
+.rank-bot2 {
+  color: #c62828;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1.5px;
+}
+
+/* Fisher variant toggle */
+.fisher-toggle { cursor: pointer; user-select: none; }
+.fisher-toggle::after { content: '\25B6'; display: inline-block; width: 1.2em; margin-left: 0.4em; font-size: 0.7em; vertical-align: middle; transition: transform 0.15s; }
+.fisher-toggle.open::after { transform: rotate(90deg); }
+.fisher-variant { display: none; }
+.fisher-variant td { color: #666; font-size: 0.92em; }
+.fisher-variant td:first-child { padding-left: 1.8em; }
 
 /* Method table specific */
 #method_table .ref-row { background: #f5f5f5 !important; }
 #method_table .ref-row:hover { background: #eeeeee !important; }
-#method_table th:nth-child(n+2):nth-child(-n+6), #method_table td:nth-child(n+2):nth-child(-n+6) { min-width: 95px; }
-#method_table th:nth-child(7), #method_table td:nth-child(7) { text-align: center; width: 40px; }
+#method_table th:nth-child(n+2):nth-child(-n+5), #method_table td:nth-child(n+2):nth-child(-n+5) { min-width: 95px; }
+#method_table th:nth-child(8), #method_table td:nth-child(8) { text-align: center; width: 40px; }
 .expand-cell { padding: 4px !important; }
 .toggle-btn { font-size: 12px; padding: 2px 8px; min-width: 28px; }
 .details-row { display: none; background: #fafafa !important; }
@@ -192,7 +202,7 @@ button.toggle-btn:hover { text-decoration: underline; }
   <h2>Meta-evaluation</h2>
   <div class="card">
     <p style="margin:0 0 12px 0;">
-      This section evaluates <strong>20 metrics</strong> (13 base + 4 normalized MIA + 3 representation baselines) across 6 categories to measure <strong>how reliable each unlearning metric is</strong>, using the Open-Unlearning benchmark framework.
+      This section evaluates <strong>22 metrics</strong> (13 base + 4 normalized MIA + 3 representation baselines [+2 Fisher mask variants]) across 6 categories to measure <strong>how reliable each unlearning metric is</strong>, using the Open-Unlearning benchmark framework.
     </p>
     <p style="margin:0 0 12px 0;">
       <strong>Faithfulness</strong>: How well each metric separates knowledge-present (P, 30 models) vs knowledge-absent (N, 30 models), measured by AUC-ROC.<br>
@@ -200,7 +210,7 @@ button.toggle-btn:hover { text-decoration: underline; }
     </p>
 
     <div class="formula-box" style="margin:0 0 14px 0;">
-      <div><strong>Metric Categories (13 + 4 normalized + 3 representation)</strong></div>
+      <div><strong>Metric Categories (13 + 4 normalized + 3 representation [+2 variants])</strong></div>
 
       <div style="margin-top:10px;">
         <strong>Memorization</strong> (5) &mdash; Does the model still retain memorized target knowledge?<br>
@@ -236,7 +246,7 @@ button.toggle-btn:hover { text-decoration: underline; }
       </div>
 
       <div style="margin-top:10px;">
-        <strong>Representation Baselines</strong> (3) &mdash; Representation-level metrics that measure knowledge erasure by comparing hidden-state geometry or parameter sensitivity between unlearned, retain, and full models. All three require the retain model as reference.<br>
+        <strong>Representation Baselines</strong> (3 + 2 variants) &mdash; Representation-level metrics that measure knowledge erasure by comparing hidden-state geometry or parameter sensitivity between unlearned, retain, and full models. All require the retain model as reference.<br>
         <code>CKA</code> (Centered Kernel Alignment; Kornblith et al., 2019) &mdash; measures representational similarity between two models by comparing their hidden-state kernel matrices. Per-layer CKA(H<sub>unl</sub>, H<sub>ret</sub>) quantifies how similar unlearned representations are to retain; weighted by how much each layer differs between full and retain. <span class="sub-formula">score = &Sigma;<sub>l</sub> w<sub>l</sub> &middot; CKA(H<sub>unl</sub>, H<sub>ret</sub>)<sub>l</sub>, &ensp; w<sub>l</sub> = 1 &minus; CKA(H<sub>full</sub>, H<sub>ret</sub>)<sub>l</sub>. &ensp; Dataset-level (400 examples).</span><br>
         <code>Logit Lens</code> (nostalgebraist, 2020) &mdash; probes intermediate hidden states by passing them through the full model&rsquo;s frozen decoder (LayerNorm + lm_head) to read out entity logprobs at each layer. Measures how much knowledge is decodable from each layer&rsquo;s representation. <span class="sub-formula">k<sub>m,l</sub> = logprob(entity | H<sup>l</sup><sub>m</sub> &rarr; decoder<sub>full</sub>), &ensp; d<sub>m,l</sub> = k<sub>full,l</sub> &minus; k<sub>m,l</sub>. &ensp; Per-example, per-layer.</span><br>
         <code>Fisher Masked</code> (Kirkpatrick et al., 2017) &mdash; diagonal Fisher Information with top-p% parameter masking per layer. Focuses on knowledge-relevant parameters where retain has higher sensitivity than full (i.e., forget-set gradients are typically higher in retain). Three mask fractions tested: 0.01%, 0.1%, 1%. <span class="sub-formula">a<sub>i</sub> = max(F<sub>ret,i</sub> &minus; F<sub>full,i</sub>, 0), &ensp; M<sub>l</sub> = top p% of a<sub>i</sub> per layer, &ensp; erasure<sub>l</sub> = 1 &minus; clip(excess<sub>unl</sub>/excess<sub>full</sub>, 0, 1), &ensp; w<sub>l</sub> = excess<sub>full,l</sub>.</span>
@@ -271,7 +281,7 @@ button.toggle-btn:hover { text-decoration: underline; }
     </div>
   </div>
 
-  <div class="hint">Per column: <strong>best</strong> value is bold, <u>second-best</u> is underlined. &ensp; <span style="background:#f3f0ff;padding:2px 6px;border-radius:3px;">Purple</span> = retain ref. &ensp; <span style="background:repeating-linear-gradient(-45deg,#f3f0ff,#f3f0ff 3px,#ece6ff 3px,#ece6ff 6px);padding:2px 6px;border-radius:3px;">Hatched</span> = retain ref. + white-box</div>
+  <div class="hint">Per column: <span class="rank-top1">best</span>, <span class="rank-top2">second-best</span>, <span class="rank-bot1">worst</span>, <span class="rank-bot2">second-worst</span>. &ensp; <span class="tag tag-O">Output</span> = model output based &ensp; <span class="tag tag-R">Retain</span> = retain-referenced &ensp; <span class="tag tag-I">Internal</span> = internal representation. &ensp; * Fisher Masked quantization is N/A (NF4 mismatch).</div>
   <div class="table-wrap">
     <table class="styled" id="meta_eval">
       <thead>
@@ -416,8 +426,8 @@ button.toggle-btn:hover { text-decoration: underline; }
           <th class="sortable num" data-col="mem" style="white-space:nowrap;">Mem. ↑</th>
           <th class="sortable num" data-col="privacy">Privacy ↑</th>
           <th class="sortable num" data-col="utility_rel">Utility ↑</th>
-          <th class="sortable num" data-col="uds" style="color:#888;" title="Already included in Privacy axis">UDS ↑</th>
-          <th class="sortable num" data-col="logit_lens" style="color:#888;" title="Logit Lens erasure score (representation-level)">LL ↑</th>
+          <th class="sortable num" data-col="logit_lens" style="color:#888;width:80px;min-width:80px;" title="Logit Lens erasure score (representation-level)">LL ↑</th>
+          <th class="sortable num" data-col="uds" style="color:#888;width:80px;min-width:80px;" title="Already included in Privacy axis">UDS ↑</th>
           <th></th>
         </tr>
       </thead>
@@ -461,12 +471,18 @@ function top2(values) {
   const nums = [...new Set(values.filter(v => v !== null && !isNaN(v)))].sort((a,b) => b-a);
   return [nums[0] || null, nums[1] || null];
 }
+function bot2(values) {
+  const nums = [...new Set(values.filter(v => v !== null && !isNaN(v)))].sort((a,b) => a-b);
+  return [nums[0] || null, nums[1] || null];
+}
 
-function styleRank(v, best, second) {
+function styleRank(v, best, second, worst, secWorst) {
   if (v === null || v === undefined || isNaN(v)) return 'N/A';
   const s = fmt(v);
-  if (best !== null && Math.abs(v - best) < 1e-9) return `<strong>${s}</strong>`;
-  if (second !== null && Math.abs(v - second) < 1e-9) return `<u>${s}</u>`;
+  if (best !== null && Math.abs(v - best) < 1e-9) return `<span class="rank-top1">${s}</span>`;
+  if (second !== null && Math.abs(v - second) < 1e-9) return `<span class="rank-top2">${s}</span>`;
+  if (worst !== null && Math.abs(v - worst) < 1e-9) return `<span class="rank-bot1">${s}</span>`;
+  if (secWorst !== null && Math.abs(v - secWorst) < 1e-9) return `<span class="rank-bot2">${s}</span>`;
   return s;
 }
 
@@ -513,6 +529,9 @@ function renderMetaEval() {
   const faith = metaData.faithfulness;
   const robust = metaData.robustness || {};
 
+  // Fisher variant keys (hidden by default, excluded from ranking)
+  const fisherVariants = new Set(['fisher_masked_0.0001', 'fisher_masked_0.01']);
+
   // Collect values for ranking
   const overalls = [], faiths = [], robs = [], quants = [], relearns = [];
   const rows = metrics.map(m => {
@@ -521,7 +540,9 @@ function renderMetaEval() {
     const q = robust[m.key]?.quantization ?? null;
     const rl = robust[m.key]?.relearning ?? null;
     const o = (f !== null && r !== null) ? 2 / (1/f + 1/r) : null;
-    overalls.push(o); faiths.push(f); robs.push(r); quants.push(q); relearns.push(rl);
+    if (!fisherVariants.has(m.key)) {
+      overalls.push(o); faiths.push(f); robs.push(r); quants.push(q); relearns.push(rl);
+    }
     return { ...m, faith: f, rob: r, quant: q, relearn: rl, overall: o };
   });
 
@@ -530,34 +551,50 @@ function renderMetaEval() {
   const [bestR, secR] = top2(robs);
   const [bestQ, secQ] = top2(quants);
   const [bestL, secL] = top2(relearns);
+  const [worstO, secWO] = bot2(overalls);
+  const [worstF, secWF] = bot2(faiths);
+  const [worstR, secWR] = bot2(robs);
+  const [worstQ, secWQ] = bot2(quants);
+  const [worstL, secWL] = bot2(relearns);
 
-  // Sort if needed
+  // Sort if needed (keep Fisher variants attached to Fisher main)
   if (metaSort.col) {
-    rows.sort((a, b) => {
+    const main = rows.filter(r => !fisherVariants.has(r.key));
+    const fvars = rows.filter(r => fisherVariants.has(r.key));
+    main.sort((a, b) => {
       let av = a[metaSort.col], bv = b[metaSort.col];
       if (av === null || isNaN(av)) av = -Infinity;
       if (bv === null || isNaN(bv)) bv = -Infinity;
       return metaSort.asc ? av - bv : bv - av;
     });
+    // Re-insert Fisher variants right after Fisher main
+    rows.length = 0;
+    main.forEach(r => {
+      rows.push(r);
+      if (r.key === 'fisher_masked_0.001') rows.push(...fvars);
+    });
   }
 
   let html = '';
   rows.forEach((r, i) => {
-    const classes = [];
-    if (r.key.startsWith('s_mia_')) classes.push('retain-dep');
-    if (r.key === 'uds' || r.category === 'representation') classes.push('whitebox-dep');
-
     const isUds = r.key === 'uds';
+    const isFisherMain = r.key === 'fisher_masked_0.001';
+    const isFisherVar = fisherVariants.has(r.key);
+    const isFisher = isFisherMain || isFisherVar;
     let label = r.label.replace(/^s_(.+)$/, 's<sub>$1</sub>');
     if (isUds) label = `<strong>${label}</strong>`;
+    if (isFisherMain) label = `<span class="fisher-toggle" onclick="this.classList.toggle('open');document.querySelectorAll('.fisher-variant').forEach(r=>r.style.display=this.classList.contains('open')?'table-row':'none')">${label}</span>`;
+    const tagNames = {O: 'Output', R: 'Retain', I: 'Internal'};
+    const tagHtml = (r.tags || []).map(t => `<span class="tag tag-${t}">${tagNames[t]}</span>`).join('');
+    const trClass = isFisherVar ? ' class="fisher-variant"' : '';
 
-    html += `<tr class="${classes.join(' ')}">
-      <td>${label}</td>
-      <td class="num">${styleRank(r.overall, bestO, secO)}</td>
-      <td class="num">${styleRank(r.faith, bestF, secF)}</td>
-      <td class="num">${styleRank(r.rob, bestR, secR)}</td>
-      <td class="num">${styleRank(r.quant, bestQ, secQ)}</td>
-      <td class="num">${styleRank(r.relearn, bestL, secL)}</td>
+    html += `<tr${trClass}>
+      <td>${label} ${tagHtml}</td>
+      <td class="num">${isFisherVar ? fmt(r.overall) : styleRank(r.overall, bestO, secO, worstO, secWO)}</td>
+      <td class="num">${isFisherVar ? fmt(r.faith) : styleRank(r.faith, bestF, secF, worstF, secWF)}</td>
+      <td class="num">${isFisherVar ? fmt(r.rob) : styleRank(r.rob, bestR, secR, worstR, secWR)}</td>
+      <td class="num">${isFisher && (r.quant === null || isNaN(r.quant)) ? '<span title="Fisher Masked is not supported on NF4-quantized weights." style="cursor:help">N/A*</span>' : (isFisherVar ? fmt(r.quant) : styleRank(r.quant, bestQ, secQ, worstQ, secWQ))}</td>
+      <td class="num">${isFisherVar ? fmt(r.relearn) : styleRank(r.relearn, bestL, secL, worstL, secWL)}</td>
     </tr>`;
   });
   body.innerHTML = html;
@@ -752,8 +789,8 @@ function renderMethodTable() {
       <td class="num">${fmt(m.mem)}</td>
       <td class="num">${fmt(m.privacy)}</td>
       <td class="num">${fmt(m.utility_rel)}</td>
-      <td class="num" style="color:#888;">${fmt(m.uds)}</td>
       <td class="num" style="color:#888;">${fmt(m.logit_lens)}</td>
+      <td class="num" style="color:#888;">${fmt(m.uds)}</td>
       <td class="expand-cell"><button class="toggle-btn" data-target="${rid}">▼</button></td>
     </tr>`;
 

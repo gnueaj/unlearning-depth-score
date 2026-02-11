@@ -148,6 +148,7 @@ Anchor data: `runs/meta_eval/representation_baselines/anchor/anchor_cache.json`
 - **Parameters**: 367 examples, per-layer gradient computation, mask fractions: 0.01%, 0.1%, 1%
 - **Anchor data**: `runs/meta_eval/representation_baselines/anchor/fisher_mask.pt` (precomputed from retain/full)
 - **Known limitation**: Layer 1 dominates weight (60-84% of total excess_full), making results nearly identical across mask fractions due to nested masks + ratio normalization. This is a fundamental Fisher characteristic, not an aggregation bug.
+- **Quant robustness**: NF4 quantized 모델은 `requires_grad=False`라 직접 Fisher 계산 불가. `dequantize_model()`로 `bnb.nn.Linear4bit` → `nn.Linear` (float16) 변환 후 계산. 비양자화 파라미터(embeddings, layernorm)의 dtype 감지하여 일치시킴.
 - **Faithfulness AUC**: 0.708 (0.01%), 0.712 (0.1%), 0.698 (1%)
 
 ### Summary
@@ -223,6 +224,13 @@ Open-Unlearning의 one-directional 수식은 knowledge recovery만 페널티를 
 - Relearn results & plots: `runs/meta_eval/robustness/relearn/plots/sym/`
 - Plot scripts: `plot_quant_symmetric.py`, `plot_relearn_symmetric.py`
 - Filter variants: nofilter, default (utility+faithfulness), utility_only, lr_filter, before_filter
+- Plot title: "13 Metrics + 4 Normalized MIA + Rep. Baselines"
+- Axis: truth_ratio만 tight (data min), 나머지는 0 시작, max capped at min(data_max\*1.02, 1.02)
+
+#### Rep Baseline Filtering Logic
+- Rep baselines (CKA, Logit Lens, Fisher) 각각 독립 필터링
+- `usable_per_metric`에 해당 metric key 있으면 사용, 없으면 전체 `rep_models` (UDS fallback 없음)
+- 이유: 각 metric의 faithfulness threshold가 다르므로 UDS threshold를 대리로 쓰면 부정확
 
 #### Legacy One-Directional Formulas (Open-Unlearning Eq. 2, 3)
 ```
@@ -400,7 +408,20 @@ Before publishing numbers:
   - 출력: `runs/meta_eval/robustness/{quant,relearn}/plots/sym/`
   - 양방향 gradient (기준선에서 멀어질수록 빨간색)
   - 5개 filter variant: nofilter, default, utility_only, lr_filter(quant), before_filter(relearn)
+  - **제목**: "13 Metrics + 4 Normalized MIA + Rep. Baselines" (CKA, Logit Lens, Fisher 모두 포함)
+  - **Axis policy**: truth_ratio만 data min 하한 사용, 나머지는 0부터 시작, max는 min(data_max*1.02, 1.02)로 캡
 - **`docs/data/meta_eval.json`** symmetric robustness 값으로 업데이트
-- **CKA robustness 완료**: quant 151/151, relearn 151/151
-- **Logit Lens robustness 완료**: quant 151/151, relearn 151/151
-- **Fisher Masked robustness 진행 중**: quant 0/151 (미시작), relearn 107/151 (ep5 44개 남음)
+- **CKA robustness**: broken — quantized 모델에서 "index OOB" 에러, 모든 non-retain 모델 cka=0. Robustness = null
+- **Logit Lens robustness 완료**: quant 151/151, relearn 151/151 → Q=0.9613, R=0.8502, HM=0.9023
+- **Fisher Masked robustness**: relearn 완료 (151/151, R≈0.91), quant dequantize 방식으로 구현 및 실행 중
+  - NF4 quantized 모델은 `requires_grad=False` → Fisher(gradient²) 계산 불가
+  - 해결: `dequantize_model()` — `bnb.functional.dequantize_4bit()`로 float16 복원 후 Fisher 계산
+  - 구현 위치: `scripts/compute_representation_baselines.py` 내 `robustness_quant` 모드
+  - Quant이 Fisher에 미치는 영향 매우 작음 (Q ≈ 0.99+)
+- **Robustness filtering logic 수정**: rep baselines에서 UDS usable set fallback 제거
+  - Before: `usable_per_metric.get(metric, usable_per_metric.get('uds', []))` (UDS fallback)
+  - After: `metric in usable_per_metric` → 해당 metric usable set 사용, 없으면 전체 rep_models 사용
+  - 적용: `plot_quant_symmetric.py`, `plot_relearn_symmetric.py` 모두 수정
+- **Dashboard method table**: LL 컬럼을 UDS 앞으로 이동 (LL → UDS 순서), 두 컬럼 width=80px 동일
+- **Meta-eval 태그 시스템**: O=Output, R=Retain-ref, I=Internal (colored dots in table)
+- **Faithfulness histogram**: legend handlelength 1.5→2.0 (dash 길이 균일화)
