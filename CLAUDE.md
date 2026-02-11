@@ -8,7 +8,7 @@ The project evaluates unlearning using:
 - **Meta-evaluation** (Faithfulness / Robustness) in Open-Unlearning style
 - **UDS** as the internal intervention metric
 
-Core claim: output suppression is not enough; internal recoverability must also be measured.
+Positioning: prior unlearning studies already question output-only evaluation; this project focuses on how to evaluate internal knowledge retention/recoverability, and proposes UDS as an interventional answer.
 
 ## Canonical Outputs
 - Dashboard: `docs/openunlearning_alpha_all.html`
@@ -72,7 +72,7 @@ Do not mix these two evaluation settings silently.
 ## UDS Procedure (Detailed)
 
 ### Core Idea
-Output suppression ≠ knowledge erasure. UDS measures whether knowledge remains recoverable from internal representations using activation patching.
+Following prior work that highlights limits of output-only evaluation, UDS measures whether knowledge remains recoverable from internal representations using activation patching.
 
 ### Two-Stage Patching
 - **S1**: retain → full (baseline: retain model's knowledge gap)

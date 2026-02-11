@@ -2,7 +2,7 @@
 
 This repository evaluates unlearning with a white-box intervention metric (**UDS**) and Open-Unlearning-style metrics.
 
-The central question is not only whether output behavior changes, but whether target knowledge remains recoverable from internal representations.
+Prior unlearning studies have already raised limits of output-only evaluation; this repository focuses on the follow-up question: how to measure whether target knowledge remains recoverable from internal representations.
 
 ## What This Repo Produces
 
@@ -25,7 +25,7 @@ UDS measures how deeply an unlearning method erases target knowledge from intern
 
 #### Motivation
 
-Output-based metrics can be fooled by superficial suppression—a model might refuse to answer while still storing recoverable knowledge internally. UDS uses **activation patching** to probe whether knowledge persists at each layer.
+Building on prior observations that output behavior can be misleading, UDS provides an interventional internal metric: it uses **activation patching** to probe whether knowledge persists at each layer.
 
 #### Two-Stage Patching
 
@@ -60,7 +60,7 @@ The ratio `Δ^S2 / Δ^S1` measures how much of the knowledge gap (seen in retain
 |-----|---------|
 | 1.0 | Complete erasure — unlearned model matches retain's knowledge gap |
 | 0.5 | Partial erasure — knowledge partially recoverable |
-| 0.0 | No erasure — knowledge fully intact despite output suppression |
+| 0.0 | No erasure — knowledge fully intact even if output-level behavior appears unlearned |
 
 UDS script: `exp_s1_teacher_forcing.py`
 
