@@ -278,7 +278,7 @@ def main():
             'bef_all': bef_all, 'aft_all': aft_all,
             'names': model_names, 'r_values': r_values,
             'rb': rb, 'ra': ra, 'retain_shift': retain_shift,
-            'avg_r': avg_r, 'n_total': n_total,
+            'avg_r': avg_r, 'avg_R': round(avg_r, 4), 'n_total': n_total,
             'n_over': n_over, 'n_under': n_under,
         }
         robustness_results[metric] = {
@@ -349,7 +349,7 @@ def main():
             'bef_all': bef_all, 'aft_all': aft_all,
             'names': model_names, 'r_values': r_values,
             'rb': rb, 'ra': ra, 'retain_shift': retain_shift,
-            'avg_r': avg_r, 'n_total': n_total,
+            'avg_r': avg_r, 'avg_R': round(avg_r, 4), 'n_total': n_total,
             'n_over': n_over, 'n_under': n_under,
         }
         robustness_results[metric] = {
@@ -455,11 +455,17 @@ def main():
                    edgecolors='darkred', linewidths=0.5, zorder=5)
 
         label = metric_labels.get(metric, metric)
-        ax.set_title(
-            f"{label}\n$R$={d['avg_r']:.3f} (n={d['n_total']}, "
-            f"over={d['n_over']}, under={d['n_under']})",
-            fontsize=11,
-        )
+        is_ours = (metric == 'uds')
+        if is_ours:
+            title_str = (r"\textbf{" + label + "}\n"
+                         r"\textbf{$\mathbf{R}$=" + f"{d['avg_R']:.3f}"
+                         + r" (n=" + str(d['n_total'])
+                         + r", over=" + str(d['n_over'])
+                         + r", under=" + str(d['n_under']) + r")}")
+        else:
+            title_str = (f"{label}\n$R$={d['avg_R']:.3f} (n={d['n_total']}, "
+                         f"over={d['n_over']}, under={d['n_under']})")
+        ax.set_title(title_str, fontsize=11)
         ax.set_xlabel('Before Relearning', fontsize=10)
         ax.set_ylabel('After Relearning', fontsize=10)
         ax.set_xlim(lo, hi)
@@ -480,7 +486,7 @@ def main():
             grad_patch,
         ]
         ax.legend(handles=local_handles, handler_map={grad_patch: _GradientHandler()},
-                  loc='lower right', fontsize=8, framealpha=0.95)
+                  loc='lower right', fontsize=8, framealpha=0.8)
 
     # Compute utility-only count for reference
     if utility_models is not None:
@@ -491,7 +497,7 @@ def main():
             mr_data = json.load(f)
         n_util = sum(1 for m in mr_data.get('models', [])
                      if m.get('utility_rel', 0) >= 0.8 and m['model'] in relearn_models)
-    fig.suptitle(f'Relearning Robustness (13 Metrics + 4 Normalized MIA + Rep. Baselines)\n(150 Unlearned Models; {filter_label})',
+    fig.suptitle(f'Relearning Robustness (13 Metrics + 4 Normalized MIA + 3 Rep. Baselines)\n(150 Unlearned Models; {filter_label})',
                  fontsize=15, fontweight='normal', y=0.99)
     fig.subplots_adjust(left=0.035, right=0.995, bottom=0.025, top=0.935,
                         wspace=0.04, hspace=0.40)

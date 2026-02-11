@@ -282,14 +282,14 @@ if p_scores_uds and n_scores_uds:
                     fontsize=14, va='top', ha=ha_, color='black', zorder=10,
                     path_effects=[pe.withStroke(linewidth=2, foreground='white')])
     auc = auc_data.get('uds', {}).get('auc_roc', 0)
-    ax_uds.set_title(f'$1-$UDS (Ours)\nAUC: {auc:.3f}', fontweight='bold')
+    ax_uds.set_title(r'\textbf{$\mathbf{1-}$UDS (Ours)}' + f'\n\\textbf{{AUC: {auc:.3f}}}', fontsize=14)
     ax_uds.set_ylabel('Count')
     ax_uds.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax_uds.grid(True, linestyle='-', linewidth=0.45, alpha=0.25)
     ax_uds.legend(fontsize=11, loc='upper right', handlelength=1.9)
 
 plt.suptitle('Faithfulness: P/N Pool Score Distributions (60 models: 30 P + 30 N)\n'
-             '13 Metrics + 4 Normalized MIA + 3 Representation Baselines',
+             '20 Metrics (13 Base + 4 Normalized MIA + 3 Rep. Baselines)',
              fontsize=15, y=0.99)
 plt.tight_layout()
 fig.subplots_adjust(top=0.93, bottom=0.04, hspace=0.38, wspace=0.28)

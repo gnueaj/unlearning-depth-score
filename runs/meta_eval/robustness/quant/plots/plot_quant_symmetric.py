@@ -155,7 +155,7 @@ def main():
         's_mia_loss', 's_mia_min_k', 's_mia_min_kpp', 's_mia_zlib',
         'uds',
     ]
-    rep_metrics = ['cka', 'logit_lens']
+    rep_metrics = ['cka', 'logit_lens', 'fisher_masked_0.0001', 'fisher_masked_0.001', 'fisher_masked_0.01']
 
     metric_labels = {
         'em': 'Exact Memorization', 'es': 'Extraction Strength',
@@ -168,6 +168,9 @@ def main():
         's_mia_min_k': 'MIA-MinK (normalized)', 's_mia_min_kpp': 'MIA-MinK++ (normalized)',
         'uds': r'\textbf{1-UDS (Ours)}', 'logit_lens': '1-Logit Lens',
         'cka': '1-CKA',
+        'fisher_masked_0.0001': r'1-Fisher (0.01\%)',
+        'fisher_masked_0.001': r'1-Fisher (0.1\%)',
+        'fisher_masked_0.01': r'1-Fisher (1\%)',
     }
 
     inverted_metrics = {'uds', 's_mia_loss', 's_mia_zlib', 's_mia_min_k', 's_mia_min_kpp'}
@@ -242,7 +245,7 @@ def main():
         avg_q = float(np.mean(q_values)) if q_values else 0.0
         all_metric_data[metric] = {
             'before': filtered_before, 'after': filtered_after,
-            'names': model_names, 'q_values': q_values, 'avg_q': avg_q,
+            'names': model_names, 'q_values': q_values, 'avg_q': avg_q, 'avg_Q': round(avg_q, 4),
         }
         robustness_results[metric] = {
             'avg_Q': round(avg_q, 4),
@@ -297,7 +300,7 @@ def main():
         avg_q = float(np.mean(q_values)) if q_values else 0.0
         all_metric_data[metric] = {
             'before': filtered_before, 'after': filtered_after,
-            'names': model_names, 'q_values': q_values, 'avg_q': avg_q,
+            'names': model_names, 'q_values': q_values, 'avg_q': avg_q, 'avg_Q': round(avg_q, 4),
         }
         robustness_results[metric] = {
             'avg_Q': round(avg_q, 4),
@@ -353,15 +356,7 @@ def main():
     for i, m in enumerate(metrics[12:16]):
         metric_axes[m] = fig.add_subplot(gs[3, i])
     metric_axes['cka'] = fig.add_subplot(gs[4, 0])
-    # Fisher quant N/A placeholder
-    ax_na = fig.add_subplot(gs[4, 1])
-    ax_na.text(0.5, 0.5, r'Fisher Masked (0.1\%)' + '\nQuantization: N/A',
-               ha='center', va='center', fontsize=13, color='#888888',
-               transform=ax_na.transAxes)
-    ax_na.set_xticks([])
-    ax_na.set_yticks([])
-    for spine in ax_na.spines.values():
-        spine.set_color('#cccccc')
+    metric_axes['fisher_masked_0.001'] = fig.add_subplot(gs[4, 1])
     metric_axes['logit_lens'] = fig.add_subplot(gs[4, 2])
     metric_axes['uds'] = fig.add_subplot(gs[4, 3])
 
@@ -393,11 +388,17 @@ def main():
 
         label = metric_labels.get(metric, metric)
         r = robustness_results[metric]
-        ax.set_title(
-            f"{label}\n$Q$={d['avg_q']:.3f} (n={len(bef)}, "
-            f"rec={r['n_recovered']}, des={r['n_destroyed']})",
-            fontsize=11,
-        )
+        is_ours = (metric == 'uds')
+        if is_ours:
+            title_str = (r"\textbf{" + label + "}\n"
+                         r"\textbf{$\mathbf{Q}$=" + f"{d['avg_Q']:.3f}"
+                         + r" (n=" + str(len(bef))
+                         + r", rec=" + str(r['n_recovered'])
+                         + r", des=" + str(r['n_destroyed']) + r")}")
+        else:
+            title_str = (f"{label}\n$Q$={d['avg_Q']:.3f} (n={len(bef)}, "
+                         f"rec={r['n_recovered']}, des={r['n_destroyed']})")
+        ax.set_title(title_str, fontsize=11)
         ax.set_xlabel('Before Quantization', fontsize=10)
         ax.set_ylabel('After Quantization', fontsize=10)
         ax.set_xlim(lo, hi)
@@ -414,7 +415,7 @@ def main():
             grad_patch,
         ]
         ax.legend(handles=local_handles, handler_map={grad_patch: _GradientHandler()},
-                  loc='lower right', fontsize=9, framealpha=0.95)
+                  loc='lower right', fontsize=9, framealpha=0.8)
 
     # Compute utility-only count for reference
     if utility_models is not None:
@@ -425,7 +426,7 @@ def main():
             mr_data = json.load(f)
         n_util = sum(1 for m in mr_data.get('models', [])
                      if m.get('utility_rel', 0) >= 0.8 and m['model'] in quant_models)
-    fig.suptitle(f'Quantization Robustness (13 Metrics + 4 Normalized MIA + Rep. Baselines)\n(150 Unlearned Models; {filter_label})',
+    fig.suptitle(f'Quantization Robustness (13 Metrics + 4 Normalized MIA + 3 Rep. Baselines)\n(150 Unlearned Models; {filter_label})',
                  fontsize=15, fontweight='normal', y=0.99)
     fig.subplots_adjust(left=0.035, right=0.995, bottom=0.025, top=0.935,
                         wspace=0.04, hspace=0.40)

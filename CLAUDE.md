@@ -222,10 +222,11 @@ Open-Unlearning의 one-directional 수식은 knowledge recovery만 페널티를 
 | Metric | Q | R | HM |
 |--------|------|------|-----|
 | **UDS** | 0.968 | 0.900 | **0.933** |
-| Logit Lens | 0.961 | 0.850 | 0.902 |
+| Logit Lens | 0.959 | 0.812 | 0.879 |
 | Paraprob | 0.853 | 0.899 | 0.875 |
 | ES | 0.970 | 0.770 | 0.859 |
 | s_mia_zlib | 0.704 | 0.745 | 0.724 |
+| Fisher (0.1%) | 0.583 | 0.946 | 0.721 |
 
 #### Symmetric Robustness Paths
 - Quant results & plots: `runs/meta_eval/robustness/quant/plots/sym/`
@@ -314,7 +315,7 @@ Q = min(before / after, 1)                                 # Quantization
 - **절대 CUDA_VISIBLE_DEVICES 환경변수 사용하지 말 것** → 스크립트의 `--gpu` 인자 사용
 - **장시간 실험은 반드시 `nohup`으로 실행** → 터미널 끊어져도 프로세스 유지
 - Use `--resume` paths for interrupted long runs.
-- Keep only one active writer per output `results.json`.
+- **Keep only one active writer per output `results.json`** — 동시에 두 배치가 같은 JSON 파일에 `"w"` 모드로 쓰면 한 쪽의 결과가 덮어써져 데이터 손실 발생. 배치 실행 시 결과 파일을 분리하거나, 쓰기 전 기존 데이터를 reload+merge 할 것.
 - Legacy runs are under `runs/legacy/`; avoid reading them in builders.
 - Relearn checkpoints are auto-deleted after metrics computation.
 - Monitor disk space during long runs (HF cache can grow quickly).
@@ -425,11 +426,11 @@ Before publishing numbers:
 - **`docs/data/meta_eval.json`** symmetric robustness 값으로 업데이트
 - **CKA robustness**: broken — quantized 모델에서 "index OOB" 에러, 모든 non-retain 모델 cka=0. Robustness = null
 - **Logit Lens robustness 완료**: quant 151/151, relearn 151/151 → Q=0.9613, R=0.8502, HM=0.9023
-- **Fisher Masked robustness**: relearn 완료 (151/151, R≈0.91), quant dequantize 방식으로 구현 및 실행 중
+- **Fisher Masked robustness 완료**: quant 151/151, relearn 151/151
   - NF4 quantized 모델은 `requires_grad=False` → Fisher(gradient²) 계산 불가
   - 해결: `dequantize_model()` — `bnb.functional.dequantize_4bit()`로 float16 복원 후 Fisher 계산
   - 구현 위치: `scripts/compute_representation_baselines.py` 내 `robustness_quant` 모드
-  - Quant이 Fisher에 미치는 영향 매우 작음 (Q ≈ 0.99+)
+  - Fisher는 quantization에 매우 민감 (Q ≈ 0.58, 대부분 destruction 방향)
 - **Robustness filtering logic 수정**: rep baselines에서 UDS usable set fallback 제거
   - Before: `usable_per_metric.get(metric, usable_per_metric.get('uds', []))` (UDS fallback)
   - After: `metric in usable_per_metric` → 해당 metric usable set 사용, 없으면 전체 rep_models 사용
@@ -437,3 +438,14 @@ Before publishing numbers:
 - **Dashboard method table**: LL 컬럼을 UDS 앞으로 이동 (LL → UDS 순서), 두 컬럼 width=80px 동일
 - **Meta-eval 태그 시스템**: O=Output, R=Retain-ref, I=Internal (colored dots in table)
 - **Faithfulness histogram**: legend handlelength 1.5→2.0 (dash 길이 균일화)
+
+## Recent Updates (2026-02-12)
+- **Fisher Masked quant robustness 완료**: 151/151 models, dequantize 방식 성공
+  - Q ≈ 0.58 (0.01%: 0.573, 0.1%: 0.583, 1%: 0.582) — Fisher는 quantization에 매우 민감
+  - R ≈ 0.94 (확인), HM ≈ 0.72
+  - 대부분 destruction 방향 (dequantized Fisher < original Fisher)
+- **Batch 2 결과 손실 복구**: 동시 배치 실행으로 `rep_baselines_results.json` 덮어쓰기 발생, Batch 2 로그에서 75개 결과 파싱하여 복원
+- **plot_quant_symmetric.py 수정**: Fisher 3종 추가 (`rep_metrics`에 fisher_masked_* 포함, N/A placeholder 제거)
+- **meta_eval.json 업데이트**: Fisher quant null → 실제 Q/HM 값 반영
+- **HTML 정리**: Fisher N/A 힌트 텍스트 및 JS guard 제거
+- **Concurrent-write warning**: Operational Notes에 배치 실행 시 결과 파일 분리/merge 경고 추가
