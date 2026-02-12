@@ -20,11 +20,13 @@ import os
 import sys
 import json
 import argparse
+import csv
 import hashlib
 from pathlib import Path
 from datetime import datetime
-from typing import List, Dict
+from typing import List, Dict, Optional
 import time
+import re
 
 import torch
 import numpy as np
@@ -42,6 +44,28 @@ from uds.config import get_model_id
 TOFU_FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
 TOFU_RETAIN_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90"
 PREFIX_DATA_PATH = "tofu_data/forget10_filtered_v7_gt.json"
+
+
+def sanitize_name_for_path(name: str) -> str:
+    """Convert model/run names to filesystem-safe tokens."""
+    token = re.sub(r"[^a-zA-Z0-9._-]+", "__", name.strip())
+    token = token.strip("._-")
+    return token or "run"
+
+
+def load_model_for_exp(
+    model_id: str,
+    dtype: str,
+    device_map: str,
+    attn_implementation: Optional[str],
+):
+    """Load model for experiment."""
+    return load_model(
+        model_id,
+        dtype=dtype,
+        device_map=device_map,
+        attn_implementation=attn_implementation,
+    )
 
 
 def load_prefix_data(path: str) -> List[Dict]:
@@ -189,6 +213,132 @@ def format_mismatches(tokenizer, mismatches, max_items=5) -> str:
     if len(mismatches) > max_items:
         parts.append(f"+{len(mismatches)-max_items} more")
     return ", ".join(parts)
+
+
+def build_layer_records(
+    s1_details: List[Dict],
+    s2_details: List[Dict],
+    full_score: Optional[float],
+) -> List[Dict]:
+    """Create per-layer structured rows with p/s1/s2 and deltas for detailed logging."""
+    rows: List[Dict] = []
+    if len(s1_details) != len(s2_details):
+        return rows
+
+    for s1, s2 in zip(s1_details, s2_details):
+        layer = s1.get("layer", s2.get("layer"))
+        row = {
+            "layer": layer,
+            "p_score": full_score,
+            "s1_score": None,
+            "s2_score": None,
+            "s1_delta": None,
+            "s2_delta": None,
+            "s1_status": s1.get("status"),
+            "s2_status": s2.get("status"),
+            "delta_gap": None,  # s2_delta - s1_delta
+            "ratio_s2_over_s1": None,
+            "ratio_s2_over_s1_clipped": None,
+            "s1_em": None,
+            "s2_em": None,
+        }
+
+        if "score" in s1 and "score" in s2:
+            d1 = s1.get("delta")
+            d2 = s2.get("delta")
+            row["s1_score"] = s1.get("score")
+            row["s2_score"] = s2.get("score")
+            row["s1_delta"] = d1
+            row["s2_delta"] = d2
+            if d1 is not None and d2 is not None:
+                row["delta_gap"] = d2 - d1
+            if d1 is not None and d2 is not None and abs(d1) > 1e-12:
+                ratio = d2 / d1
+                row["ratio_s2_over_s1"] = ratio
+                row["ratio_s2_over_s1_clipped"] = min(max(ratio, 0.0), 1.0)
+        elif "em" in s1 and "em" in s2:
+            row["s1_em"] = s1.get("em")
+            row["s2_em"] = s2.get("em")
+
+        rows.append(row)
+    return rows
+
+
+def write_detailed_artifacts(out_dir: str, results: List[Dict], skipped_records: List[Dict]) -> Dict[str, str]:
+    """Write detailed machine-readable artifacts for reproducibility and audit."""
+    out = Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+
+    detailed_jsonl_path = out / "results_detailed.jsonl"
+    with detailed_jsonl_path.open("w", encoding="utf-8") as f:
+        for r in results:
+            f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+    layer_csv_path = out / "layer_details.csv"
+    with layer_csv_path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=[
+                "idx",
+                "question",
+                "entity_text",
+                "entity_source",
+                "reference_source",
+                "reference_text",
+                "layer",
+                "p_score",
+                "s1_score",
+                "s2_score",
+                "s1_delta",
+                "s2_delta",
+                "delta_gap",
+                "ratio_s2_over_s1",
+                "ratio_s2_over_s1_clipped",
+                "s1_status",
+                "s2_status",
+                "s1_em",
+                "s2_em",
+                "uds",
+            ],
+        )
+        writer.writeheader()
+        for r in results:
+            layer_records = r.get("layer_records") or []
+            for row in layer_records:
+                writer.writerow(
+                    {
+                        "idx": r.get("idx"),
+                        "question": r.get("question"),
+                        "entity_text": r.get("entity_text"),
+                        "entity_source": r.get("entity_source"),
+                        "reference_source": r.get("reference_source"),
+                        "reference_text": r.get("reference_text"),
+                        "layer": row.get("layer"),
+                        "p_score": row.get("p_score"),
+                        "s1_score": row.get("s1_score"),
+                        "s2_score": row.get("s2_score"),
+                        "s1_delta": row.get("s1_delta"),
+                        "s2_delta": row.get("s2_delta"),
+                        "delta_gap": row.get("delta_gap"),
+                        "ratio_s2_over_s1": row.get("ratio_s2_over_s1"),
+                        "ratio_s2_over_s1_clipped": row.get("ratio_s2_over_s1_clipped"),
+                        "s1_status": row.get("s1_status"),
+                        "s2_status": row.get("s2_status"),
+                        "s1_em": row.get("s1_em"),
+                        "s2_em": row.get("s2_em"),
+                        "uds": r.get("uds"),
+                    }
+                )
+
+    skipped_path = out / "skipped_examples.json"
+    with skipped_path.open("w", encoding="utf-8") as f:
+        json.dump(skipped_records, f, indent=2, ensure_ascii=False)
+
+    return {
+        "detailed_jsonl": str(detailed_jsonl_path),
+        "layer_csv": str(layer_csv_path),
+        "skipped_json": str(skipped_path),
+    }
 
 
 def compute_em_teacher_forcing_baseline(
@@ -365,17 +515,17 @@ def compute_em_teacher_forcing_layer(
         if isinstance(output, tuple):
             hs = output[0].clone()
             if patch_scope == "boundary":
-                hs[:, start, :] = source_hidden_all[:, start, :].to(hs.dtype)
+                hs[:, start, :] = source_hidden_all[:, start, :].to(device=hs.device, dtype=hs.dtype)
             else:
                 # Patch positions predicting reference tokens (or eval span only)
-                hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
+                hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(device=hs.device, dtype=hs.dtype)
             return (hs,) + output[1:]
         else:
             hs = output.clone()
             if patch_scope == "boundary":
-                hs[:, start, :] = source_hidden_all[:, start, :].to(hs.dtype)
+                hs[:, start, :] = source_hidden_all[:, start, :].to(device=hs.device, dtype=hs.dtype)
             else:
-                hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
+                hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(device=hs.device, dtype=hs.dtype)
             return hs
 
     target_layer = target_model.model.layers[layer]
@@ -477,15 +627,15 @@ def compute_logprob_teacher_forcing_layer(
         if isinstance(output, tuple):
             hs = output[0].clone()
             if patch_scope == "boundary":
-                hs[:, start, :] = source_hidden_all[:, start, :].to(hs.dtype)
+                hs[:, start, :] = source_hidden_all[:, start, :].to(device=hs.device, dtype=hs.dtype)
             else:
-                hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
+                hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(device=hs.device, dtype=hs.dtype)
             return (hs,) + output[1:]
         hs = output.clone()
         if patch_scope == "boundary":
-            hs[:, start, :] = source_hidden_all[:, start, :].to(hs.dtype)
+            hs[:, start, :] = source_hidden_all[:, start, :].to(device=hs.device, dtype=hs.dtype)
         else:
-            hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
+            hs[:, patch_start:patch_end, :] = source_hidden_all[:, patch_start:patch_end, :].to(device=hs.device, dtype=hs.dtype)
         return hs
 
     target_layer = target_model.model.layers[layer]
@@ -594,12 +744,12 @@ def compute_logprob_teacher_forcing_layer_batch_with_inputs(
             if start >= length:
                 continue
             if patch_scope == "boundary":
-                hs[b, start, :] = source_hidden_layer[b, start, :].to(hs.dtype)
+                hs[b, start, :] = source_hidden_layer[b, start, :].to(device=hs.device, dtype=hs.dtype)
             else:
                 ps = min(ps, length)
                 pe = min(pe, length)
                 if ps < pe:
-                    hs[b, ps:pe, :] = source_hidden_layer[b, ps:pe, :].to(hs.dtype)
+                    hs[b, ps:pe, :] = source_hidden_layer[b, ps:pe, :].to(device=hs.device, dtype=hs.dtype)
 
         if isinstance(output, tuple):
             return (hs,) + output[1:]
@@ -730,12 +880,12 @@ def compute_logprob_teacher_forcing_layer_batch(
             if start >= length:
                 continue
             if patch_scope == "boundary":
-                hs[b, start, :] = source_hidden_all[b, start, :].to(hs.dtype)
+                hs[b, start, :] = source_hidden_all[b, start, :].to(device=hs.device, dtype=hs.dtype)
             else:
                 ps = min(ps, length)
                 pe = min(pe, length)
                 if ps < pe:
-                    hs[b, ps:pe, :] = source_hidden_all[b, ps:pe, :].to(hs.dtype)
+                    hs[b, ps:pe, :] = source_hidden_all[b, ps:pe, :].to(device=hs.device, dtype=hs.dtype)
 
         if isinstance(output, tuple):
             return (hs,) + output[1:]
@@ -852,9 +1002,9 @@ def compute_em_teacher_forcing_mlp(
     def patch_hook(module, inputs, output):
         hs = output.clone()
         if patch_scope == "boundary":
-            hs[:, start, :] = source_mlp_hidden_all[:, start, :].to(hs.dtype)
+            hs[:, start, :] = source_mlp_hidden_all[:, start, :].to(device=hs.device, dtype=hs.dtype)
         else:
-            hs[:, patch_start:patch_end, :] = source_mlp_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
+            hs[:, patch_start:patch_end, :] = source_mlp_hidden_all[:, patch_start:patch_end, :].to(device=hs.device, dtype=hs.dtype)
         return hs
 
     target_mlp = target_model.model.layers[layer].mlp
@@ -951,9 +1101,9 @@ def compute_logprob_teacher_forcing_mlp(
     def patch_hook(module, inputs, output):
         hs = output.clone()
         if patch_scope == "boundary":
-            hs[:, start, :] = source_mlp_hidden_all[:, start, :].to(hs.dtype)
+            hs[:, start, :] = source_mlp_hidden_all[:, start, :].to(device=hs.device, dtype=hs.dtype)
         else:
-            hs[:, patch_start:patch_end, :] = source_mlp_hidden_all[:, patch_start:patch_end, :].to(hs.dtype)
+            hs[:, patch_start:patch_end, :] = source_mlp_hidden_all[:, patch_start:patch_end, :].to(device=hs.device, dtype=hs.dtype)
         return hs
 
     target_mlp = target_model.model.layers[layer].mlp
@@ -981,6 +1131,7 @@ def _run_s1_s2_side_by_side_logprob_batch(
     """Batched log-prob S1/S2 run (layer patching only)."""
     results = []
     skipped_indices = []
+    skipped_records = []
     gk_count = 0
     categories = None
 
@@ -991,6 +1142,7 @@ def _run_s1_s2_side_by_side_logprob_batch(
     s1_cache_out = [] if save_s1_cache else None
 
     def flush_batch(batch_ctxs, batch_meta):
+        nonlocal s1_cache_map
         if not batch_ctxs:
             return
 
@@ -1005,6 +1157,21 @@ def _run_s1_s2_side_by_side_logprob_batch(
             m["s2_deltas"] = []
             m["s1_lost"] = 0
             m["s2_lost"] = 0
+
+        if s1_cache_map:
+            missing_idx = None
+            for m in batch_meta:
+                if s1_cache_map.get(m["idx"]) is None:
+                    missing_idx = m["idx"]
+                    break
+            if missing_idx is not None:
+                if log_file:
+                    log_file.write(
+                        f"[WARN] S1 cache missing idx={missing_idx}; "
+                        "falling back to on-the-fly S1 computation.\n"
+                    )
+                    log_file.flush()
+                s1_cache_map = None
 
         if s1_cache_map:
             for m in batch_meta:
@@ -1086,6 +1253,11 @@ def _run_s1_s2_side_by_side_logprob_batch(
             s2_details = meta["s2_details"]
             s1_deltas = meta["s1_deltas"]
             s2_deltas = meta["s2_deltas"]
+            layer_records = build_layer_records(
+                s1_details=s1_details,
+                s2_details=s2_details,
+                full_score=meta["full_score"],
+            )
 
             ft_layers = [s1["layer"] for s1 in s1_details if s1["status"] == "LOST"]
             erased_layers = [s2["layer"] for s2 in s2_details if s2["status"] == "LOST" and s2["layer"] in ft_layers]
@@ -1129,15 +1301,21 @@ def _run_s1_s2_side_by_side_logprob_batch(
             log_msg += f"  {unlearn_name} baseline: \"{clean_text(meta['unlearn_gen'])}\"\n"
             log_msg += f"  Full log-prob (ref span): {meta['full_score']:.3f}\n"
             log_msg += f"{'='*80}\n"
-            log_msg += f"  {'Layer':<6} | {'S1 (Retain→Full)':<25} | {'S2 ('+unlearn_name+'→Full)':<25}\n"
-            log_msg += f"  {'-'*6} | {'-'*25} | {'-'*25}\n"
+            log_msg += (
+                f"  {'Layer':<6} | {'P(Full)':<14} | {'S1 (Retain→Full)':<25} | "
+                f"{'S2 ('+unlearn_name+'→Full)':<25} | {'Δ2-Δ1':<8}\n"
+            )
+            log_msg += f"  {'-'*6} | {'-'*14} | {'-'*25} | {'-'*25} | {'-'*8}\n"
 
-            for s1, s2 in zip(s1_details, s2_details):
+            for s1, s2, lr in zip(s1_details, s2_details, layer_records):
+                p_str = f"logp={lr['p_score']:.3f}" if lr.get("p_score") is not None else "N/A"
                 s1_str = f"logp={s1['score']:.3f} Δ={s1['delta']:.3f} [{s1['status']}]"
                 s2_str = f"logp={s2['score']:.3f} Δ={s2['delta']:.3f} [{s2['status']}]"
-                log_msg += f"  L{s1['layer']:02d}   | {s1_str:<25} | {s2_str:<25}\n"
+                gap = lr.get("delta_gap")
+                gap_str = f"{gap:+.3f}" if gap is not None else "N/A"
+                log_msg += f"  L{s1['layer']:02d}   | {p_str:<14} | {s1_str:<25} | {s2_str:<25} | {gap_str:<8}\n"
 
-            log_msg += f"  {'-'*6} | {'-'*25} | {'-'*25}\n"
+            log_msg += f"  {'-'*6} | {'-'*14} | {'-'*25} | {'-'*25} | {'-'*8}\n"
             log_msg += f"  FT layers (S1 LOST): {ft_layers}\n"
             log_msg += f"  Erased layers (S2 LOST ∩ FT): {erased_layers}\n"
             log_msg += f"  UDS = {uds:.3f}\n" if uds is not None else f"  UDS = N/A (no FT signal)\n"
@@ -1154,6 +1332,9 @@ def _run_s1_s2_side_by_side_logprob_batch(
                 "gt_entity": meta["gt_entity"],
                 "entity_text": meta["entity_text"],
                 "entity_source": meta["entity_source"],
+                "prompt": meta["prompt"],
+                "reference_source": meta["reference_source"],
+                "reference_text": meta["reference_text"],
                 "full_gen": meta["full_gen"],
                 "retain_gen": meta["retain_gen"],
                 "unlearn_gen": meta["unlearn_gen"],
@@ -1165,8 +1346,15 @@ def _run_s1_s2_side_by_side_logprob_batch(
                 "is_gk": None,
                 "retain_em_full": None,
                 "full_score": meta["full_score"],
+                "p_score": meta["full_score"],
                 "eval_scope": em_scope,
                 "eval_span": meta["eval_span"],
+                "entity_span": meta.get("entity_span"),
+                "layer_records": layer_records,
+                "s1_scores": [d.get("score") for d in s1_details],
+                "s2_scores": [d.get("score") for d in s2_details],
+                "s1_deltas": [d.get("delta") for d in s1_details],
+                "s2_deltas": [d.get("delta") for d in s2_details],
                 "s1_details": s1_details,
                 "s2_details": s2_details
             })
@@ -1222,6 +1410,21 @@ def _run_s1_s2_side_by_side_logprob_batch(
         eval_span = get_eval_span(tokenizer, reference_text, entity_text, em_scope)
         if em_scope == "entity" and eval_span is None:
             skipped_indices.append(idx)
+            skipped_records.append({
+                "idx": idx,
+                "reason": "entity_span_not_found",
+                "question": question,
+                "prefix": prefix,
+                "entity": entity,
+                "gt_entity": gt_entity,
+                "entity_text": entity_text,
+                "entity_source": entity_source,
+                "reference_source": reference_source,
+                "reference_text": reference_text,
+                "full_gen": full_gen,
+                "retain_gen": retain_gen,
+                "unlearn_gen": unlearn_gen,
+            })
             if log_file:
                 log_msg = f"\n{'='*80}\n"
                 log_msg += f"[{i+1}/{len(prefix_data)}] Example {idx} | SKIPPED (entity span not found)\n"
@@ -1246,6 +1449,34 @@ def _run_s1_s2_side_by_side_logprob_batch(
         ctx = build_logprob_ctx(tokenizer, prompt, reference_text, eval_span, patch_scope)
         if ctx is None:
             skipped_indices.append(idx)
+            skipped_records.append({
+                "idx": idx,
+                "reason": "invalid_eval_context",
+                "question": question,
+                "prefix": prefix,
+                "entity": entity,
+                "gt_entity": gt_entity,
+                "entity_text": entity_text,
+                "entity_source": entity_source,
+                "reference_source": reference_source,
+                "reference_text": reference_text,
+                "full_gen": full_gen,
+                "retain_gen": retain_gen,
+                "unlearn_gen": unlearn_gen,
+            })
+            if log_file:
+                log_msg = f"\n{'='*80}\n"
+                log_msg += f"[{i+1}/{len(prefix_data)}] Example {idx} | SKIPPED (invalid eval context)\n"
+                log_msg += f"  Q: {question}\n"
+                log_msg += f"  Prefix: '{prefix}'\n"
+                log_msg += f"  GT (entity): '{gt_entity}'\n"
+                log_msg += f"  Eval entity ({entity_source}): '{entity_text}'\n"
+                log_msg += f"  Reference source: {reference_source}\n"
+                log_msg += f"  Reference text: \"{clean_text(reference_text)}\"\n"
+                log_msg += f"  Full baseline: \"{clean_text(full_gen)}\"\n"
+                log_msg += f"{'='*80}\n"
+                log_file.write(log_msg)
+                log_file.flush()
             continue
 
         batch_ctxs.append(ctx)
@@ -1259,6 +1490,7 @@ def _run_s1_s2_side_by_side_logprob_batch(
             "gt_entity": gt_entity,
             "entity_text": entity_text,
             "entity_source": entity_source,
+            "prompt": prompt,
             "full_gen": full_gen,
             "retain_gen": retain_gen,
             "unlearn_gen": unlearn_gen,
@@ -1278,7 +1510,7 @@ def _run_s1_s2_side_by_side_logprob_batch(
     uds_values = [r["uds"] for r in results if r["uds"] is not None]
     avg_uds = sum(uds_values) / len(uds_values) if uds_values else 0.0
 
-    return results, gk_count, categories, avg_uds, skipped_indices, s1_cache_out
+    return results, gk_count, categories, avg_uds, skipped_indices, skipped_records, s1_cache_out
 
 
 def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_list,
@@ -1299,6 +1531,7 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
 
     results = []
     skipped_indices = []
+    skipped_records = []
 
     # Counters for summary
     gk_count = 0  # GK: retain predicts reference tokens (teacher forcing EM)
@@ -1354,6 +1587,21 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
         eval_span = get_eval_span(tokenizer, reference_text, entity_text, em_scope)
         if em_scope == "entity" and eval_span is None:
             skipped_indices.append(idx)
+            skipped_records.append({
+                "idx": idx,
+                "reason": "entity_span_not_found",
+                "question": question,
+                "prefix": prefix,
+                "entity": entity,
+                "gt_entity": gt_entity,
+                "entity_text": entity_text,
+                "entity_source": entity_source,
+                "reference_source": reference_source,
+                "reference_text": reference_text,
+                "full_gen": full_gen,
+                "retain_gen": retain_gen,
+                "unlearn_gen": unlearn_gen,
+            })
             if log_file:
                 log_msg = f"\n{'='*80}\n"
                 log_msg += f"[{i+1}/{len(prefix_data)}] Example {idx} | SKIPPED (entity span not found)\n"
@@ -1469,6 +1717,12 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
             retain_em_full = None
             is_gk = None
 
+        layer_records = build_layer_records(
+            s1_details=s1_details,
+            s2_details=s2_details,
+            full_score=full_score if metric == "logprob" else None,
+        )
+
         # Build side-by-side log
         log_msg = f"\n{'='*80}\n"
         log_msg += f"[{i+1}/{len(prefix_data)}] Example {idx}\n"
@@ -1491,17 +1745,28 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
         if metric == "logprob" and full_score is not None:
             log_msg += f"  Full log-prob (ref span): {full_score:.3f}\n"
         log_msg += f"{'='*80}\n"
-        log_msg += f"  {'Layer':<6} | {'S1 (Retain→Full)':<25} | {'S2 ('+unlearn_name+'→Full)':<25}\n"
-        log_msg += f"  {'-'*6} | {'-'*25} | {'-'*25}\n"
+        if metric == "logprob":
+            log_msg += (
+                f"  {'Layer':<6} | {'P(Full)':<14} | {'S1 (Retain→Full)':<25} | "
+                f"{'S2 ('+unlearn_name+'→Full)':<25} | {'Δ2-Δ1':<8}\n"
+            )
+            log_msg += f"  {'-'*6} | {'-'*14} | {'-'*25} | {'-'*25} | {'-'*8}\n"
+        else:
+            log_msg += f"  {'Layer':<6} | {'S1 (Retain→Full)':<25} | {'S2 ('+unlearn_name+'→Full)':<25}\n"
+            log_msg += f"  {'-'*6} | {'-'*25} | {'-'*25}\n"
 
-        for s1, s2 in zip(s1_details, s2_details):
+        for s1, s2, lr in zip(s1_details, s2_details, layer_records):
             if metric == "em":
                 s1_str = f"EM={s1['em']:.2f} [{s1['status']}]"
                 s2_str = f"EM={s2['em']:.2f} [{s2['status']}]"
+                log_msg += f"  L{s1['layer']:02d}   | {s1_str:<25} | {s2_str:<25}\n"
             else:
+                p_str = f"logp={lr['p_score']:.3f}" if lr.get("p_score") is not None else "N/A"
                 s1_str = f"logp={s1['score']:.3f} Δ={s1['delta']:.3f} [{s1['status']}]"
                 s2_str = f"logp={s2['score']:.3f} Δ={s2['delta']:.3f} [{s2['status']}]"
-            log_msg += f"  L{s1['layer']:02d}   | {s1_str:<25} | {s2_str:<25}\n"
+                gap = lr.get("delta_gap")
+                gap_str = f"{gap:+.3f}" if gap is not None else "N/A"
+                log_msg += f"  L{s1['layer']:02d}   | {p_str:<14} | {s1_str:<25} | {s2_str:<25} | {gap_str:<8}\n"
             if log_mismatch and metric == "em" and s1['em'] < 1.0:
                 mismatch_str = format_mismatches(
                     tokenizer, s1.get("mismatches") or [], mismatch_max
@@ -1515,7 +1780,10 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
                 if mismatch_str:
                     log_msg += f"         S2 mismatch: {mismatch_str}\n"
 
-        log_msg += f"  {'-'*6} | {'-'*25} | {'-'*25}\n"
+        if metric == "logprob":
+            log_msg += f"  {'-'*6} | {'-'*14} | {'-'*25} | {'-'*25} | {'-'*8}\n"
+        else:
+            log_msg += f"  {'-'*6} | {'-'*25} | {'-'*25}\n"
 
         # Calculate UDS and FT/Erased layers
         ft_layers = [s1["layer"] for s1 in s1_details if s1["status"] == "LOST"]
@@ -1565,6 +1833,9 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
             "gt_entity": gt_entity,
             "entity_text": entity_text,
             "entity_source": entity_source,
+            "prompt": prompt,
+            "reference_source": reference_source,
+            "reference_text": reference_text,
             "full_gen": full_gen,
             "retain_gen": retain_gen,
             "unlearn_gen": unlearn_gen,
@@ -1576,8 +1847,15 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
             "is_gk": is_gk,
             "retain_em_full": retain_em_full,
             "full_score": full_score if metric == "logprob" else None,
+            "p_score": full_score if metric == "logprob" else None,
             "eval_scope": em_scope,
             "eval_span": eval_span,
+            "entity_span": item.get("entity_span"),
+            "layer_records": layer_records,
+            "s1_scores": [d.get("score") for d in s1_details] if metric == "logprob" else None,
+            "s2_scores": [d.get("score") for d in s2_details] if metric == "logprob" else None,
+            "s1_deltas": [d.get("delta") for d in s1_details] if metric == "logprob" else None,
+            "s2_deltas": [d.get("delta") for d in s2_details] if metric == "logprob" else None,
             "s1_details": s1_details,
             "s2_details": s2_details
         })
@@ -1586,7 +1864,7 @@ def run_s1_s2_side_by_side(retain, unlearn, full, tokenizer, prefix_data, layer_
     uds_values = [r["uds"] for r in results if r["uds"] is not None]
     avg_uds = sum(uds_values) / len(uds_values) if uds_values else 0.0
 
-    return results, gk_count, categories, avg_uds, skipped_indices, None
+    return results, gk_count, categories, avg_uds, skipped_indices, skipped_records, None
 
 
 def plot_erasure_histogram(results, output_path, method_name="Unlearn", mode="layer"):
@@ -1634,7 +1912,8 @@ def plot_erasure_histogram(results, output_path, method_name="Unlearn", mode="la
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--num_examples", type=int, default=None)
-    parser.add_argument("--layers", type=str, default="0-15")
+    parser.add_argument("--layers", type=str, default="auto",
+                        help="Layer range (e.g., 0-15) or 'auto' for all layers.")
     parser.add_argument("--metric", type=str, choices=["em", "logprob"], default="logprob")
     parser.add_argument("--em_threshold", type=float, default=1.0)
     parser.add_argument("--delta_threshold", type=float, default=0.05)
@@ -1654,7 +1933,12 @@ def main():
                         help="Log entity/eval span token indices for debugging")
     parser.add_argument("--mismatch_max", type=int, default=5)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--gpu", type=int, default=0)
+    parser.add_argument(
+        "--gpu",
+        type=str,
+        default="0",
+        help="CUDA visible devices, e.g., '0' or '0,1'.",
+    )
     parser.add_argument("--batch_size", type=int, default=1,
                         help="Batch size for log-prob metric (layer mode only).")
     parser.add_argument("--s1_cache", action="store_true", default=True,
@@ -1666,11 +1950,27 @@ def main():
     parser.add_argument("--mode", type=str, choices=["layer", "mlp"], default="layer")
     parser.add_argument("--unlearn_model", type=str, required=True,
                         help="Unlearn model (e.g., simnpo, idknll)")
+    parser.add_argument("--full_model", type=str, default=TOFU_FULL_MODEL,
+                        help="Full model checkpoint ID.")
+    parser.add_argument("--retain_model", type=str, default=TOFU_RETAIN_MODEL,
+                        help="Retain model checkpoint ID (used as S1 source).")
+    parser.add_argument("--dtype", type=str, default="bfloat16",
+                        choices=["float16", "bfloat16", "float32"],
+                        help="Torch dtype for model loading.")
+    parser.add_argument("--device_map", type=str, default="cuda",
+                        help="Transformers device_map (e.g., cuda, auto, cpu).")
     parser.add_argument("--attn_implementation", type=str, default=None,
                         help="Attention implementation: eager, sdpa, or flash_attention_2")
+    parser.add_argument("--run_name", type=str, default=None,
+                        help="Optional short label used in output directory naming.")
+    parser.add_argument("--out_root", type=str, default="runs",
+                        help="Parent directory for auto-generated run folders.")
+    parser.add_argument("--out_dir", type=str, default=None,
+                        help="Explicit output directory. If set, out_root/run_name are ignored.")
     args = parser.parse_args()
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
+    if args.gpu:
+        os.environ["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     set_seed(args.seed)
     em_exact = args.em_type == "exact"
 
@@ -1692,22 +1992,49 @@ def main():
         print(f"Batch size: {args.batch_size}")
     if args.log_mismatch:
         print(f"Mismatch logging: enabled (max {args.mismatch_max})")
+    print(f"Full model: {args.full_model}")
+    print(f"Retain model: {args.retain_model}")
+    print(f"Dtype: {args.dtype}")
+    print(f"Device map: {args.device_map}")
     print(f"Unlearn model: {args.unlearn_model}")
     print()
 
     # Load models
     print("Loading models...")
     attn_impl = args.attn_implementation
-    tokenizer = load_tokenizer(TOFU_FULL_MODEL)
-    retain = load_model(TOFU_RETAIN_MODEL, dtype="bfloat16", device_map="cuda", attn_implementation=attn_impl)
-    full = load_model(TOFU_FULL_MODEL, dtype="bfloat16", device_map="cuda", attn_implementation=attn_impl)
+    tokenizer = load_tokenizer(args.full_model)
+    retain = load_model_for_exp(
+        args.retain_model,
+        dtype=args.dtype,
+        device_map=args.device_map,
+        attn_implementation=attn_impl,
+    )
+    full = load_model_for_exp(
+        args.full_model,
+        dtype=args.dtype,
+        device_map=args.device_map,
+        attn_implementation=attn_impl,
+    )
 
-    unlearn_model_id = get_model_id(args.unlearn_model)
+    if args.unlearn_model == "full":
+        unlearn_model_id = args.full_model
+    elif args.unlearn_model == "retain":
+        unlearn_model_id = args.retain_model
+    else:
+        unlearn_model_id = get_model_id(args.unlearn_model)
     print(f"Loading unlearn model: {unlearn_model_id}")
-    unlearn = load_model(unlearn_model_id, dtype="bfloat16", device_map="cuda", attn_implementation=attn_impl)
+    unlearn = load_model_for_exp(
+        unlearn_model_id,
+        dtype=args.dtype,
+        device_map=args.device_map,
+        attn_implementation=attn_impl,
+    )
 
     n_layers = get_num_layers(full)
-    layer_list = parse_layers(args.layers, n_layers)
+    if args.layers.strip().lower() == "auto":
+        layer_list = list(range(n_layers))
+    else:
+        layer_list = parse_layers(args.layers, n_layers)
     print(f"Layers: {layer_list}")
 
     # Load data
@@ -1719,8 +2046,13 @@ def main():
         print(f"Using first {len(prefix_data)} examples")
 
     # Create output directory (date first)
-    timestamp = datetime.now().strftime("%m%d_%H%M%S")
-    out_dir = f"runs/{timestamp}_tf_{args.unlearn_model}_{args.mode}"
+    if args.out_dir:
+        out_dir = args.out_dir
+    else:
+        timestamp = datetime.now().strftime("%m%d_%H%M%S")
+        run_tag = args.run_name if args.run_name else args.unlearn_model
+        run_tag = sanitize_name_for_path(run_tag)
+        out_dir = f"{args.out_root}/{timestamp}_tf_{run_tag}_{args.mode}"
     safe_mkdir(out_dir)
 
     # Run S1/S2 side by side
@@ -1744,6 +2076,11 @@ def main():
         log_file.write(f"Patch scope: {args.patch_scope}\n")
         log_file.write(f"Data path: {args.data_path}\n")
         log_file.write(f"Reference source: {args.reference}\n")
+        log_file.write(f"Full model: {args.full_model}\n")
+        log_file.write(f"Retain model: {args.retain_model}\n")
+        log_file.write(f"Source model id: {unlearn_model_id}\n")
+        log_file.write(f"Device map: {args.device_map}\n")
+        log_file.write(f"Dtype: {args.dtype}\n")
         if args.metric == "logprob" and args.mode == "layer":
             log_file.write(f"Batch size: {args.batch_size}\n")
         if args.log_mismatch:
@@ -1769,8 +2106,12 @@ def main():
                 "metric": args.metric,
                 "delta_threshold": args.delta_threshold,
                 "layers": layer_list,
-                "full_model": TOFU_FULL_MODEL,
-                "retain_model": TOFU_RETAIN_MODEL,
+                "full_model": args.full_model,
+                "retain_model": args.retain_model,
+                "device_map": args.device_map,
+                "dtype": args.dtype,
+                "num_examples": len(prefix_data),
+                "example_ids": [item["idx"] for item in prefix_data],
             }
             cache_key = _build_s1_cache_key(cache_cfg)
             s1_cache_path = Path(args.s1_cache_dir) / f"s1_cache_{cache_key}.json"
@@ -1782,7 +2123,7 @@ def main():
                 log_file.write(f"S1 cache: HIT ({s1_cache_path}) entries={len(s1_cache_entries)}\n")
 
         start_time = time.time()
-        results, gk_count, categories, avg_uds, skipped_indices, s1_cache_out = run_s1_s2_side_by_side(
+        results, gk_count, categories, avg_uds, skipped_indices, skipped_records, s1_cache_out = run_s1_s2_side_by_side(
             retain, unlearn, full, tokenizer, prefix_data, layer_list,
             args.em_threshold, args.mode, args.unlearn_model, args.em_scope, args.entity_source,
             em_exact, args.log_mismatch, args.mismatch_max, log_file,
@@ -1799,6 +2140,10 @@ def main():
         total = len(prefix_data)
         skipped_count = len(skipped_indices)
         evaluated = total - skipped_count
+        skipped_reasons: Dict[str, int] = {}
+        for rec in skipped_records:
+            reason = rec.get("reason", "unknown")
+            skipped_reasons[reason] = skipped_reasons.get(reason, 0) + 1
         sec_per_eval = elapsed / evaluated if evaluated else None
 
         summary_msg = f"\n\n{'='*80}\n"
@@ -1813,7 +2158,8 @@ def main():
         summary_msg += f"Reference scope: {args.reference_scope}\n"
         summary_msg += f"Patch scope: {args.patch_scope}\n"
         if skipped_count:
-            summary_msg += f"Skipped (entity span missing): {skipped_count} ({100*skipped_count/total:.1f}%)\n"
+            summary_msg += f"Skipped (all reasons): {skipped_count} ({100*skipped_count/total:.1f}%)\n"
+            summary_msg += f"Skipped reasons: {skipped_reasons}\n"
         if evaluated:
             summary_msg += f"Evaluable (non-skipped): {evaluated} ({100*evaluated/total:.1f}%)\n"
             if args.metric == "em":
@@ -1846,20 +2192,31 @@ def main():
         "reference_scope": args.reference_scope,
         "mode": args.mode,
         "unlearn_model": args.unlearn_model,
+        "source_model_id": unlearn_model_id,
+        "full_model": args.full_model,
+        "retain_model": args.retain_model,
+        "device_map": args.device_map,
+        "dtype": args.dtype,
         "gk_count": gk_count,
         "avg_uds": avg_uds,
         # backward-compat key (older parsers expected UDR)
         "avg_udr": avg_uds,
         "skipped_count": skipped_count,
-        "skipped_indices": skipped_indices
+        "skipped_indices": skipped_indices,
+        "skipped_reasons": skipped_reasons,
     }
-
-    with open(f"{out_dir}/summary.json", "w") as f:
-        json.dump(summary, f, indent=2)
 
     with open(f"{out_dir}/results.json", "w") as f:
         json.dump(results, f, indent=2)
 
+    artifacts = write_detailed_artifacts(out_dir, results, skipped_records)
+    summary["detailed_files"] = artifacts
+    with open(f"{out_dir}/summary.json", "w") as f:
+        json.dump(summary, f, indent=2)
+
+    print(f"Detailed JSONL: {artifacts['detailed_jsonl']}")
+    print(f"Layer CSV: {artifacts['layer_csv']}")
+    print(f"Skipped examples: {artifacts['skipped_json']}")
     print(f"Results saved to: {out_dir}/")
 
 

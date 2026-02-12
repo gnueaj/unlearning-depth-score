@@ -35,6 +35,8 @@ Positioning: prior unlearning studies already question output-only evaluation; t
   - `runs/meta_eval/robustness/{relearn,quant}/rep_baselines_results.json` (per-method robustness)
 - Representation analysis survey: `docs/representation_analysis_survey.md`
 - Legacy: `runs/legacy/`
+- Scale sanity:
+  - `runs/scale_sanity/{1b,3b,8b}/{full,retain99,retain95,retain90}/` (complete)
 
 ## Canonical Scripts
 - UDS per model: `exp_s1_teacher_forcing.py`
@@ -49,6 +51,7 @@ Positioning: prior unlearning studies already question output-only evaluation; t
   - `scripts/s1_component_patching.py` (MLP, attention, mid 패칭)
   - `scripts/plot_s1_component_deltas.py` (4-component visualization)
 - Representation baselines: `scripts/compute_representation_baselines.py` (CKA, Logit Lens, Fisher Masked)
+- Scale sanity orchestrator: `scripts/run_uds_scale_sanity.py`
 - Legacy scripts: `scripts/legacy/`
 
 ## Data + Prompting Conventions
@@ -449,3 +452,12 @@ Before publishing numbers:
 - **meta_eval.json 업데이트**: Fisher quant null → 실제 Q/HM 값 반영
 - **HTML 정리**: Fisher N/A 힌트 텍스트 및 JS guard 제거
 - **Concurrent-write warning**: Operational Notes에 배치 실행 시 결과 파일 분리/merge 경고 추가
+
+## Recent Updates (2026-02-13)
+- **Scale sanity 실험 완료**: Llama 1B, 3B, 8B × 4 retain splits (full, retain99, retain95, retain90)
+  - 결과: 모든 스케일에서 monotonic ordering 유지 (full < retain99 < retain95 < retain90)
+  - retain99: 0.153 (1B) → 0.151 (3B) → 0.101 (8B)
+  - retain95: 0.496 (1B) → 0.482 (3B) → 0.455 (8B)
+  - 스케일 커질수록 소폭 감소: 큰 모델의 capacity가 소규모 데이터 차이의 representational 영향을 줄임
+  - TOFU nested splits: forget01 ⊂ forget05 ⊂ forget10, retain99 = all - forget01 (38/367 eval examples unseen)
+  - 스크립트: `scripts/run_uds_scale_sanity.py`, `exp_s1_teacher_forcing.py`

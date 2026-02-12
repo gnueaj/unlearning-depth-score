@@ -1,0 +1,30 @@
+{
+  "total_examples": 367,
+  "elapsed_sec": 819.8754856586456,
+  "sec_per_evaluable": 2.2339931489336395,
+  "metric": "logprob",
+  "em_threshold": 1.0,
+  "delta_threshold": 0.05,
+  "em_type": "token",
+  "em_scope": "entity",
+  "entity_source": "gt",
+  "reference_scope": "continuation",
+  "mode": "layer",
+  "unlearn_model": "open-unlearning/tofu_Llama-3.1-8B-Instruct_retain90",
+  "source_model_id": "open-unlearning/tofu_Llama-3.1-8B-Instruct_retain90",
+  "full_model": "open-unlearning/tofu_Llama-3.1-8B-Instruct_full",
+  "retain_model": "open-unlearning/tofu_Llama-3.1-8B-Instruct_retain90",
+  "device_map": "auto",
+  "dtype": "bfloat16",
+  "gk_count": 0,
+  "avg_uds": 1.0,
+  "avg_udr": 1.0,
+  "skipped_count": 0,
+  "skipped_indices": [],
+  "skipped_reasons": {},
+  "detailed_files": {
+    "detailed_jsonl": "runs/scale_sanity_8b_dual/8b/retain90/results_detailed.jsonl",
+    "layer_csv": "runs/scale_sanity_8b_dual/8b/retain90/layer_details.csv",
+    "skipped_json": "runs/scale_sanity_8b_dual/8b/retain90/skipped_examples.json"
+  }
+}
