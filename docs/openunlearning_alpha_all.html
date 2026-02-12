@@ -393,6 +393,7 @@ button.toggle-btn:hover { text-decoration: underline; }
               <th style="padding:6px 12px; text-align:left;">Learning Rate</th>
               <th style="padding:6px 12px; text-align:left;">Swept Hyperparameters</th>
               <th style="padding:6px 12px; text-align:left;">Fixed</th>
+              <th style="padding:6px 12px; text-align:center;">Epochs</th>
               <th style="padding:6px 12px; text-align:center;">Models</th>
             </tr>
           </thead>
@@ -402,39 +403,42 @@ button.toggle-btn:hover { text-decoration: underline; }
               <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
               <td style="padding:5px 12px;">$\alpha$ &isin; {1, 2, 5}</td>
               <td style="padding:5px 12px;">&beta; = 0.1</td>
-              <td style="padding:5px 12px; text-align:center;">9 &times; 5 &times; 2 = 90</td>
+              <td style="padding:5px 12px; text-align:center;">{5, 10}</td>
+              <td style="padding:5px 12px; text-align:center;">5 &times; 3 &times; 3 &times; 2 = 90</td>
             </tr>
             <tr style="border-bottom:1px solid #e8e8e8;">
               <td style="padding:5px 12px;">UNDIAL</td>
               <td style="padding:5px 12px;">{1e-5, 1e-4, 3e-4}</td>
               <td style="padding:5px 12px;">$\alpha$ &isin; {1, 2, 5}</td>
               <td style="padding:5px 12px;">&beta; = 10</td>
-              <td style="padding:5px 12px; text-align:center;">9 &times; 2 = 18</td>
+              <td style="padding:5px 12px; text-align:center;">{5, 10}</td>
+              <td style="padding:5px 12px; text-align:center;">1 &times; 3 &times; 3 &times; 2 = 18</td>
             </tr>
             <tr style="border-bottom:1px solid #e8e8e8;">
               <td style="padding:5px 12px;">SimNPO</td>
               <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
               <td style="padding:5px 12px;">$\beta$ &isin; {3.5, 4.5}, $\gamma$ &isin; {0.125, 0.25}</td>
               <td style="padding:5px 12px;">&delta; = 1, &alpha; = 1</td>
-              <td style="padding:5px 12px; text-align:center;">12 &times; 2 = 24</td>
+              <td style="padding:5px 12px; text-align:center;">{5, 10}</td>
+              <td style="padding:5px 12px; text-align:center;">1 &times; 3 &times; 4 &times; 2 = 24</td>
             </tr>
             <tr>
               <td style="padding:5px 12px;">RMU</td>
               <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
               <td style="padding:5px 12px;">layer &isin; {5, 10, 15}</td>
               <td style="padding:5px 12px;">steering coeff = 10</td>
-              <td style="padding:5px 12px; text-align:center;">9 &times; 2 = 18</td>
+              <td style="padding:5px 12px; text-align:center;">{5, 10}</td>
+              <td style="padding:5px 12px; text-align:center;">1 &times; 3 &times; 3 &times; 2 = 18</td>
             </tr>
           </tbody>
           <tfoot>
             <tr style="border-top:2px solid #d0d7de; background:#edf1f5;">
-              <td colspan="4" style="padding:5px 12px; font-weight:600;">Total: 150 unlearned + full + retain</td>
+              <td colspan="5" style="padding:5px 12px; font-weight:600;">Total: 150 unlearned + full + retain</td>
               <td style="padding:5px 12px; text-align:center; font-weight:600;">152</td>
             </tr>
           </tfoot>
         </table>
       </div>
-      <div style="margin-top:6px; font-size:12px; color:#666;">All methods swept across epoch &isin; {5, 10}. Models column = configs per method &times; methods &times; 2 epochs.</div>
     </div>
   </div>
 
