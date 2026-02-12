@@ -200,7 +200,7 @@ button.toggle-btn:hover { text-decoration: underline; }
     </p>
     <div class="formula-box" style="margin-bottom:0;">
       <code>UDS</code> = weighted average of per-layer erasure ratios (higher = deeper unlearning).<br>
-      <span class="sub-formula">0 = no unlearning (knowledge fully recoverable) &ensp;&middot;&ensp; 1 = complete unlearning (no recovery possible)</span>
+      <span class="sub-formula">Ranges from 0 (knowledge fully recoverable, no unlearning) to 1 (knowledge completely erased, as if never learned).</span>
     </div>
   </div>
 
@@ -216,12 +216,12 @@ button.toggle-btn:hover { text-decoration: underline; }
     </p>
 
     <div class="formula-box" style="margin:0 0 14px 0;">
-      <div><strong>Metric Categories</strong></div>
+      <div><strong>Metric Categories:</strong></div>
 
       <div style="margin-top:10px;">
         <strong>Memorization</strong> (5) &mdash; Does the model still retain memorized target knowledge?<br>
-        <code>ES</code> (Extraction Strength) &mdash; fraction of answer extractable via greedy decoding. <span class="sub-formula">$1 - k/T$, $k$ = earliest match position [1]</span><br>
-        <code>EM</code> (Exact Memorization) &mdash; token-level position match ratio. <span class="sub-formula">$\sum \mathbb{1}(\text{pred}_t = \text{label}_t)\, /\, T$ [2]</span><br>
+        <code>ES</code> <a href="#ref1" style="color:#0366d6;">[1]</a> (Extraction Strength) &mdash; fraction of answer extractable via greedy decoding. <span class="sub-formula">$1 - k/T$, $k$ = earliest match position</span><br>
+        <code>EM</code> <a href="#ref2" style="color:#0366d6;">[2]</a> (Exact Memorization) &mdash; token-level position match ratio. <span class="sub-formula">$\sum \mathbb{1}(\text{pred}_t = \text{label}_t)\, /\, T$</span><br>
         <code>Prob</code> &mdash; geometric mean of per-token probabilities. <span class="sub-formula">$\exp\!\bigl(-(1/T)\sum \text{CE}_t\bigr)$</span><br>
         <code>ParaProb</code> &mdash; geometric mean of Prob across paraphrased answer variants.<br>
         <code>Truth Ratio</code> &mdash; normalized correct vs. incorrect probability. <span class="sub-formula">$p_c / (p_c + p_w)$, &ensp; $p = \exp(-\text{avg loss})$</span>
@@ -230,19 +230,19 @@ button.toggle-btn:hover { text-decoration: underline; }
       <div style="margin-top:10px;">
         <strong>Generation</strong> (3) &mdash; Can the model reproduce target knowledge in free-form text?<br>
         ROUGE-L recall between model generation and ground-truth answer under different prompting strategies.<br>
-        <code>ROUGE</code> standard prompt &middot;
-        <code>Para. ROUGE</code> paraphrased prompt &middot;
-        <code>Jailbreak ROUGE</code> adversarial prompt (prefixed with &ldquo;Sure, here is the answer:&rdquo;)
+        <code>ROUGE</code> &mdash; standard prompt.<br>
+        <code>Para. ROUGE</code> &mdash; paraphrased prompt.<br>
+        <code>Jailbreak ROUGE</code> &mdash; adversarial prompt (prefixed with &ldquo;Sure, here is the answer:&rdquo;).
       </div>
 
       <div style="margin-top:10px;">
-        <strong>MIA</strong> (8) &mdash; Membership Inference Attack. Per-sample member/non-member classification [6].<br>
+        <strong>MIA</strong> (8) &mdash; Membership Inference Attack. Per-sample member/non-member classification <a href="#ref6" style="color:#0366d6;">[6]</a>.<br>
         <em style="color:#888;">Raw (4)</em> &mdash; AUC-based:<br>
-        <code>MIA-LOSS</code> &mdash; average cross-entropy. <span class="sub-formula">$\frac{1}{T}\sum_t \mathcal{L}_t$ [9]</span><br>
-        <code>MIA-ZLib</code> &mdash; loss normalized by compression length. <span class="sub-formula">$\ell\, /\, |\texttt{zlib}(x)|$, &ensp; $\ell = \frac{1}{T}\sum_t \mathcal{L}_t$ [1]</span><br>
-        <code>MIA-Min-K</code> &mdash; mean of bottom-$k$% log-probs. <span class="sub-formula">$-\frac{1}{\lceil kT\rceil}\sum_{t \in \mathcal{B}_k} \log p_t,\;\; k{=}0.4$ [7]</span><br>
-        <code>MIA-Min-K++</code> &mdash; standardized Min-K. <span class="sub-formula">$z_t = (\log p_t - \mu_t) / \sigma_t$, then Min-K on $z_t$ [8]</span><br>
-        <em style="color:#888;">Normalized (4, denoted $s_*$)</em> &mdash; MUSE PrivLeak-style rescaling using retain as anchor [10]:<br>
+        <code>MIA-LOSS</code> <a href="#ref9" style="color:#0366d6;">[9]</a> &mdash; average cross-entropy. <span class="sub-formula">$\frac{1}{T}\sum_t \mathcal{L}_t$</span><br>
+        <code>MIA-ZLib</code> <a href="#ref1" style="color:#0366d6;">[1]</a> &mdash; loss normalized by compression length. <span class="sub-formula">$\ell\, /\, |\texttt{zlib}(x)|$, &ensp; $\ell = \frac{1}{T}\sum_t \mathcal{L}_t$</span><br>
+        <code>MIA-Min-K</code> <a href="#ref7" style="color:#0366d6;">[7]</a> &mdash; mean of bottom-$k$% log-probs. <span class="sub-formula">$-\frac{1}{\lceil kT\rceil}\sum_{t \in \mathcal{B}_k} \log p_t,\;\; k{=}0.4$</span><br>
+        <code>MIA-Min-K++</code> <a href="#ref8" style="color:#0366d6;">[8]</a> &mdash; standardized Min-K. <span class="sub-formula">$z_t = (\log p_t - \mu_t) / \sigma_t$, then Min-K on $z_t$</span><br>
+        <em style="color:#888;">Normalized (4, denoted $s_*$)</em> &mdash; MUSE PrivLeak-style rescaling using retain as anchor <a href="#ref10" style="color:#0366d6;">[10]</a>:<br>
         <span class="sub-formula">$\text{normalized}_* = |\text{AUC}_{\text{model}} - \text{AUC}_{\text{retain}}|\, /\, \text{AUC}_{\text{retain}}$</span><br>
         <span class="sub-formula">$s_* = \text{clip}(1 - \text{normalized}_*,\; 0,\; 1)$ &ensp;(inverted; 1.0 = erased, 0.0 = large deviation from retain)</span><br>
         <code>s<sub>LOSS</sub></code> &middot; <code>s<sub>ZLib</sub></code> &middot; <code>s<sub>Min-K</sub></code> &middot; <code>s<sub>Min-K++</sub></code>
@@ -250,17 +250,19 @@ button.toggle-btn:hover { text-decoration: underline; }
 
       <div style="margin-top:10px;">
         <strong>Representation</strong> (4) &mdash; Measure knowledge erasure at the representation level. All use the retain model as reference.<br>
-        <code>CKA</code> [3] &mdash; representational similarity via kernel alignment, normalized against the full&ndash;retain anchor per layer.<br>
+        <code>CKA</code> <a href="#ref3" style="color:#0366d6;">[3]</a> &mdash; representational similarity via kernel alignment, normalized against the full&ndash;retain anchor per layer.<br>
         <span class="sub-formula">$\text{erasure}_l=\text{clip}\!\left(\dfrac{\text{CKA}(H_{\text{unl}},H_{\text{ret}})_l-\text{CKA}(H_{\text{full}},H_{\text{ret}})_l}{1-\text{CKA}(H_{\text{full}},H_{\text{ret}})_l+\epsilon},\,0,\,1\right),\;\;w_l=1-\text{CKA}(H_{\text{full}},H_{\text{ret}})_l,\;\;\text{score}=\dfrac{\sum_l w_l\cdot \text{erasure}_l}{\sum_l w_l}$ &ensp;</span><br>
-        <code>Logit Lens</code> [4] &mdash; decodes each layer&rsquo;s hidden states through the full model&rsquo;s frozen decoder (LayerNorm + lm_head) to measure decodable knowledge per layer.<br>
+        <code>Logit Lens</code> <a href="#ref4" style="color:#0366d6;">[4]</a> &mdash; decodes each layer&rsquo;s hidden states through the full model&rsquo;s frozen decoder (LayerNorm + lm_head) to measure decodable knowledge per layer.<br>
         <span class="sub-formula">$k_{m,l} = \text{logprob}(\text{entity}\mid H^l_m \to \text{decoder}_{\text{full}})$, &ensp; $d_{m,l} = k_{\text{full},l} - k_{m,l}$</span><br>
-        <code>Fisher Masked</code> [5] &mdash; diagonal Fisher Information with top-$p$% parameter masking. Focuses on parameters where retain has higher sensitivity than full. Mask fractions: 0.01%, 0.1%, 1%.<br>
+        <code>Fisher Masked</code> <a href="#ref5" style="color:#0366d6;">[5]</a> &mdash; diagonal Fisher Information with top-$p$% parameter masking. Focuses on parameters where retain has higher sensitivity than full on the forget set. $p$ &isin; {0.01%, 0.1%, 1%}.<br>
         <span class="sub-formula">$a_i = \max(F_{\text{ret},i} - F_{\text{full},i},\; 0)$, &ensp; $M_l$ = top $p$% of $a_i$, &ensp; $\text{erasure}_l = 1 - \text{clip}(\text{excess}_{\text{unl}} / \text{excess}_{\text{full}},\; 0,\; 1)$</span><br>
         <code>UDS (Ours)</code> &mdash; Measures whether knowledge remains recoverable via activation patching.<br>
-        <span class="sub-formula">$\Delta^{S1}_l$ = logprob drop patching retain $\to$ full (baseline gap)</span><br>
-        <span class="sub-formula">$\Delta^{S2}_l$ = logprob drop patching unlearned $\to$ full (test gap)</span><br>
-        <span class="sub-formula">$\text{FT} = \{l : \Delta^{S1}_l > \tau\}$ &ensp;($\tau{=}0.05$)</span><br>
-        <span class="sub-formula">$\text{UDS}_i = \dfrac{\sum_{l\in\text{FT}} \Delta^{S1}_l \cdot \text{clip}(\Delta^{S2}_l / \Delta^{S1}_l,\; 0,\; 1)}{\sum_{l\in\text{FT}} \Delta^{S1}_l}$</span><br>
+        <span class="sub-formula"><em>Notation:</em> $x$ = input prompt, $y = (y_1,\dots,y_T)$ = entity span tokens, $M_{\text{full}}$ = full model, $M_S$ = source model ($S1$=retain, $S2$=unlearned).</span><br>
+        <span class="sub-formula">$s^{\text{full}}_t = \log p_{M_{\text{full}}}(y_t \mid x, y_{1:t{-}1})$ &ensp;(full model log-prob of entity token $y_t$)</span><br>
+        <span class="sub-formula">$s^{S}_t = \log p^{\text{patch}(M_S)}_{M_{\text{full}}}(y_t \mid x, y_{1:t{-}1})$ &ensp;(log-prob after patching layer $l$ with source activations)</span><br>
+        <span class="sub-formula">$\Delta^{S}_{l} = \frac{1}{T}\sum_{t} (s^{\text{full}}_t - s^{S}_t)$ &ensp;(mean log-prob degradation at layer $l$; larger = source lacks more knowledge)</span><br>
+        <span class="sub-formula">$\text{FT}_i = \{l : \Delta^{S1}_{i,l} > \tau\}$ &ensp;($\tau{=}0.05$, filters noise: layers where retain genuinely lacks target knowledge)</span><br>
+        <span class="sub-formula">$\text{UDS}_i = \dfrac{\sum_{l\in\text{FT}} \Delta^{S1}_{i,l} \cdot \text{clip}(\Delta^{S2}_{i,l} / \Delta^{S1}_{i,l},\; 0,\; 1)}{\sum_{l\in\text{FT}} \Delta^{S1}_{i,l}}$ &ensp;($\Delta^{S1}$-weighted average of per-layer erasure ratios)</span><br>
         <span class="sub-formula">$\text{UDS} = \frac{1}{N}\sum_i \text{UDS}_i$</span>
       </div>
     </div>
@@ -282,6 +284,9 @@ button.toggle-btn:hover { text-decoration: underline; }
       </div>
       <div style="margin-top:8px;">
         <code>Overall</code> = HM(Faithfulness, Robustness)
+      </div>
+      <div style="margin-top:8px; font-size:13px; color:#555;">
+        All metrics are oriented so that <span class="higher-better">↑ higher = better</span>. Metrics where higher raw value indicates more knowledge (e.g., Prob, ROUGE) are inverted before evaluation; UDS and $s_*$ are already in the correct direction.
       </div>
     </div>
   </div>
@@ -354,9 +359,6 @@ button.toggle-btn:hover { text-decoration: underline; }
       <strong>Utility</strong>: How well the model retains general capabilities on non-target knowledge. <span class="higher-better">(↑ higher = better retention)</span><br>
       <strong>Overall</strong>: Harmonic mean of all three axes. <span class="higher-better">(↑ higher = better)</span>
     </p>
-    <p style="margin:0 0 12px 0; padding:8px 12px; background:#fffde7; border-radius:4px;">
-      <span class="uds-highlight">UDS</span> is incorporated into the Privacy axis as <code>Privacy = HM(MIA, UDS)</code>, capturing both statistical (MIA) and mechanistic (UDS) aspects.
-    </p>
     <div class="formula-box">
       <div><strong>Formulas:</strong></div>
       <div style="margin-top:8px;">
@@ -383,8 +385,12 @@ button.toggle-btn:hover { text-decoration: underline; }
       </div>
     </div>
 
+    <p style="margin:12px 0; padding:8px 12px; background:#fffde7; border-radius:4px;">
+      <span class="uds-highlight">UDS</span> is incorporated into the Privacy axis as <code>Privacy = HM(MIA, UDS)</code>, capturing both statistical (MIA) and mechanistic (UDS) aspects.
+    </p>
+
     <div class="formula-box" style="margin-top:12px;">
-      <div><strong>Hyperparameter Sweep</strong></div>
+      <div><strong>Methods and Hyperparameter Sweep</strong></div>
       <div style="margin-top:8px; overflow-x:auto;">
         <table style="border-collapse:collapse; font-size:13px; width:100%;">
           <thead>
@@ -399,7 +405,7 @@ button.toggle-btn:hover { text-decoration: underline; }
           </thead>
           <tbody>
             <tr style="border-bottom:1px solid #e8e8e8;">
-              <td style="padding:5px 12px;">GradDiff, IdkNLL, IdkDPO, NPO, AltPO</td>
+              <td style="padding:5px 12px;">GradDiff <a href="#ref12" style="color:#0366d6;">[12]</a>, IdkNLL <a href="#ref12" style="color:#0366d6;">[12]</a>, IdkDPO <a href="#ref12" style="color:#0366d6;">[12]</a>, NPO <a href="#ref13" style="color:#0366d6;">[13]</a>, AltPO <a href="#ref14" style="color:#0366d6;">[14]</a></td>
               <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
               <td style="padding:5px 12px;">$\alpha$ &isin; {1, 2, 5}</td>
               <td style="padding:5px 12px;">&beta; = 0.1</td>
@@ -407,7 +413,7 @@ button.toggle-btn:hover { text-decoration: underline; }
               <td style="padding:5px 12px; text-align:center;">5 &times; 3 &times; 3 &times; 2 = 90</td>
             </tr>
             <tr style="border-bottom:1px solid #e8e8e8;">
-              <td style="padding:5px 12px;">SimNPO</td>
+              <td style="padding:5px 12px;">SimNPO <a href="#ref15" style="color:#0366d6;">[15]</a></td>
               <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
               <td style="padding:5px 12px;">$\beta$ &isin; {3.5, 4.5}, $\gamma$ &isin; {0.125, 0.25}</td>
               <td style="padding:5px 12px;">&delta; = 1, &alpha; = 1</td>
@@ -415,7 +421,7 @@ button.toggle-btn:hover { text-decoration: underline; }
               <td style="padding:5px 12px; text-align:center;">1 &times; 3 &times; 4 &times; 2 = 24</td>
             </tr>
             <tr style="border-bottom:1px solid #e8e8e8;">
-              <td style="padding:5px 12px;">RMU</td>
+              <td style="padding:5px 12px;">RMU <a href="#ref16" style="color:#0366d6;">[16]</a></td>
               <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
               <td style="padding:5px 12px;">layer &isin; {5, 10, 15}</td>
               <td style="padding:5px 12px;">steering coeff = 10</td>
@@ -423,7 +429,7 @@ button.toggle-btn:hover { text-decoration: underline; }
               <td style="padding:5px 12px; text-align:center;">1 &times; 3 &times; 3 &times; 2 = 18</td>
             </tr>
             <tr>
-              <td style="padding:5px 12px;">UNDIAL</td>
+              <td style="padding:5px 12px;">UNDIAL <a href="#ref17" style="color:#0366d6;">[17]</a></td>
               <td style="padding:5px 12px;">{1e-5, 1e-4, 3e-4}</td>
               <td style="padding:5px 12px;">$\alpha$ &isin; {1, 2, 5}</td>
               <td style="padding:5px 12px;">&beta; = 10</td>
@@ -452,7 +458,8 @@ button.toggle-btn:hover { text-decoration: underline; }
           <option value="best">Top-1 per method</option>
         </select>
         <select id="rankMetric" style="margin-left:8px; display:none;">
-          <option value="overall">by Overall</option>
+          <option value="overall_no_uds">by Overall (w/o UDS)</option>
+          <option value="overall">by Overall (w/ UDS)</option>
           <option value="mem">by Memorization</option>
           <option value="privacy">by Privacy</option>
           <option value="utility_rel">by Utility</option>
@@ -486,7 +493,8 @@ button.toggle-btn:hover { text-decoration: underline; }
       <thead>
         <tr>
           <th class="sortable" data-col="model">Model</th>
-          <th class="sortable num" data-col="overall">Overall ↑</th>
+          <th class="sortable num" data-col="overall_no_uds" title="HM(Mem, MIA, Utility) — without UDS">Overall<sub>w/o UDS</sub> ↑</th>
+          <th class="sortable num" data-col="overall" title="HM(Mem, Privacy, Utility) where Privacy=HM(MIA,UDS)">Overall<sub>w/ UDS</sub> ↑</th>
           <th class="sortable num" data-col="mem" style="white-space:nowrap;">Mem. ↑</th>
           <th class="sortable num" data-col="privacy">Privacy ↑</th>
           <th class="sortable num" data-col="utility_rel">Utility ↑</th>
@@ -496,7 +504,7 @@ button.toggle-btn:hover { text-decoration: underline; }
         </tr>
       </thead>
       <tbody id="method_body">
-        <tr><td colspan="7" class="loading">Loading...</td></tr>
+        <tr><td colspan="9" class="loading">Loading...</td></tr>
       </tbody>
     </table>
   </div>
@@ -721,13 +729,18 @@ async function loadMethodData() {
   try {
     const resp = await fetch('data/method_results.json');
     methodData = await resp.json();
+    // Precompute overall_no_uds = HM(mem, privacy_mia, utility_rel)
+    methodData.models.forEach(m => {
+      m.overall_no_uds = (m.mem && m.privacy_mia && m.utility_rel && m.mem > 0 && m.privacy_mia > 0 && m.utility_rel > 0)
+        ? 3 / (1/m.mem + 1/m.privacy_mia + 1/m.utility_rel) : null;
+    });
     renderMethodFilters();
     updateEpochCounts();
     renderMethodTable();
     setupMethodListeners();
     setupTableSorting();
   } catch (e) {
-    document.getElementById('method_body').innerHTML = '<tr><td colspan="7">Error loading data</td></tr>';
+    document.getElementById('method_body').innerHTML = '<tr><td colspan="9">Error loading data</td></tr>';
   }
 }
 
@@ -849,6 +862,7 @@ function renderMethodTable() {
 
     html += `<tr class="${rowClass}" data-rid="${rid}">
       <td>${m.model}</td>
+      <td class="num">${fmt(m.overall_no_uds)}</td>
       <td class="num">${fmt(m.overall)}</td>
       <td class="num">${fmt(m.mem)}</td>
       <td class="num">${fmt(m.privacy)}</td>
@@ -860,7 +874,7 @@ function renderMethodTable() {
 
     // Details row - show all content directly
     html += `<tr id="${rid}" class="details-row">
-      <td colspan="8">
+      <td colspan="9">
         <div class="details-grid">
           <div class="detail-card">
             <h4>Memorization</h4>
@@ -882,7 +896,6 @@ function renderMethodTable() {
               <span class="label">MIA</span><span class="value">${fmt(m.privacy_mia)}</span>
             </div>
             <div class="detail-item"><span class="label">UDS</span><span class="value">${fmt(m.uds)}</span></div>
-            <div class="detail-item"><span class="label">Logit Lens</span><span class="value">${fmt(m.logit_lens)}</span></div>
             <div class="detail-item summary">
               <span class="label"><strong>Privacy = HM(MIA, UDS)</strong></span><span class="value"><strong>${fmt(m.privacy)}</strong></span>
             </div>
@@ -993,18 +1006,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <div style="margin-top:40px; padding-top:16px; border-top:1px solid #e0e0e0;">
   <h3 style="margin:0 0 8px 0; font-size:14px; color:#666;">References</h3>
-  <ol style="font-size:13px; color:#555; margin:0; padding-left:20px; line-height:1.8;">
-    <li>Nicholas Carlini et al., <a href="https://www.usenix.org/conference/usenixsecurity21/presentation/carlini-extracting" target="_blank" style="color:#0366d6;">&ldquo;Extracting Training Data from Large Language Models&rdquo;</a>, USENIX Security 2021.</li>
-    <li>Kushal Tirumala et al., <a href="https://proceedings.neurips.cc/paper_files/paper/2022/hash/fa0509f4dab6807e2cb465715bf2d249-Abstract-Conference.html" target="_blank" style="color:#0366d6;">&ldquo;Memorization Without Overfitting: Analyzing the Training Dynamics of Large Language Models&rdquo;</a>, NeurIPS 2022.</li>
-    <li>Simon Kornblith et al., <a href="https://proceedings.mlr.press/v97/kornblith19a.html" target="_blank" style="color:#0366d6;">&ldquo;Similarity of Neural Network Representations Revisited&rdquo;</a>, ICML 2019.</li>
-    <li>nostalgebraist, <a href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens" target="_blank" style="color:#0366d6;">&ldquo;Interpreting GPT: the Logit Lens&rdquo;</a>, LessWrong 2020.</li>
-    <li>James Kirkpatrick et al., <a href="https://www.pnas.org/doi/10.1073/pnas.1611835114" target="_blank" style="color:#0366d6;">&ldquo;Overcoming Catastrophic Forgetting in Neural Networks&rdquo;</a>, PNAS 2017.</li>
-    <li>Michael Duan et al., <a href="https://openreview.net/forum?id=av0D19pSkU" target="_blank" style="color:#0366d6;">&ldquo;Do Membership Inference Attacks Work on Large Language Models?&rdquo;</a>, COLM 2024.</li>
-    <li>Weijia Shi et al., <a href="https://openreview.net/forum?id=zWqr3MQuNs" target="_blank" style="color:#0366d6;">&ldquo;Detecting Pretraining Data from Large Language Models&rdquo;</a>, ICLR 2024.</li>
-    <li>Jingyang Zhang et al., <a href="https://openreview.net/forum?id=ZGkfoufDaU" target="_blank" style="color:#0366d6;">&ldquo;Min-K%++: Improved Baseline for Detecting Pre-Training Data from Large Language Models&rdquo;</a>, ICLR 2025 (Spotlight).</li>
-    <li>Samuel Yeom et al., <a href="https://ieeexplore.ieee.org/document/8429311" target="_blank" style="color:#0366d6;">&ldquo;Privacy Risk in Machine Learning: Analyzing the Connection to Overfitting&rdquo;</a>, IEEE CSF 2018.</li>
-    <li>Weijia Shi et al., <a href="https://openreview.net/forum?id=TArmA033BU" target="_blank" style="color:#0366d6;">&ldquo;MUSE: Machine Unlearning Six-Way Evaluation for Language Models&rdquo;</a>, ICLR 2025.</li>
-    <li>Reza Shokri et al., <a href="https://doi.org/10.1109/SP.2017.41" target="_blank" style="color:#0366d6;">&ldquo;Membership Inference Attacks Against Machine Learning Models&rdquo;</a>, IEEE S&amp;P 2017.</li>
+  <ol id="ref-list" style="font-size:13px; color:#555; margin:0; padding-left:20px; line-height:1.8;">
+    <li id="ref1">Nicholas Carlini et al., <a href="https://www.usenix.org/conference/usenixsecurity21/presentation/carlini-extracting" target="_blank" style="color:#0366d6;">&ldquo;Extracting Training Data from Large Language Models&rdquo;</a>, USENIX Security 2021.</li>
+    <li id="ref2">Kushal Tirumala et al., <a href="https://proceedings.neurips.cc/paper_files/paper/2022/hash/fa0509f4dab6807e2cb465715bf2d249-Abstract-Conference.html" target="_blank" style="color:#0366d6;">&ldquo;Memorization Without Overfitting: Analyzing the Training Dynamics of Large Language Models&rdquo;</a>, NeurIPS 2022.</li>
+    <li id="ref3">Simon Kornblith et al., <a href="https://proceedings.mlr.press/v97/kornblith19a.html" target="_blank" style="color:#0366d6;">&ldquo;Similarity of Neural Network Representations Revisited&rdquo;</a>, ICML 2019.</li>
+    <li id="ref4">nostalgebraist, <a href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens" target="_blank" style="color:#0366d6;">&ldquo;Interpreting GPT: the Logit Lens&rdquo;</a>, LessWrong 2020.</li>
+    <li id="ref5">James Kirkpatrick et al., <a href="https://www.pnas.org/doi/10.1073/pnas.1611835114" target="_blank" style="color:#0366d6;">&ldquo;Overcoming Catastrophic Forgetting in Neural Networks&rdquo;</a>, PNAS 2017.</li>
+    <li id="ref6">Michael Duan et al., <a href="https://openreview.net/forum?id=av0D19pSkU" target="_blank" style="color:#0366d6;">&ldquo;Do Membership Inference Attacks Work on Large Language Models?&rdquo;</a>, COLM 2024.</li>
+    <li id="ref7">Weijia Shi et al., <a href="https://openreview.net/forum?id=zWqr3MQuNs" target="_blank" style="color:#0366d6;">&ldquo;Detecting Pretraining Data from Large Language Models&rdquo;</a>, ICLR 2024.</li>
+    <li id="ref8">Jingyang Zhang et al., <a href="https://openreview.net/forum?id=ZGkfoufDaU" target="_blank" style="color:#0366d6;">&ldquo;Min-K%++: Improved Baseline for Detecting Pre-Training Data from Large Language Models&rdquo;</a>, ICLR 2025 (Spotlight).</li>
+    <li id="ref9">Samuel Yeom et al., <a href="https://ieeexplore.ieee.org/document/8429311" target="_blank" style="color:#0366d6;">&ldquo;Privacy Risk in Machine Learning: Analyzing the Connection to Overfitting&rdquo;</a>, IEEE CSF 2018.</li>
+    <li id="ref10">Weijia Shi et al., <a href="https://openreview.net/forum?id=TArmA033BU" target="_blank" style="color:#0366d6;">&ldquo;MUSE: Machine Unlearning Six-Way Evaluation for Language Models&rdquo;</a>, ICLR 2025.</li>
+    <li id="ref11">Reza Shokri et al., <a href="https://doi.org/10.1109/SP.2017.41" target="_blank" style="color:#0366d6;">&ldquo;Membership Inference Attacks Against Machine Learning Models&rdquo;</a>, IEEE S&amp;P 2017.</li>
+    <li id="ref12">Pratyush Maini et al., <a href="https://openreview.net/forum?id=B41hNBoWLo" target="_blank" style="color:#0366d6;">&ldquo;TOFU: A Task of Fictitious Unlearning for LLMs&rdquo;</a>, COLM 2024.</li>
+    <li id="ref13">Ruiqi Zhang et al., <a href="https://openreview.net/forum?id=MXLBXjQkmb" target="_blank" style="color:#0366d6;">&ldquo;Negative Preference Optimization: From Catastrophic Collapse to Effective Unlearning&rdquo;</a>, COLM 2024.</li>
+    <li id="ref14">Anmol Mekala et al., <a href="https://aclanthology.org/2025.coling-main.252/" target="_blank" style="color:#0366d6;">&ldquo;Alternate Preference Optimization for Unlearning Factual Knowledge in Large Language Models&rdquo;</a>, COLING 2025.</li>
+    <li id="ref15">Chongyu Fan et al., <a href="https://openreview.net/forum?id=JbvSQm5h1l" target="_blank" style="color:#0366d6;">&ldquo;Simplicity Prevails: Rethinking Negative Preference Optimization for LLM Unlearning&rdquo;</a>, NeurIPS 2025.</li>
+    <li id="ref16">Nathaniel Li et al., <a href="https://proceedings.mlr.press/v235/li24bc.html" target="_blank" style="color:#0366d6;">&ldquo;The WMDP Benchmark: Measuring and Reducing Malicious Use With Unlearning&rdquo;</a>, ICML 2024.</li>
+    <li id="ref17">Yijiang River Dong et al., <a href="https://aclanthology.org/2025.naacl-long.444/" target="_blank" style="color:#0366d6;">&ldquo;UNDIAL: Self-Distillation with Adjusted Logits for Robust Unlearning in Large Language Models&rdquo;</a>, NAACL 2025.</li>
   </ol>
 </div>
 </body>
