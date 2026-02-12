@@ -382,6 +382,59 @@ button.toggle-btn:hover { text-decoration: underline; }
         <code>Overall</code> $= \text{HM}(\text{Mem.},\; \text{Privacy},\; \text{Utility}_{\text{rel}})$
       </div>
     </div>
+
+    <details style="margin-top:12px;">
+      <summary style="cursor:pointer; font-weight:600; font-size:14px; color:#333;">Hyperparameter Sweep Configuration</summary>
+      <div style="margin-top:8px; overflow-x:auto;">
+        <table style="border-collapse:collapse; font-size:13px; width:100%;">
+          <thead>
+            <tr style="background:#f6f8fa; border-bottom:2px solid #d0d7de;">
+              <th style="padding:6px 12px; text-align:left;">Method</th>
+              <th style="padding:6px 12px; text-align:left;">Learning Rate</th>
+              <th style="padding:6px 12px; text-align:left;">Swept Hyperparameters</th>
+              <th style="padding:6px 12px; text-align:left;">Fixed</th>
+              <th style="padding:6px 12px; text-align:center;">Configs</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #e8e8e8;">
+              <td style="padding:5px 12px;">GradDiff, IdkNLL, IdkDPO, NPO, AltPO</td>
+              <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
+              <td style="padding:5px 12px;">$\alpha$ &isin; {1, 2, 5}</td>
+              <td style="padding:5px 12px;">&beta; = 0.1</td>
+              <td style="padding:5px 12px; text-align:center;">9 &times; 5 = 45</td>
+            </tr>
+            <tr style="border-bottom:1px solid #e8e8e8;">
+              <td style="padding:5px 12px;">UNDIAL</td>
+              <td style="padding:5px 12px;">{1e-5, 1e-4, 3e-4}</td>
+              <td style="padding:5px 12px;">$\alpha$ &isin; {1, 2, 5}</td>
+              <td style="padding:5px 12px;">&beta; = 10</td>
+              <td style="padding:5px 12px; text-align:center;">9</td>
+            </tr>
+            <tr style="border-bottom:1px solid #e8e8e8;">
+              <td style="padding:5px 12px;">SimNPO</td>
+              <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
+              <td style="padding:5px 12px;">$\beta$ &isin; {3.5, 4.5}, $\gamma$ &isin; {0.125, 0.25}</td>
+              <td style="padding:5px 12px;">&delta; = 1, &alpha; = 1</td>
+              <td style="padding:5px 12px; text-align:center;">12</td>
+            </tr>
+            <tr>
+              <td style="padding:5px 12px;">RMU</td>
+              <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
+              <td style="padding:5px 12px;">layer &isin; {5, 10, 15}</td>
+              <td style="padding:5px 12px;">steering coeff = 10</td>
+              <td style="padding:5px 12px; text-align:center;">9</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="border-top:2px solid #d0d7de; background:#f6f8fa;">
+              <td colspan="4" style="padding:5px 12px; font-weight:600;">Total: 75 configs &times; 2 epochs (5, 10) + full + retain</td>
+              <td style="padding:5px 12px; text-align:center; font-weight:600;">152</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </details>
   </div>
 
   <!-- Controls -->
