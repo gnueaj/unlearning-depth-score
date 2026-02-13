@@ -4,7 +4,7 @@
 >
 > **Target Venue**: EMNLP 2026 (long paper, 8 pages + references + appendix)
 >
-> **Core Claim**: UDS is a training-free, interventional metric that quantifies layer-wise knowledge recoverability in unlearned LLMs, achieving the highest faithfulness (AUC 0.971) and robustness (HM 0.933) among 20 comparison metrics.
+> **Core Claim**: UDS quantifies the mechanistic depth of unlearning by measuring how much target knowledge is recoverable through activation patching, achieving the highest faithfulness (AUC 0.971) and robustness (HM 0.933) among 20 comparison metrics.
 
 ---
 
@@ -38,9 +38,9 @@ Use these symbols consistently throughout. Define each at first use.
 **Content Guide** (each bracket = 1–2 sentences):
 
 ```
-[1] Background: LLM unlearning has emerged as a critical post-hoc mechanism for
-    regulatory compliance (GDPR right to erasure), privacy protection, and
-    copyright content removal.
+[1] Background: LLM unlearning has emerged as an important post-hoc mechanism
+    for regulatory compliance (GDPR right to erasure), privacy protection,
+    and copyright content removal.
 
 [2] Problem: Existing output-only metrics (memorization scores, membership
     inference attacks) cannot detect knowledge retained in internal
@@ -75,6 +75,7 @@ Use these symbols consistently throughout. Define each at first use.
 
 **Content Guide**:
 - LLM unlearning의 동기: privacy regulations (GDPR Article 17 right to erasure), safety (hazardous knowledge removal), copyright compliance
+- **톤**: "critical"이나 "crucial" 대신 "important", "increasingly relevant" 등 사용
 - 다양한 unlearning methods: gradient-based (GradDiff, NPO), preference-based (DPO variants), representation-based (RMU)
 - Unlearning의 핵심 목표를 간결하게 정의: forget set의 knowledge를 제거하면서 retain set 성능을 유지하고, **궁극적으로는 forget set을 처음부터 학습하지 않은 모델과 구별 불가능하게** 만드는 것 (gold standard = retain model)
 
@@ -425,7 +426,7 @@ UDS achieves AUC-ROC 0.971, the highest among all 20 metrics. Key comparisons:
 각 baseline이 왜 UDS보다 낮은지 설명:
 - **CKA (0.648)**: representational geometry 유사성만 측정 → unlearning이 전반적 표현 구조를 바꾸면 반응하지만, 특정 knowledge retention과 무관한 변화(예: 학습 경로 차이에 의한 geometry 변화)도 감지하여 P/N 분리가 부정확
 - **Fisher Masked (0.712)**: layer 1이 전체 weight의 60–84%를 차지하여 사실상 단일 layer에 의존. 또한 mask fraction(0.01%, 0.1%, 1%)에 거의 무관한 결과 → layer-wise granularity 부족
-- **Logit Lens (0.927)**: frozen decoder로 decodable knowledge를 잘 포착하지만 observational이라 **causal recoverability**를 직접 측정 못함. Representation이 변형되었지만 patching하면 복구되는 case를 놓침 (§5.2에서 구체 예시)
+- **Logit Lens (0.927)**: frozen decoder로 decodable knowledge를 잘 포착하지만 observational이라 **causal recoverability**를 직접 측정 못함. Representation이 변형되었지만 patching하면 복구되는 case를 놓침 (§5.1에서 구체 예시)
 
 **문단 3 — P/N Histogram Analysis** (~3 lines)
 
@@ -488,12 +489,58 @@ Key ranking (by HM):
 
 ---
 
-## §5. Analysis and Practical Implications
+## §5. Case Studies
 
 **Section intro** (~2 lines):
-> "Having established that UDS is the most faithful and robust metric, we examine its practical value: integration into evaluation frameworks (§5.1) and example-level diagnostic capabilities (§5.2)."
+> "We present case studies illustrating how UDS reveals knowledge retention patterns that output-level metrics miss, focusing on observational vs. interventional discrepancy (§5.1) and a method-specific failure mode (§5.2)."
 
-### §5.1 Integrating UDS into Evaluation Frameworks
+### §5.1 Observational vs. Interventional Discrepancy
+
+**문단 1 — Logit Lens vs UDS** (~5 lines)
+
+Logit Lens (observational)와 UDS (interventional)의 불일치 case:
+- Logit Lens: layer $l$의 hidden states를 frozen decoder로 읽으면 knowledge가 없어 보임 (high Logit Lens score)
+- UDS: 같은 layer의 hidden states를 patching하면 knowledge가 복구됨 (low UDS)
+- 이 불일치는 representation이 변형되었지만 full model의 computation path에서 여전히 복구 가능한 경우에 발생
+- "This gap explains the AUC difference between Logit Lens (0.927) and UDS (0.971)."
+- "UDS's causal approach better aligns with the actual threat model: an adversary does not merely observe representations but could potentially exploit retained knowledge through fine-tuning or prompting."
+
+### Figure 4 — Layer-wise Delta Comparison (§5.1)
+
+**Content**: 특정 example 1개의 layer-wise delta plot
+- X축: layer (0–15)
+- Y축: $\Delta_l$ (log-prob degradation)
+- 3 lines: $\Delta^{S1}$ (retain baseline, blue dashed), $\Delta^{S2}_{\text{IdkNLL}}$ (red), $\Delta^{S2}_{\text{AltPO}}$ (green)
+- Shaded: FT layers ($\Delta^{S1} > \tau$)
+- IdkNLL: $\Delta^{S2} \approx 0$ at FT layers → knowledge fully intact → UDS ≈ 0
+- AltPO: $\Delta^{S2} \approx \Delta^{S1}$ at FT layers → knowledge erased → UDS ≈ 1
+
+**Caption**: "Layer-wise patching deltas for a single forget-set example. IdkNLL appears unlearned by output metrics but retains full knowledge at layers 8–14 (UDS = 0.04). AltPO successfully erases knowledge across FT layers (UDS = 0.87)."
+
+### §5.2 IdkNLL: Surface-Level Unlearning
+
+**문단 1 — MIA Failure** (~4 lines)
+
+> **Verified data**: All 18 IdkNLL models have privacy_mia = 1e-12 (effectively 0). All s_mia variants are exactly 0.0. UDS ranges from 0.039 to 0.253.
+
+IdkNLL은 "I don't know" 출력을 학습 → 모든 MIA metric에서 retain과 크게 달라져 $s_* = 0.0$ → privacy_mia ≈ 0. MIA 기반 평가로는 unlearning quality 측정 자체가 불가능 (sensitivity 상실).
+
+**문단 2 — UDS Reveals Retained Knowledge** (~4 lines)
+
+하지만 UDS = 0.04–0.25 → 내부에 knowledge가 거의 원본 수준으로 잔존. "I don't know" 출력 학습은 output mapping만 변경하고 internal representation은 거의 건드리지 않음.
+
+구체 예시: IdkNLL (lr=1e-5, ep10)의 example 0 — "What profession does Hsiao Yun-Hwa hold?" 질문에서 UDS = 0.04 → knowledge가 full model과 거의 동일하게 내부에 인코딩되어 있으며, activation patching으로 즉시 복구 가능.
+
+> **NOTE for paper**: "114/367 examples에서 unlearned 출력이 target entity를 포함 + UDS < 0.3" — 이 숫자는 특정 model 기준인지 전체 IdkNLL 기준인지 확인 필요. 실험 데이터에서 검증 후 사용.
+
+---
+
+## §6. Discussion
+
+**Section intro** (~2 lines):
+> "We discuss the practical implications of our findings: how UDS integrates into existing evaluation frameworks (§6.1), the impact on model rankings (§6.2), and when UDS disagrees with output-level metrics (§6.3)."
+
+### §6.1 Integrating UDS into Evaluation Frameworks
 
 **문단 1 — Privacy Axis Integration** (~5 lines)
 
@@ -505,7 +552,16 @@ where $\text{MIA} = \text{HM}(s_{\text{LOSS}}, s_{\text{ZLib}}, s_{\text{Min-K}}
 
 이는 **statistical** (MIA: 통계적 멤버십 구분)과 **mechanistic** (UDS: 내부 knowledge recoverability)을 결합. Overall = HM(Memorization, Privacy, Utility).
 
-**문단 2 — Ranking Shift Case Study** (~6 lines)
+**문단 2 — Practical Simplification** (~4 lines)
+
+UDS가 faithfulness + robustness 모두 1위 → practitioners는 expensive post-attack evaluation (quantization/relearning 실행) 없이 pre-attack UDS만으로 unlearning quality의 reliable estimate를 얻을 수 있음.
+
+기존 workflow: method 적용 → 13개 metrics 측정 → quantization attack → 13개 다시 측정 → relearning attack → 또 13개 측정
+UDS 사용 시: method 적용 → UDS 한 번 측정 (S1 cache 재사용으로 forward pass만 추가)
+
+### §6.2 Impact on Model Rankings
+
+**문단 1 — Ranking Shift Analysis** (~6 lines)
 
 Table 3에서 UDS 포함 전후 ranking 변화가 큰 모델:
 
@@ -520,76 +576,45 @@ Table 3에서 UDS 포함 전후 ranking 변화가 큰 모델:
 
 해석: NPO (α=5, lr=5e-5)는 higher α가 deeper layer까지 gradient signal을 전파하여 internal knowledge를 효과적으로 제거 → UDS가 높아 ranking 상승. 반면 낮은 α의 NPO는 output 수준에서는 unlearning이 잘 되어 보이지만 (높은 MIA) 내부에 knowledge가 상당히 잔존.
 
-"This demonstrates that UDS captures a dimension of unlearning quality that is invisible to output-only metrics."
+"This demonstrates that UDS captures a dimension of unlearning quality not reflected in output-only metrics."
 
-### Table 3 — Ranking Shifts with UDS (§5.1)
+### Table 3 / Figure 5 — Ranking Comparison (§6.2)
 
-> 위의 4-row 테이블 또는 Figure 4 (bump chart)로 대체 가능. Top-10 정도의 ranking comparison이면 충분.
+> Table 3 또는 bump chart (Figure 5)로 표현. Top-10 정도의 ranking comparison이면 충분.
 
-### Figure 4 — Ranking Comparison (§5.1)
-
-**Content**: Bump chart or parallel coordinates
+**Content** (if bump chart):
 - Left column: Overall w/o UDS rank (Top 15)
 - Right column: Overall w/ UDS rank (Top 15)
 - 상승/하락을 색상으로 구분 (green ↑, red ↓)
 - NPO (α=5, lr=5e-5) 상승, NPO (α=1, lr=2e-5) 하락 강조
 
-**Caption**: "Model rankings with and without UDS in the Privacy axis. Models with high internal knowledge erasure (high UDS) rise in ranking, while those with surface-level unlearning drop."
+**Caption**: "Model rankings with and without UDS in the Privacy axis. Models with deeper internal knowledge erasure rise in ranking, while those with surface-level unlearning drop."
 
-**문단 3 — Practical Simplification** (~4 lines)
+### §6.3 When Does UDS Disagree with Output Metrics?
 
-UDS가 faithfulness + robustness 모두 1위 → practitioners는 expensive post-attack evaluation (quantization/relearning 실행) 없이 pre-attack UDS만으로 unlearning quality의 reliable estimate를 얻을 수 있음.
+**문단 1 — 불일치 패턴 분류** (~5 lines)
 
-기존 workflow: method 적용 → 13개 metrics 측정 → quantization attack → 13개 다시 측정 → relearning attack → 또 13개 측정
-UDS 사용 시: method 적용 → UDS 한 번 측정 (S1 cache 재사용으로 forward pass만 추가)
+UDS와 output metrics가 불일치하는 주요 패턴:
+1. **High output scores, low UDS** (surface unlearning): IdkNLL 전체, 일부 low-α NPO → output behavior는 변했지만 internal knowledge 잔존
+2. **Low output scores, high UDS** (deep but incomplete unlearning): 일부 high-α methods → internal knowledge는 잘 지워졌지만 output generation이 아직 지식을 일부 포함 (generation stochasticity)
+3. **Both high** (genuine unlearning): AltPO/NPO lr=5e-5, α=5 → output과 internal 모두 지식 제거
 
-### §5.2 Example-Level Diagnostics
+**문단 2 — Implications** (~3 lines)
 
-**문단 1 — Observational vs. Interventional Discrepancy** (~5 lines)
-
-Logit Lens (observational)와 UDS (interventional)의 불일치 case:
-- Logit Lens: layer $l$의 hidden states를 frozen decoder로 읽으면 knowledge가 없어 보임 (high Logit Lens score)
-- UDS: 같은 layer의 hidden states를 patching하면 knowledge가 복구됨 (low UDS)
-- 이 불일치는 representation이 변형되었지만 full model의 computation path에서 여전히 복구 가능한 경우에 발생
-- "This gap explains the AUC difference between Logit Lens (0.927) and UDS (0.971)."
-- "UDS's causal approach better aligns with the actual threat model: an adversary does not merely observe representations but could potentially exploit retained knowledge through fine-tuning or prompting."
-
-### Figure 5 — Layer-wise Delta Comparison (§5.2)
-
-**Content**: 특정 example 1개의 layer-wise delta plot
-- X축: layer (0–15)
-- Y축: $\Delta_l$ (log-prob degradation)
-- 3 lines: $\Delta^{S1}$ (retain baseline, blue dashed), $\Delta^{S2}_{\text{IdkNLL}}$ (red), $\Delta^{S2}_{\text{AltPO}}$ (green)
-- Shaded: FT layers ($\Delta^{S1} > \tau$)
-- IdkNLL: $\Delta^{S2} \approx 0$ at FT layers → knowledge fully intact → UDS ≈ 0
-- AltPO: $\Delta^{S2} \approx \Delta^{S1}$ at FT layers → knowledge erased → UDS ≈ 1
-
-**Caption**: "Layer-wise patching deltas for a single forget-set example. IdkNLL appears unlearned by output metrics but retains full knowledge at layers 8–14 (UDS = 0.04). AltPO successfully erases knowledge across FT layers (UDS = 0.87)."
-
-**문단 2 — IdkNLL Case Study** (~6 lines)
-
-> **Verified data**: All 18 IdkNLL models have privacy_mia = 1e-12 (effectively 0). All s_mia variants are exactly 0.0. UDS ranges from 0.039 to 0.253.
-
-IdkNLL은 "I don't know" 출력을 학습 → 모든 MIA metric에서 retain과 크게 달라져 $s_* = 0.0$ → privacy_mia ≈ 0. MIA 기반 평가로는 unlearning quality 측정 자체가 불가능 (sensitivity 상실).
-
-하지만 UDS = 0.04–0.25 → 내부에 knowledge가 거의 원본 수준으로 잔존. "I don't know" 출력 학습은 output mapping만 변경하고 internal representation은 거의 건드리지 않음.
-
-구체 예시: IdkNLL (lr=1e-5, ep10)의 example 0 — "What profession does Hsiao Yun-Hwa hold?" 질문에서 UDS = 0.04 → knowledge가 full model과 거의 동일하게 내부에 인코딩되어 있으며, activation patching으로 즉시 복구 가능.
-
-> **NOTE for paper**: "114/367 examples에서 unlearned 출력이 target entity를 포함 + UDS < 0.3" — 이 숫자는 특정 model 기준인지 전체 IdkNLL 기준인지 확인 필요. 실험 데이터에서 검증 후 사용.
+패턴 1이 가장 위험: output 평가만으로는 "안전"해 보이지만 fine-tuning이나 prompting으로 knowledge 복구 가능. UDS는 이러한 false negative를 감지하는 보완적 역할. 패턴 2는 상대적으로 안전: knowledge가 내부에서 제거되었으므로 복구가 어려움.
 
 ---
 
-## §6. Conclusion
+## §7. Conclusion
 
 **단일 문단** (~8 lines):
 
 ```
-We presented UDS (Unlearning Depth Score), a training-free interventional
-metric that measures knowledge recoverability in unlearned LLMs through
-two-stage activation patching. UDS quantifies per-example, per-layer
-erasure on a 0-to-1 scale, providing a mechanistic assessment complementary
-to output-only evaluation.
+We presented UDS (Unlearning Depth Score), a metric that quantifies the
+mechanistic depth of unlearning by measuring knowledge recoverability
+through two-stage activation patching. UDS provides per-example,
+per-layer erasure scores on a 0-to-1 scale, complementing output-only
+evaluation with an interventional assessment.
 
 In a meta-evaluation against 19 comparison metrics across 150 unlearned
 models, UDS achieved the highest faithfulness (AUC-ROC 0.971) and
@@ -695,13 +720,13 @@ inadequate unlearning substantially outweighs this risk.
 | **Tab 2** | Table | §4 (main results) | Meta-evaluation: 20 metrics × {Faith, Q, R, Rob, Overall} |
 | **Fig 2** | Figure | §4.3 | P/N histogram subset (6 selected metrics, 2×3 grid) |
 | **Fig 3** | Figure | §4.4 | Robustness scatter (2×2: UDS vs contrast metric, quant vs relearn) |
-| **Tab 3** | Table | §5.1 | Ranking shift examples (4–6 models, w/ vs w/o UDS) |
-| **Fig 4** | Figure | §5.1 | Ranking bump chart (Top 15, w/ vs w/o UDS) |
-| **Fig 5** | Figure | §5.2 | Layer-wise delta comparison (IdkNLL vs AltPO, single example) |
+| **Fig 4** | Figure | §5.1 | Layer-wise delta comparison (IdkNLL vs AltPO, single example) |
+| **Tab 3** | Table | §6.2 | Ranking shift examples (4–6 models, w/ vs w/o UDS) |
+| **Fig 5** | Figure | §6.2 | Ranking bump chart (Top 15, w/ vs w/o UDS) |
 
-> **Page budget**: 8 pages. Fig 1 (0.3p), Tab 1 (0.3p), Tab 2 (0.5p), Fig 2 (0.4p), Fig 3 (0.4p), Tab 3 + Fig 4 (0.4p), Fig 5 (0.3p) ≈ 2.6p for figures/tables. 5.4p for text. Tight but feasible — consider merging Tab 3 into Fig 4 or moving one figure to appendix if needed.
+> **Page budget**: 8 pages. Fig 1 (0.3p), Tab 1 (0.3p), Tab 2 (0.5p), Fig 2 (0.4p), Fig 3 (0.4p), Fig 4 (0.3p), Tab 3 + Fig 5 (0.4p) ≈ 2.6p for figures/tables. 5.4p for text. Tight but feasible — consider merging Tab 3 into Fig 5 or moving one figure to appendix if needed.
 
-> **여유 확보 전략**: Tab 3 (ranking shift)을 Fig 4에 통합하거나, Fig 2를 3-panel (2개+UDS)로 줄이거나, Fig 5를 appendix로 이동.
+> **여유 확보 전략**: Tab 3을 Fig 5에 통합하거나, Fig 2를 3-panel (2개+UDS)로 줄이거나, Fig 4를 appendix로 이동.
 
 ---
 
@@ -765,9 +790,11 @@ inadequate unlearning substantially outweighs this risk.
 
 3. **§4.2 normalized MIA**: "동기: raw MIA는 retain과의 상대적 차이를 반영 못함" → "raw MIA AUC의 절대값만으로는 retain model 대비 상대적 변화를 반영 못함"으로 구체화.
 
-4. **§5.1 ranking shift**: 유저 원안의 NPO (5e-05, α=5) rank +10 확인됨. SimNPO 하락은 실제 데이터에서 IdkNLL처럼 privacy_mia ≈ 0인 경우와 혼동 가능 → NPO low-α 모델의 하락으로 대체 (더 명확한 story).
+4. **§6.2 ranking shift**: 유저 원안의 NPO (5e-05, α=5) rank +10 확인됨. SimNPO 하락은 실제 데이터에서 IdkNLL처럼 privacy_mia ≈ 0인 경우와 혼동 가능 → NPO low-α 모델의 하락으로 대체 (더 명확한 story).
 
 5. **§5.2 IdkNLL**: 유저가 "114/367 examples에서 target entity 포함 + UDS < 0.3" 언급 → 실험 데이터에서 검증 필요. 논문 작성 전 확인 표시 남김.
+
+8. **§5→§6 구조 분리**: 기존 "Analysis and Practical Implications" → §5 Case Studies (observational vs interventional discrepancy, IdkNLL) + §6 Discussion (framework 통합, ranking shift, 불일치 패턴 분석). §7 Conclusion.
 
 6. **Figure 배치**: 유저 원안에 Fig/Tab 번호가 중복되거나 누락 → 완전 정리. 총 5 figures + 3 tables (본문). Page budget 계산 추가.
 
@@ -793,7 +820,8 @@ inadequate unlearning substantially outweighs this risk.
 2. **두 번째**: §3 (UDS 정의) — 기술적 기여의 핵심
 3. **세 번째**: Table 2 (meta-eval results) — 정량적 주장의 근거
 4. **네 번째**: §4 (meta-eval) — results 해석
-5. **마지막**: §1-2 (intro, related work) — 전체 story가 완성된 후 framing
+5. **다섯 번째**: §5-6 (case studies + discussion) — 실증적 가치
+6. **마지막**: §1-2 (intro, related work) — 전체 story가 완성된 후 framing
 
 ---
 
