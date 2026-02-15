@@ -218,9 +218,7 @@ attacks?). We build on this meta-evaluation framework in §4.
 
 이 중 UDS는 activation patching을 채택: 모델의 hidden states를 교체하고 결과적 행동 변화를 측정함으로써, knowledge가 특정 layer에서 **인과적으로 복구 가능한지** 직접 테스트. 이는 **audit** (진단) 목적의 활용이며, model steering과는 구분됨.
 
-> **참고**: 왜 linear probing / tuned lens를 baseline으로 포함하지 않았는지는 Appendix에서 설명: "We include only methods that do not introduce extra trainable components. We therefore exclude linear probing and tuned lens, since both require supervised fitting of auxiliary modules."
-
-> **참고**: 왜 linear probing / tuned lens를 baseline으로 포함하지 않았는지는 Appendix에서 설명: "We include only methods that do not introduce extra trainable components. We therefore exclude linear probing and tuned lens, since both require supervised fitting of auxiliary modules."
+> **참고**: 왜 linear probing / tuned lens를 baseline으로 포함하지 않았는지는 Appendix B에서 설명: "We include only methods that do not introduce extra trainable components. We therefore exclude linear probing and tuned lens, since both require supervised fitting of auxiliary modules."
 
 **문단 2 — White-box Unlearning Verification** (~6 lines + Table 1)
 
@@ -275,7 +273,7 @@ attacks?). We build on this meta-evaluation framework in §4.
 ## §3. The Unlearning Depth Score
 
 **Section intro** (2–3 sentences):
-> "We introduce the Unlearning Depth Score (UDS), a mechanistic metric that measures knowledge recoverability through activation patching. We define the evaluation setup (§3.1), describe the two-stage patching procedure (§3.2), and present the score aggregation (§3.3)."
+> "We introduce the Unlearning Depth Score (UDS), a mechanistic metric that measures knowledge recoverability through activation patching. We define the evaluation setup (§3.1), describe the two-stage patching procedure (§3.2), and present the score aggregation (§3.3). We validate each design choice through ablation studies in Appendix D."
 
 > 용어 정리: Following Ghandeharioun et al. (2024), we refer to the model whose hidden states are injected as the **source model** ($M_S$) and the model that receives the patched states as the **target model** ($M_T$). In UDS, the target is always $M_{\text{full}}$.
 
@@ -305,27 +303,25 @@ Evaluation scope:
 
 ### §3.2 Two-Stage Activation Patching
 
-**문단 1 — Core Idea and Patching Mechanics** (~6 lines)
+**문단 1 — Stage 1: Calibrating the Knowledge Baseline (Retain → Full)** (~6 lines)
 
-Both models ($M_{\text{full}}$ and $M_S$) process the identical input sequence $[x; y]$ (question + ground-truth answer) via teacher forcing. At a chosen layer $l$, we extract $M_S$'s hidden-state vectors for the **entity-span token positions** and splice them into $M_{\text{full}}$'s forward pass, replacing the corresponding vectors at those same positions. The remaining layers ($l{+}1, \ldots, L$) of $M_{\text{full}}$ then process these foreign vectors through their own attention and MLP blocks. We measure the resulting change in mean log-probability on the entity tokens. If $M_S$ lacks certain knowledge, its representations will carry a different signal at these positions, degrading $M_{\text{full}}$'s output — and the magnitude of this degradation reveals how much knowledge $M_S$ is missing at layer $l$. We repeat this for every layer independently (Figure 1).
+Source = $M_{\text{ret}}$, Target = $M_{\text{full}}$. For each layer $l$, we replace $M_{\text{full}}$'s hidden states with $M_{\text{ret}}$'s at the entity-span positions and measure the resulting degradation in log-probability:
 
-**문단 2 — Stage 1: Locating the Knowledge Gap (Retain → Full)** (~6 lines)
+$$\Delta^{S1}_l = \frac{1}{T}\sum_{t=1}^{T}(s^{\text{full}}_t - s^{S1}_t)$$
 
-Source = $M_{\text{ret}}$. The retain model was never trained on $D_f$, so it lacks forget-set knowledge.
+where $s^{S1}_t$ is the log-prob of entity token $y_t$ after patching layer $l$. We patch the residual stream of each layer (i.e., the full layer output: attention + MLP + residual connection; see Appendix D.2 for component-level ablation). A large $\Delta^{S1}_l$ indicates that $M_{\text{ret}}$ lacks knowledge that $M_{\text{full}}$ possesses at layer $l$.
 
-$$\Delta^{S1}_l = \frac{1}{T}\sum_{t=1}^{T} \left(s^{\text{full}}_t - s^{S1}_t\right)$$
+**문단 2 — Fact-Tracing Layers and Position Alignment** (~5 lines)
 
-where $s^{S1}_t$ is the log-probability after patching layer $l$ with $M_{\text{ret}}$'s hidden states.
+We define the set of **fact-tracing (FT) layers** — layers where the retain model exhibits a meaningful knowledge gap:
 
-**FT layers**: $\text{FT}_i = \{l : \Delta^{S1}_{i,l} > \tau\}$ with $\tau = 0.05$.
+$$\text{FT}_i = \{l : \Delta^{S1}_{i,l} > \tau\}$$
 
-직관: "FT layers are where $M_{\text{full}}$ possesses knowledge that $M_{\text{ret}}$ lacks — these are the layers where forget-set knowledge is encoded."
-
-$\tau$의 역할: "The threshold filters out layers with negligible signal, ensuring UDS is computed only over layers with meaningful knowledge encoding. We set $\tau = 0.05$; sensitivity analysis in Appendix D shows results are stable across $\tau \in \{0, 0.01, 0.02, 0.05, 0.1\}$."
+The threshold $\tau = 0.05$ filters out noise from early layers where $\Delta^{S1}$ is negligible; model rankings are robust to this choice (Spearman $\rho \geq 0.999$ across $\tau \in \{0, 0.01, 0.02, 0.03, 0.05, 0.1\}$; see Appendix D.3). We patch and measure at the same token positions — specifically, the positions whose next-token predictions correspond to the entity span $y_1, \dots, y_T$.
 
 **문단 3 — Stage 2: Measuring Causal Recoverability (Unlearned → Full)** (~4 lines)
 
-Source = $M_{\text{unl}}$. Same procedure, yielding $\Delta^{S2}_l$.
+Source = $M_{\text{unl}}$, with the same input $(x, y)$ and target $M_{\text{full}}$ as Stage 1 — only the source model changes. Same procedure, yielding $\Delta^{S2}_l$.
 
 직관: "If the unlearned model successfully erased knowledge at layer $l$, patching its hidden states should degrade $M_{\text{full}}$'s output similarly to patching $M_{\text{ret}}$'s states (i.e., $\Delta^{S2}_l \approx \Delta^{S1}_l$). If knowledge remains intact, $\Delta^{S2}_l \approx 0$."
 
@@ -352,40 +348,39 @@ $$\text{UDS} = \frac{1}{N}\sum_{i=1}^{N} \text{UDS}_i$$
 
 We average per-example scores across the forget set. Models with no FT layers for a given example (i.e., retain model already knows the answer) skip that example.
 
-마무리: "We patch full layer outputs (i.e., post-attention + MLP + residual) by default. We provide ablation studies in Appendix D covering component patching (Δ = 0.953 for full layer vs. 0.173 MLP-only vs. 0.044 attention-only), threshold sensitivity ($\tau \in \{0, 0.01, 0.02, 0.05, 0.1\}$), generalization across model scales (Llama 1B/3B/8B), entity length effects, and RMU layer selection analysis."
+마무리: "Appendix D provides additional ablation studies: generalization across model scales (Llama 1B/3B/8B; D.1), prompt-type robustness of UDS calibration (D.4), entity length effects on measurement precision (D.5), and analysis of layer-selective unlearning methods showing that UDS correctly tracks the intervention location and its forward cascade through subsequent layers (D.6)."
 
 ---
 
 ## §4. Meta-Evaluation
 
-**Section intro** (~4 lines):
-> "A good unlearning metric should be both *faithful* (correctly distinguishing models that have vs. lack target knowledge) and *robust* (stable under meaning-preserving perturbations). We evaluate UDS against 19 comparison metrics using the meta-evaluation framework of Maini et al. (2024) with two modifications: (i) we add representation-level baselines and normalized MIA metrics, and (ii) we introduce symmetric robustness formulas (§4.1). We describe the experimental setup (§4.1), comparison metrics (§4.2), faithfulness (§4.3), and robustness (§4.4)."
+**Section intro** (~3 lines):
+> "A good unlearning metric should be both *faithful* (correctly distinguishing models that have vs. lack target knowledge) and *robust* (stable under meaning-preserving perturbations). We evaluate UDS against 19 comparison metrics using the meta-evaluation framework of Maini et al. (2024), extending it with representation-level baselines, normalized MIA metrics, and symmetric robustness formulas. We describe the experimental setup (§4.1), comparison metrics (§4.2), and present results (§4.3)."
 
 > **NOTE**: meta-eval 테이블 하나로 통합 — Table 2에 20개 metrics의 Faithfulness AUC, Q, R, HM, Overall을 모두 포함.
 
-### §4.1 Evaluation Protocol and Symmetric Robustness
+### §4.1 Experimental Setup
 
-> **구조 조정**: symmetric formula 동기부여는 본문에서만 설명 (별도 appendix 없음). 본문 §4.1은 3개 문단 (models/data, faithfulness setup, robustness setup + symmetric formula 요약).
-
-**문단 1 — Models and Dataset** (~5 lines)
+**문단 1 — Models, Dataset, and References** (~6 lines)
 - Architecture: Llama-3.2-1B-Instruct (Meta)
 - 150 unlearned models: 8 methods × hyperparameter sweep × 2 epochs (5, 10)
   - Methods: GradDiff, IdkNLL, IdkDPO, NPO, AltPO, SimNPO, RMU, UNDIAL
-  - Full sweep: Appendix A (Table A.2)
-- Evaluation data: TOFU forget10 (367 examples with entity span annotations)
+  - Full method definitions and hyperparameter sweep in Appendix A
+- Evaluation data: TOFU forget10 benchmark with 367 entity-annotated examples (Appendix C)
+- 20 comparison metrics spanning output-level, retain-referenced, and representation-level categories (Appendix B)
 - References: $M_{\text{full}}$, $M_{\text{ret}}$ (retain90)
 
-**문단 2 — Faithfulness Setup** (~4 lines)
+**문단 2 — Faithfulness** (~4 lines)
 - P-pool (30 models): trained on dataset including $D_f$ → knowledge present
 - N-pool (30 models): trained without $D_f$ → knowledge absent
 - Metric: AUC-ROC — how well each metric separates P from N
 - "Higher AUC indicates the metric is better at distinguishing models that genuinely possess target knowledge."
 
-**문단 3 — Robustness Setup** (~8 lines)
+**문단 3 — Robustness and Symmetric Formulas** (~10 lines)
 - Two perturbation attacks:
   - **Quantization**: NF4 4-bit (BitsAndBytes) — a common deployment technique that should not change what a model "knows"
   - **Relearning**: 1-epoch fine-tuning on $D_f$ (lr=2e-5, effective batch=32) — simulates knowledge recovery attempt
-- **Symmetric formulas**: Open-Unlearning의 one-directional formula는 knowledge recovery에 대한 robustness 측정에 효과적이지만, perturbation에 의한 knowledge destruction은 감지하지 못합니다. 예를 들어, quantization이 loss landscape을 변형하여 MIA AUC가 체계적으로 낮아지면, one-directional은 이를 Q=1 (완벽히 robust)로 처리합니다. 우리는 양방향 변화를 모두 측정하는 symmetric formulas를 제안합니다:
+- **Symmetric formulas**: Open-Unlearning의 one-directional formula는 knowledge recovery에 대한 robustness 측정에 효과적이지만, perturbation에 의한 knowledge destruction은 감지하지 못합니다. 예를 들어, ROUGE scores for models scoring above 0.45 systematically decline after NF4 quantization: autoregressive error amplification causes small logit perturbations to flip top-1 tokens at narrow-margin positions, cascading through the entire generation. One-directional formulas rate this systematic degradation as Q=1 (perfectly robust), masking the instability entirely. We propose symmetric formulas that penalize changes in both directions:
 
 **Symmetric formulas** (본문에 수식 + 정당화 모두 제시):
 
@@ -399,33 +394,35 @@ where $\Delta = m_{\text{after}} - m_{\text{before}}$.
 
 - **Model filtering**: utility_rel ≥ 0.8 + per-metric faithfulness threshold (filters out models where unlearning itself failed).
 - **Aggregation**: Robustness = HM(Q, R); Overall = HM(Faithfulness, Robustness)
+- See Appendix E for full meta-evaluation plots across all 20 metrics.
 
 ### §4.2 Comparison Metrics
 
-**문단 1 — Output-Level Metrics (13개)** (~5 lines)
+**문단 1 — Open-Unlearning Benchmark Metrics (12개)** (~8 lines)
 
-카테고리별 간결 소개:
-- **Memorization** (5): ES, EM, Prob, ParaProb, Truth Ratio — measure whether the model can reproduce or recall target knowledge under various prompting conditions
-- **Generation** (3): ROUGE, Para-ROUGE, Jailbreak-ROUGE — ROUGE-L recall against ground-truth under standard, paraphrased, and adversarial prompts
-- **MIA** (4 raw): MIA-LOSS, MIA-ZLib, MIA-Min-K, MIA-Min-K++ — per-sample member vs. non-member classification via loss-based statistics
-- "All are provided by the Open-Unlearning framework."
+We compare against the 12 metrics provided by the Open-Unlearning benchmark (Maini et al., 2024):
+- **Memorization** (5): Extraction Strength (ES), Exact Memorization (EM), Probability (Prob), Paraphrase Probability (ParaProb), and Truth Ratio measure whether the model can reproduce or recall target knowledge. ES and EM quantify exact text reproduction; Prob and ParaProb measure answer likelihood under standard and paraphrased prompts; Truth Ratio evaluates the relative probability of correct vs. incorrect answers.
+- **Generation** (3): ROUGE, Para-ROUGE, Jailbreak-ROUGE measure ROUGE-L recall of generated text against ground-truth under standard, paraphrased, and adversarial (jailbreak prefix injection) prompts respectively.
+- **MIA** (4): MIA-LOSS, MIA-ZLib, MIA-Min-K, MIA-Min-K++ perform membership inference via loss-based statistics, distinguishing forget-set members from non-members at various thresholds.
 
-**문단 2 — Normalized MIA (4개 추가)** (~4 lines)
+See Appendix B for formal definitions of all metrics.
 
-Raw MIA의 한계: AUC 절대값만으로는 retain model 대비 상대적 변화를 반영 못함.
+**문단 2 — Our Additions (8 metrics)** (~10 lines)
+
+Open-Unlearning evaluates only output-level metrics, without retain-model calibration or internal representation analysis. We extend the comparison with 8 additional metrics.
+
+First, 4 **normalized MIA** variants ($s_{\text{LOSS}}, s_{\text{ZLib}}, s_{\text{Min-K}}, s_{\text{Min-K++}}$) calibrate raw MIA AUC against the retain model's baseline:
 
 $$s_* = \text{clip}\!\left(1 - \frac{|\text{AUC}_{\text{model}} - \text{AUC}_{\text{ret}}|}{\text{AUC}_{\text{ret}}},\; 0,\; 1\right)$$
 
-4종: $s_{\text{LOSS}}, s_{\text{ZLib}}, s_{\text{Min-K}}, s_{\text{Min-K++}}$. Higher $s_*$ = closer to retain = more erasure. Inspired by MUSE PrivLeak rescaling (Shi et al., 2025).
+Higher $s_*$ = closer to retain = more erasure. Inspired by MUSE PrivLeak rescaling (Shi et al., 2025).
 
-**문단 3 — Representation-Level Baselines (3개)** (~6 lines)
-
-All operate on the same 367-example forget set with entity span annotations, using the retain model as reference:
+Second, 3 **representation-level baselines** measure internal knowledge retention using the retain model as reference, all operating on the same 367-example forget set:
 - **Logit Lens**: projects each layer's hidden states through $M_{\text{full}}$'s frozen decoder to measure per-layer decodable knowledge. Uses the same FT layer weighting as UDS. *Observational*: reads representations without patching.
 - **CKA**: compares representational geometry between unlearned and retain models, weighted by full–retain layer importance. *Observational*.
 - **Fisher Masked**: diagonal Fisher Information on $D_f$, masked to top-$p$% knowledge-relevant parameters per layer ($p \in \{0.01\%, 0.1\%, 1\%\}$). Measures parameter-level knowledge sensitivity.
-- "We exclude linear probing and tuned lens as they require training auxiliary modules."
-- **Note**: Logit Lens와 CKA의 수식은 본문 §4.2에서 $\Delta^{S1}$/$\Delta^{S2}$ notation과 일관되게 설명. Fisher Masked 상세는 Appendix B. 이렇게 하면 UDS와의 관계가 명확해짐.
+
+All three are scored as layer-wise weighted sums for direct comparability with UDS (see Appendix B for detailed formulas). We exclude linear probing and tuned lens as they require training auxiliary modules.
 
 ### Table 2 — Meta-Evaluation Results (§4 main table, 20 rows)
 
@@ -462,14 +459,16 @@ All operate on the same 367-example forget set with entity span annotations, usi
 > - Truth Ratio: 높은 faithfulness (0.947)이지만 relearning에 극도로 취약 (R=0.234) → Overall 낮음
 > - CKA: faithfulness도 낮고 (0.648) robustness도 극도로 낮음 (R=0.013) → Overall 최하위
 
-### §4.3 Faithfulness Results
+### §4.3 Results
+
+#### §4.3.1 Faithfulness
 
 **문단 1 — Main Results** (~5 lines)
 
 UDS achieves AUC-ROC 0.971, the highest among all 20 metrics. Key comparisons:
-- **UDS (0.971)** > Logit Lens (0.927) > Truth Ratio (0.947) > MIA-Min-K (0.907) > MIA-LOSS (0.902)
+- **UDS (0.971)** > Truth Ratio (0.947) > Logit Lens (0.927) > MIA-Min-K (0.907) > MIA-LOSS (0.902)
 - Among representation-level metrics: UDS >> Logit Lens >> Fisher Masked (0.712) >> CKA (0.648)
-- Among output-only metrics: Truth Ratio leads (0.947) but suffers from poor robustness (see §4.4)
+- Among output-only metrics: Truth Ratio leads (0.947) but suffers from poor robustness (see §4.3.2)
 
 **문단 2 — Why UDS Outperforms Alternatives** (~6 lines)
 
@@ -482,7 +481,7 @@ UDS achieves AUC-ROC 0.971, the highest among all 20 metrics. Key comparisons:
 
 Figure 2 참조. UDS는 P-pool (low UDS ≈ 0.49, knowledge intact)과 N-pool (high UDS ≈ 0.85, knowledge absent)이 거의 완벽하게 분리. 반면 output metrics (예: Prob, MIA-LOSS)는 P/N 분포가 상당히 overlap.
 
-### Figure 2 — Faithfulness P/N Histograms (§4.3)
+### Figure 2 — Faithfulness P/N Histograms (§4.3.1)
 
 **Content**: Representation-level baselines 4개만 (invert 없이, 더블컬럼)
 - CKA (0.648), Fisher Masked 0.1% (0.712), Logit Lens (0.927), UDS (0.971)
@@ -493,7 +492,7 @@ Figure 2 참조. UDS는 P-pool (low UDS ≈ 0.49, knowledge intact)과 N-pool (h
 
 > **Design**: 2×2 grid, shared y-axis per row, dashed vertical lines for optimal threshold. Each subplot title: "Metric (AUC=X.XXX)". Double-column width.
 
-### §4.4 Robustness Results
+#### §4.3.2 Robustness
 
 **문단 1 — Main Results** (~5 lines)
 
@@ -521,33 +520,36 @@ Key ranking (by HM):
 
 **문단 4 — Scatter Plot Reference** (~2 lines)
 
-> "Figure 3 visualizes per-model robustness for UDS and a contrasting metric under both attacks. Points near the reference line indicate stable metrics. See Appendix E for all 20 metrics."
+> "Figure 3 visualizes per-model quantization stability for Truth Ratio (highly stable) and ROUGE (systematically unstable), motivating the symmetric formulas. See Appendix E for all 20 metrics."
 
-### Figure 3 — Robustness Scatter Plots: Symmetric Formula Justification (§4.4)
+**마무리 문단 — Overall Conclusion** (~3 lines)
 
-**Content**: Quantization scatter만, 3개 metrics (싱글컬럼, nofilter)
-- ES, Truth Ratio, UDS (3 panels in a row)
-- Symmetric formulas를 정당화하기 위한 figure: ES와 Truth Ratio가 quant 후 고점수 모델들이 크게 하락하는 패턴 시각화
+UDS ranks first on both faithfulness (AUC 0.971) and robustness (HM 0.933), yielding the highest overall score (0.951). This confirms that causal recoverability testing via activation patching provides both the most accurate and most stable signal for unlearning verification. The closest competitor, Logit Lens (Overall 0.902), falls short primarily because its observational decoder readout does not capture knowledge that has been reformatted but remains causally recoverable (§5.1).
 
-**Layout**: 1×3 grid, 싱글컬럼 width. nofilter (150개 모델 전부).
+### Figure 3 — Robustness Scatter Plots: Symmetric Formula Justification (§4.3.2)
+
+**Content**: Quantization scatter만, 2개 metrics (싱글컬럼, nofilter)
+- Truth Ratio, ROUGE (2 panels in a row)
+- Symmetric formulas를 정당화하기 위한 figure: Truth Ratio는 quant 후 안정적으로 유지되지만, ROUGE는 0.45 이상 모델들이 체계적으로 하락하는 대조 패턴 시각화
+
+**Layout**: 1×2 grid, 싱글컬럼 width. nofilter (150개 모델 전부).
 
 양방향 gradient: y=x line에서 멀어질수록 빨간색
 
-**Caption**: "Per-model quantization robustness for ES, Truth Ratio, and UDS (no model filtering). ES and Truth Ratio show systematic drops for high-scoring models after NF4 quantization — an artifact of autoregressive generation sensitivity (ES) and probability ratio instability (Truth Ratio). UDS remains stable. This directional asymmetry motivates the symmetric robustness formulas (§4.1): one-directional metrics would rate these drops as Q=1 (perfectly robust), masking the instability. Full scatter plots in Appendix E."
+**Caption**: "Per-model quantization stability for Truth Ratio and ROUGE (no model filtering). Truth Ratio remains tightly clustered along the diagonal (Q=0.996), demonstrating near-perfect stability under NF4 quantization. In contrast, ROUGE scores above 0.45 systematically collapse: NF4 introduces small logit perturbations that flip top-1 tokens at narrow-margin positions in greedy decoding, cascading through subsequent tokens and destroying n-gram overlap — a generation fragility artifact, not knowledge removal. One-directional formulas would rate this collapse as Q=1 (perfectly robust) since values only decrease, masking the instability entirely. Our symmetric formulas correctly penalize this systematic degradation. Full scatter plots in Appendix E."
 
-> **ES/ROUGE quant 분석 결과**:
-> - ES is 34× more sensitive to quantization than Truth Ratio (per-model Canberra ratio). 119/150 models show ES drops (one-sided).
-> - **Ceiling collapse**: Models with ES > 0.40 (N=29) collapse from mean 0.53 → 0.22 after NF4 quant, regardless of starting value. 65% of the knowledge signal is destroyed.
-> - **Mechanism**: Autoregressive error amplification cascade. NF4 introduces small logit perturbations → greedy decoding flips top-1 token at narrow-margin positions → all subsequent tokens condition on divergent prefix → character overlap (ES) and n-gram overlap (ROUGE) collapse. This is a generation fragility artifact, not knowledge removal.
-> - **Prob is stable** (mean 1.9% drop) because it uses teacher forcing (no autoregressive loop). Truth Ratio is even more stable (Canberra 0.021) because its ratio normalization cancels symmetric perturbations.
-> - **One-directional blind spot**: Since ES almost always drops (not increases), one-directional Q = min(before/after, 1) would rate these as Q ≈ 1 (perfect robustness), completely masking the instability. Symmetric Q correctly penalizes the systematic degradation.
+> **ROUGE quant 분석 결과**:
+> - **Mechanism**: Autoregressive error amplification cascade. NF4 introduces small logit perturbations → greedy decoding flips top-1 token at narrow-margin positions → all subsequent tokens condition on divergent prefix → n-gram overlap (ROUGE) collapses. This is a generation fragility artifact, not knowledge removal.
+> - **ROUGE ceiling collapse**: Models with ROUGE > 0.45 show systematic drops after NF4 quant. The collapse is one-sided (values only decrease).
+> - **Truth Ratio contrast**: Truth Ratio is extremely stable (Q=0.996, Canberra 0.021) because its ratio normalization cancels symmetric perturbations. Teacher-forcing-based Prob is also stable (mean 1.9% drop) because it avoids the autoregressive loop.
+> - **One-directional blind spot**: Since ROUGE almost always drops (not increases), one-directional Q = min(before/after, 1) would rate these as Q ≈ 1 (perfect robustness), completely masking the instability. Symmetric Q correctly penalizes the systematic degradation.
 
 ---
 
 ## §5. Case Study
 
-**Section intro** (1 sentence):
-> "In this section, we demonstrate how UDS's layer-wise, example-level diagnostics reveal mechanistic dynamics of unlearning that output-level metrics miss."
+**Section intro** (2–3 sentences):
+> "UDS provides per-example, per-layer erasure scores that enable diagnostic analyses beyond what aggregate evaluation can offer. We illustrate two such analyses: distinguishing observational from causal diagnostics at the layer level (§5.1), and characterizing how erasure depth varies systematically across prompt types within a single model (§5.2)."
 
 ### §5.1 Observational vs. Causal Diagnostics
 
@@ -574,14 +576,11 @@ We illustrate this with an IdkDPO model and a single forget-set example (Table 4
 - **Unlearned output**: "...*other genres*, reflecting her versatile personality and wide-ranging interests."
 - **Entity span**: "historical fiction" (log-prob under full model: −0.271)
 
-| | | L0–4 | L5 | L7 | L9 | L11 | L13 | L15 | Score |
-|:--|:--|:--:|--:|--:|--:|--:|--:|--:|--:|
-| **Logit Lens** | $\Delta^{S1}$ | Not FT ($\Delta^{S1} < \tau$) | 0.375 | 0.312 | 1.375 | 1.250 | 0.926 | 1.713 | |
-| | $\Delta^{S2}$ | Not FT ($\Delta^{S1} < \tau$) | 0.250 | 0.812 | 1.375 | 2.062 | 2.465 | 0.436 | |
-| | $\text{clip}(\frac{\Delta^{S2}}{\Delta^{S1}}, 0, 1)$ | Not FT ($\Delta^{S1} < \tau$) | 0.667 | 1.000 | 1.000 | 1.000 | 1.000 | 0.254 | **0.801** |
-| **UDS** | $\Delta^{S1}$ | Not FT ($\Delta^{S1} < \tau$) | 0.012 | 0.053 | 0.346 | 0.838 | 1.299 | 1.713 | |
-| | $\Delta^{S2}$ | Not FT ($\Delta^{S1} < \tau$) | 0.004 | −0.059 | 0.039 | 0.088 | 0.299 | 0.436 | |
-| | $\text{clip}(\frac{\Delta^{S2}}{\Delta^{S1}}, 0, 1)$ | Not FT ($\Delta^{S1} < \tau$) | Not FT ($\Delta^{S1} < \tau$) | **0.000** | 0.113 | 0.105 | 0.230 | 0.254 | **0.209** |
+| | L0–4 | L5 | L7 | L9 | L11 | L13 | L15 | Score |
+|:--|:--:|--:|--:|--:|--:|--:|--:|--:|
+| **Logit Lens** | — | 0.667 | 1.000 | 1.000 | 1.000 | 1.000 | 0.254 | **0.801** |
+| **UDS** | — | — | **0.000** | 0.113 | 0.105 | 0.230 | 0.254 | **0.209** |
+| **Δ (LL − UDS)** | — | — | **+1.000** | +0.887 | **+0.895** | +0.770 | 0.000 | +0.592 |
 
 > Layer-wise comparison of Logit Lens vs. UDS on a single example from an IdkDPO-unlearned model where the two methods disagree. Question: *Did Aysha Al-Hashim ever venture into other genres apart from Love Inspired?* GT Entity: *historical fiction*. Logit Lens reports strong erasure (0.801), but UDS reveals that most knowledge remains causally recoverable (0.209). The disagreement concentrates in L5–L13: at most layers the frozen decoder fails to read out the entity ($\Delta^{S2}/\Delta^{S1} \geq 1$), but the same hidden states still recover it in the full model ($\Delta^{S2}/\Delta^{S1} < 0.25$), revealing recoverable knowledge that UDS captures and Logit Lens misses.
 
@@ -596,7 +595,7 @@ We illustrate this with an IdkDPO model and a single forget-set example (Table 4
 
 > **Verified data**: All 18 IdkNLL models have privacy_mia = 1e-12 (effectively 0). All s_mia variants are exactly 0.0. UDS ranges from 0.039 to 0.253.
 
-Surface-level unlearning methods like IdkNLL overwrite the output probability distribution to produce "I don't know" responses. Existing privacy metrics (MIA) observe only this output-level shift and report perfect defense ($s_* = 0.0$) — a complete loss of diagnostic sensitivity. UDS, however, probes knowledge survival *beneath* the output mapping and flags residual knowledge at 0.04–0.25, warning that internal representations remain nearly identical to the original model.
+IdkNLL overwrites the output probability distribution to produce "I don't know" responses. All 18 IdkNLL models achieve $s_* = 0.0$ on every normalized MIA variant — the output-level signal is fully saturated. UDS, probing knowledge survival beneath the output mapping, reports scores ranging from 0.04 to 0.25 across IdkNLL configurations, revealing that internal representations remain nearly identical to the original model despite the surface-level response change.
 
 **문단 2 — 동일 모델 내 예제별 깊이 차이** (~8 lines, 핵심 contribution)
 
@@ -606,28 +605,35 @@ Long descriptive prompts (276/367 examples) require the model to integrate exten
 
 This heterogeneity is invisible to any model-level aggregate metric and demonstrates UDS's unique value as an example-level diagnostic tool.
 
-> **TODO**: 실제 IdkNLL 모델 1개 선택하여 prompt type별 UDS 분포 분석. `runs/ep10/uds/` 또는 `runs/ep5/uds/`에서 IdkNLL 모델의 per-example results.json 로드 → v7_gt의 prefix type과 매칭하여 type별 UDS 평균/분포 계산. Descriptive vs Yes/No 대비가 실제 데이터에서 유의미한지 검증 필요.
-
 ### Table 5 — Example-Level Erasure Depth by Prompt Type (§5.2)
 
-**Content**: IdkNLL 단일 모델에서 prompt type별 UDS 통계 + 대표 예시의 patched output
+**Content**: IdkNLL 단일 모델(lr=2e-5, ep10)에서 prompt type별 대표 예시 3개, Table 4와 동일한 layer-wise 양식
 
-| Prompt Type | Count | UDS (mean ± std) | Example | Patched Output (layer 12) |
-|-------------|------:|:-----------------:|---------|---------------------------|
-| Descriptive | 276 | ≈ 0.04 ± 0.03 | "...often incorporating themes of" → **diversity and inclusion** | (target entity recovered) |
-| Person Name | 25 | ≈ 0.08 ± 0.05 | "The author's full name is" → **Hsiao Yun-Hwa** | (target entity recovered) |
-| Yes/No | 21 | ≈ 0.68 ± 0.15 | "" → **Yes** | (failed to recover) |
+**Example context**:
+- **Model**: IdkNLL (lr=2e-5, α=1, ep10), model-level UDS = 0.076
 
-> **NOTE**: 값은 예상치. 실제 per-example UDS 데이터에서 추출 필요.
+| Type | Question (abbreviated) | Entity | |Ent| | #FT | UDS |
+|:--|:--|:--|--:|--:|--:|
+| **Yes/No** | "Has Tae-ho Park received international recognition...?" | Yes | 1 | 9 | **1.000** |
+| **Person Name** | "What is the full name of the author born in Taipei...?" | Hsiao Yun-Hwa | 6 | 11 | 0.000 |
+| **Descriptive** | "Can you share the title of one of Hsiao Yun-Hwa's most popular books?" | "Artistic Authority: Leading with Creativity" | 10 | 12 | 0.000 |
 
-**Caption**: "UDS scores for a single IdkNLL model (lr=1e-5, ep10) stratified by prompt type. Long descriptive prompts retain nearly all knowledge internally (UDS $\approx$ 0.04), while simple Yes/No questions show deeper erasure. This heterogeneity demonstrates that unlearning depth depends on the semantic complexity of the prompt, not just the method applied."
+> **NOTE**: 3 examples from the same IdkNLL checkpoint. Yes/No (idx 187): single-token entity, S2 deltas exceed S1 across all FT layers → complete erasure (UDS=1.0). Person Name (idx 0): 6-token entity, all S2 deltas negative → knowledge fully intact, patching has no effect. Descriptive (idx 7): 10-token entity, 15 FT layers, all S2 deltas near-zero or negative → knowledge intact throughout the model.
+
+**Category-level statistics** (한국어 가이드):
+- Yes/No (21 examples): Mean UDS = 0.624, 71.4% have UDS > 0.5
+- Person Name (15 examples): Mean UDS = 0.032
+- Descriptive (333 examples): Mean UDS = 0.042, 77% have UDS < 0.05
+- Book/Work Title (19 examples): Mean UDS = 0.007 (lowest)
+
+**Caption**: "Three examples from a single IdkNLL model (lr=2e-5, ep10), each from a different prompt type. Yes/No questions with single-token entities show complete erasure (UDS = 1.0), while descriptive and person-name prompts retain knowledge internally (UDS $\approx$ 0.0). This heterogeneity — from the same model — demonstrates that unlearning depth varies with prompt semantics, not just method choice."
 
 ---
 
 ## §6. Practical Implications
 
 **Section intro** (2 lines):
-> "We examine two practical consequences of our findings: how UDS reshapes method-level rankings when integrated into existing evaluation frameworks (§6.1), and how it streamlines the evaluation pipeline by serving as a reliable robustness proxy (§6.2)."
+> "We present two practical applications of UDS: integrating it into existing evaluation frameworks to reveal configuration-level differences invisible to output-only metrics (§6.1), and leveraging its robustness as a proxy to streamline the evaluation pipeline (§6.2)."
 
 ### §6.1 Integrating UDS into Privacy Axes
 
@@ -641,29 +647,43 @@ where $\text{MIA} = \text{HM}(s_{\text{LOSS}}, s_{\text{ZLib}}, s_{\text{Min-K}}
 
 This couples **statistical** evidence (MIA: can an adversary statistically distinguish member vs. non-member?) with **causal** evidence (UDS: is the knowledge causally recoverable from internal representations?). Overall = HM(Memorization, Privacy, Utility).
 
-**문단 2 — Method-level Ranking Shift 와 최적화 방식의 본질** (~8 lines)
+**문단 2 — Method-level Configuration Shift** (~8 lines)
 
-This integration triggers a seismic shift in method-level rankings.
+Table 6 compares method-level Overall rankings with and without UDS in the Privacy axis.
 
-### Table 6 — Method-level Ranking Shift: Top-1 Config (§6.1)
+### Table 6 — Overall Ranking: w/o vs. w/ UDS (§6.1)
 
-> **TODO**: `docs/data/method_results.json`에서 method별 top-1 config 추출하여 Overall w/o UDS vs w/ UDS 비교 테이블 생성. NPO vs SimNPO 역전이 핵심.
+> **Data source**: `docs/data/method_results.json`. Config selection: per-method best by w/o UDS formula (= HTML "Top-1 per method, by Overall w/o UDS" 뷰). 동일 config에 대해 w/ UDS 점수를 계산하여 비교.
 
-| Method | Top-1 Config | Overall w/o UDS | Rank | Overall w/ UDS | Rank | Shift |
-|--------|-------------|---:|---:|---:|---:|---:|
-| NPO | α=5, lr=5e-5, ep10 | 0.709 | — | 0.739 | — | ↑ |
-| SimNPO | (best config) | — | — | — | — | ↓ |
-| AltPO | α=1, lr=5e-5, ep10 | 0.719 | — | 0.754 | — | ↑ |
+| Method | w/o UDS (Rank) | w/ UDS (Rank) | UDS | ΔUDS | Rank Δ |
+|:--|--:|--:|--:|--:|:--:|
+| AltPO | 0.784 (1) | 0.766 (1) | 0.816 | −0.017 | — |
+| **NPO** | 0.752 (2) | 0.710 (**3**) | **0.619** | **−0.042** | **↓1** |
+| **SimNPO** | 0.733 (3) | 0.722 (**2**) | 0.739 | −0.011 | **↑1** |
+| IdkDPO | 0.720 (4) | 0.709 (4) | 0.686 | −0.012 | — |
+| **GradDiff** | 0.686 (5) | 0.637 (5) | **0.515** | **−0.049** | — |
+| RMU | 0.631 (6) | 0.625 (6) | 0.667 | −0.006 | — |
+| UNDIAL | 0.088 (7) | 0.103 (7) | 0.871 | +0.015 | — |
+| IdkNLL | 0.000 (8) | 0.000 (8) | 0.251 | 0.000 | — |
 
-> **NOTE**: 정확한 값은 method_results.json에서 검증 필요.
+> **Caption**: "Overall = HM(Memorization, Privacy, Utility). w/o UDS: Privacy = MIA; w/ UDS: Privacy = HM(MIA, UDS). **Same config per method** (best by w/o UDS formula), scored by both formulas. UDS = raw Unlearning Depth Score for that config. ΔUDS = change in Overall when UDS is integrated into Privacy. Rank Δ shows how adding UDS reshuffles the leaderboard."
 
-**해석 — 논리적 펀치라인** (~6 lines):
+**해석** (~8 lines):
 
-After UDS integration, NPO overtakes SimNPO. The mechanism is revealing: SimNPO removes the KL divergence penalty against the reference model in favor of a simpler margin loss, achieving computational efficiency. This effectively suppresses output logits — excellent at fooling MIA — but lacks the explicit driving force to reshape the deep representation geometry where knowledge actually resides.
+Adding UDS to the Privacy axis causes NPO and SimNPO to swap ranks (2 ↔ 3). NPO's best w/o-UDS config (`lr2e5, α=1, ep10`) achieves high output-level MIA (0.875) but weak internal erasure (UDS = 0.619), so its score drops sharply (Δ = −0.042) when UDS is included. SimNPO's config (`lr5e5, β=3.5, ep10`) has stronger internal erasure (UDS = 0.739) and suffers a smaller drop (Δ = −0.011), overtaking NPO.
 
-NPO, by contrast, applies strong reverse gradients that force target probabilities away from the reference model. While its MIA scores may appear less polished, this aggressive push-away signal propagates through the network's depth, fundamentally disrupting the knowledge structures that UDS measures. The result is a method that achieves more genuine unlearning at the mechanistic level.
+GradDiff shows the largest absolute drop (Δ = −0.049) despite no rank change — its internal erasure is consistently weak (UDS = 0.515) across all configurations. UNDIAL is the only method that *improves* (Δ = +0.015): its strong internal erasure (UDS = 0.871) partially compensates for weak MIA.
 
-"This ranking reversal demonstrates that UDS exposes a critical blind spot in output-only evaluation: methods optimized for statistical indistinguishability at the output level may leave internal knowledge structures largely intact."
+More importantly, UDS reshapes *which configurations practitioners would select*. When selecting the best config by the w/ UDS formula instead, two methods shift:
+
+| Method | Best Config (w/o UDS) | Best Config (w/ UDS) |
+|:--|:--|:--|
+| **AltPO** | `lr5e5, α=1, ep5` (MIA=0.952, UDS=0.816) | `lr5e5, α=2, ep10` (MIA=0.864, UDS=0.832) |
+| **NPO** | `lr2e5, α=1, ep10` (MIA=0.875, UDS=0.619) | `lr5e5, α=5, ep10` (MIA=0.637, UDS=0.818) |
+
+For NPO, re-selecting by the w/ UDS formula recovers rank 2 by choosing a config with much deeper erasure (UDS 0.619 → 0.818), even at the cost of weaker MIA (0.875 → 0.637).
+
+"These rank shifts and config changes demonstrate that UDS provides discriminative power beyond output-level metrics, steering evaluation toward configurations with genuine internal erasure."
 
 ### §6.2 Streamlining the Evaluation Pipeline
 
@@ -676,6 +696,8 @@ Under current frameworks, proving a model's robustness requires applying quantiz
 As demonstrated in Table 2, UDS achieves the highest aggregate robustness (HM 0.933). This means a pre-attack UDS score alone serves as the most reliable predictor of a model's resilience to deployment perturbations. Practitioners can skip the expensive post-attack benchmarking entirely.
 
 The practical cost is minimal: the Stage 1 baseline ($\Delta^{S1}$ values) is computed once and cached across all model evaluations, so evaluating each new model requires only a single forward pass to extract hidden states plus $L$ layer-wise patched forward passes — orders of magnitude cheaper than running quantization and relearning attacks with full metric re-evaluation.
+
+> **TODO (§6.2 강화)**: End-to-end 비용 역전 argument 추가. UDS per-model 비용(L+1 forward passes)이 output metric 단일 평가보다 높다는 비판에 대해, 전체 파이프라인 관점에서 역공: 기존 robustness 검증 비용(quant model conversion + relearn 1-epoch training + 2K post-attack metric evaluations per model)을 UDS 1회 측정으로 대체 가능. 구체적 숫자 비교 (17 forward passes vs 2K+training) 넣어서 Limitation 3 선제 방어.
 
 ---
 
@@ -709,13 +731,13 @@ machine unlearning research.
 
 4개 항목, 각 2–3 lines:
 
-1. **Single architecture and dataset**: All experiments use Llama-3.2-1B-Instruct on TOFU forget10. Generalization to other architectures (e.g., Mistral, GPT-2), larger scales, and other domains (e.g., WMDP, copyright) remains to be validated. The P/N pools provided by Open-Unlearning are limited to 1B, constraining our meta-evaluation scope. However, scale sanity experiments on Llama 1B/3B/8B (Appendix D.1) show consistent behavior across model sizes.
+1. **Single dataset**: All experiments use TOFU forget10, as Open-Unlearning's P/N pools and pre-trained checkpoints constrain our meta-evaluation scope to this benchmark. Validating UDS on other unlearning benchmarks (e.g., WMDP) would further strengthen the generality of our findings.
 
-2. **Entity span annotation requirement**: UDS requires ground-truth entity span annotations within the answer. While the TOFU dataset provides structured question-answer pairs amenable to automatic annotation, applying UDS to free-form text corpora would require entity extraction pipelines, which we leave to future work.
+2. **Entity span annotation cost**: UDS requires entity span annotations within the answer. Our automatic extraction pipeline (Appendix C) handles structured QA pairs well, but incurs additional preprocessing cost and may not be accurate for all data formats.
 
-3. **Inference cost**: UDS requires one forward pass to extract hidden states from the unlearned model, plus $L$ patched forward passes through the full model. This is more expensive than output-only metrics (single forward pass), though the S1 baseline is cached and reused across all model evaluations. In practice, the cost is comparable to teacher-forcing-based metrics since S1 is amortized.
+3. **Clipping and over-unlearning**: The clip($\cdot$, 0, 1) operation caps UDS at 1.0, so over-unlearning (representations deviating beyond the retain model) is not distinguished from perfect unlearning. Practitioners should jointly monitor UDS with the utility axis to detect such cases.
 
-4. **Clipping and over-unlearning**: The clip(·, 0, 1) operation caps UDS at 1.0, meaning over-unlearning (where the model's representations deviate more than the retain model's) is not distinguished from perfect unlearning. In practice, over-unlearning typically manifests as utility degradation, which is captured by the utility axis in our evaluation framework.
+4. **Sensitivity of method rankings to evaluation choices**: Absolute rankings of unlearning methods (e.g., Table 6) depend on hyperparameter selection strategies, MIA scoring formulas, and other detailed implementation choices, which can shift individual method rankings across evaluation frameworks. We recommend treating our rankings as informative comparisons under a controlled setting; the primary contribution is the meta-evaluation framework and UDS metric itself.
 
 ---
 
@@ -739,9 +761,9 @@ inadequate unlearning substantially outweighs this risk.
 | Appendix | Title | Content | Est. Pages |
 |----------|-------|---------|-----------|
 | **A** | Unlearning Model Details | A.1: Method definitions and formulas (8 methods); A.2: Hyperparameter sweep table; A.3: Full 150-model result table with all metrics | 2–3 |
-| **B** | Metric Definitions | Per-metric formulas for all 20 metrics (EM, ES, Prob, ParaProb, Truth Ratio, ROUGE, etc.); representation baselines (CKA, Logit Lens, Fisher Masked) formulas using $\Delta^{S1}$/$\Delta^{S2}$ notation consistent with UDS; Fisher layer-1 dominance analysis; Logit Lens last-layer hook detail | 1–2 |
-| **C** | Dataset Details | C.1: Prefix type taxonomy with example table (Person Name, Profession, Award, etc.); C.2: Dataset generation pipeline (GPT 5.2 initial generation → human verification; 400→367 filtering logic via GPT 5.2 + human final check) | 1 |
-| **D** | UDS Ablation Studies | D.1: Generalization across model scales (Llama 1B/3B/8B, Table D.1); D.2: τ threshold sensitivity ({0, 0.01, 0.02, 0.05, 0.1}, FT layer count line graph); D.3: Component patching (Attention 0.044, Attn+Residual 0.121, MLP 0.173, Layer Output 0.953); D.4: Entity length vs UDS, FT layer count vs UDS, answer type vs UDS → robustness of metric; D.5: RMU layer selection analysis (L5/L10/L15 delta graphs) | 2 |
+| **B** | Metric Definitions | B.1: Per-metric formulas for all 12 Open-Unlearning metrics (EM, ES, Prob, ParaProb, Truth Ratio, ROUGE, etc.); B.2: Retain-referenced and representation-level metrics — normalized MIA (s_*), CKA, Logit Lens, Fisher Masked formulas using $\Delta^{S1}$/$\Delta^{S2}$ notation consistent with UDS | 1–2 |
+| **C** | Dataset Details | C.1: Dataset generation pipeline (GPT 5.2 initial generation → human verification; 400→367 filtering logic via GPT 5.2 + human final check); C.2: Prefix type taxonomy with example table (Person Name, Profession, Award, etc.) | 1 |
+| **D** | UDS Ablation Studies | D.1: Generalization across model scales (Llama 1B/3B/8B, Table D.1); D.2: Component patching with Llama architecture overview (Attention, Attn+Residual, MLP, Layer Output); D.3: τ threshold sensitivity ({0, 0.01, 0.02, 0.03, 0.05, 0.1}, FT layer distribution); D.4: Prompt-type robustness (retain/full calibration by prefix type); D.5: Entity length and input characteristics; D.6: Layer-selective unlearning analysis (L5/L10/L15 single-panel clipped plot) | 2–3 |
 | **E** | Meta-Evaluation Full Plots | Faithfulness histograms (all 20 metrics, 2 filter variants); Robustness scatter plots (all 20 metrics × 2 attacks, 2 filter variants each = 4 plot sets) | 2–3 |
 
 ### ~~Appendix E — Symmetric Robustness: Full Derivation~~ (삭제됨)
@@ -761,27 +783,51 @@ inadequate unlearning substantially outweighs this risk.
 
 To verify that UDS is not specific to a single model size, we evaluate it across Llama 1B, 3B, and 8B using TOFU retain splits as source models. As shown in Table D.1, the monotonic ordering full < retain99 < retain95 < retain90 holds at all three scales, with UDS values proportional to the fraction of forget set each model has not seen. Values decrease slightly with scale (retain99: 0.153 → 0.101, retain95: 0.496 → 0.455), which is expected since larger models have greater capacity and thus a small difference in training data causes less representational shift. In an 8B model, removing 1% of training data barely perturbs the hidden states, so the gap measured by activation patching is smaller. These results confirm that the monotonicity and proportionality of UDS are stable across model scales.
 
-### Appendix D.2 — τ Threshold Sensitivity
+### Appendix D.2 — Component Patching
+
+**Llama Architecture Overview** (간결한 수식):
+
+Each Llama transformer layer computes:
+$$\begin{aligned}
+a_l &= \text{Attn}(\text{RMSNorm}(h_{l-1})) \\
+m_l &= h_{l-1} + a_l \quad \text{(mid: residual + attention)} \\
+h_l &= m_l + \text{MLP}(\text{RMSNorm}(m_l)) \quad \text{(layer output)}
+\end{aligned}$$
+
+We test four patching locations to determine which carries the knowledge signal:
+
+| Component | Patching Target | Mean Δ |
+|-----------|-----------------|--------|
+| Attention only | $a_l$ | 0.044 |
+| Attn + Residual (mid) | $m_l$ | 0.121 |
+| MLP only | $\text{MLP}(\text{RMSNorm}(m_l))$ | 0.173 |
+| **Layer Output (full)** | $h_l$ | **0.953** |
+
+"Patching the full layer output $h_l$ (the residual stream) captures 95.3% of the total patching signal. MLP contributes more than attention alone, consistent with prior findings that MLP layers serve as key-value stores for factual knowledge (Meng et al., 2022). The residual stream carries significant additional signal beyond individual components."
+
+### Appendix D.3 — τ Threshold Sensitivity
 
 **Setup**: Llama-3.2-1B-Instruct (16 layers), TOFU forget10 (367 examples), 150 unlearned models (75 ep5 + 75 ep10). S1 deltas are shared across models (retain → full is constant).
 
-**Table D.2a: FT Layer Set Size Across Threshold Values**
+**Table D.3a: FT Layer Set Size Across Threshold Values**
 
-| τ | Mean |FT| | Std | Min | Max | Median | Skipped | % Skipped |
-|---|-----------|-----|-----|-----|--------|---------|-----------|
+| τ | Mean \|FT\| | Std | Min | Max | Median | Skipped | % Skipped |
+|---|-------------|-----|-----|-----|--------|---------|-----------|
 | 0.00 | 14.4 | 2.7 | 1 | 16 | 16 | 0 | 0.0% |
 | 0.01 | 13.2 | 3.2 | 0 | 16 | 14 | 2 | 0.5% |
 | 0.02 | 12.4 | 3.3 | 0 | 16 | 13 | 3 | 0.8% |
+| 0.03 | 11.8 | 3.3 | 0 | 16 | 12 | 6 | 1.6% |
 | **0.05** | **10.9** | **3.3** | **0** | **16** | **12** | **6** | **1.6%** |
 | 0.10 | 9.6 | 3.3 | 0 | 15 | 10 | 14 | 3.8% |
 
-**Table D.2b: Model-Level UDS Sensitivity (N=150 models)**
+**Table D.3b: Model-Level UDS Sensitivity (N=150 models)**
 
-| τ | Mean UDS | Std | Mean |Δ| | Max |Δ| | Spearman ρ |
-|---|----------|------|---------|---------|------------|
+| τ | Mean UDS | Std | Mean \|Δ\| | Max \|Δ\| | Spearman ρ |
+|---|----------|------|------------|-----------|------------|
 | 0.00 | 0.4548 | 0.3049 | 0.0034 | 0.0148 | 0.9997 |
 | 0.01 | 0.4537 | 0.3056 | 0.0021 | 0.0101 | 0.9998 |
 | 0.02 | 0.4530 | 0.3061 | 0.0017 | 0.0077 | 0.9998 |
+| 0.03 | 0.4526 | 0.3063 | 0.0009 | 0.0048 | 0.9999 |
 | **0.05** | **0.4528** | **0.3067** | **—** | **—** | **1.0000** |
 | 0.10 | 0.4530 | 0.3124 | 0.0062 | 0.0263 | 0.9993 |
 
@@ -789,72 +835,54 @@ Mean |Δ| and Max |Δ| report absolute UDS difference from the default τ=0.05. 
 
 **Key findings**: UDS is highly robust to threshold choice. The delta-weighted aggregation naturally down-weights low-delta layers, making τ primarily a noise filter. All Spearman ρ ≥ 0.999, and the maximum single-model UDS change across the full [0, 0.1] range is only 0.026. At the default τ=0.05, 10.9/16 layers are included on average (68.4% of layer-example pairs pass) and only 6/367 (1.6%) examples are skipped. Early layers (L0-L3) have mean S1 deltas of 0.008-0.060, while late layers (L9-L15) have deltas of 1.0-3.0, so including or excluding early layers has negligible effect on the delta-weighted UDS formula.
 
-Line graph: x축 = τ, y축 = mean FT layer count (with ±1 std band), 367 examples.
+**FT layer count distribution**: Line graph showing per-example FT layer count across 367 examples for each τ. x축 = τ (6 values), y축 = number of FT layers per example. S1은 모든 모델에 공유되므로 값이 1개. 예를 들어 τ=0.05에서 FT layers가 0인 example이 6개, 8인 example이 ~200개, 16인 example이 ~360개 등의 분포를 보여줌.
 
-### Appendix D.3 — Component Patching
+### Appendix D.4 — Prompt-Type Robustness
 
-4개 패칭 위치별 평균 delta:
-| Component | Mean Δ |
-|-----------|--------|
-| Attention only | 0.044 |
-| Attn + Residual (mid) | 0.121 |
-| MLP only | 0.173 |
-| Layer Output (full) | 0.953 |
+UDS should produce correct scores regardless of prompt type. We verify this by checking the two calibration endpoints — the retain model ($M_{\text{ret}}$, which truly lacks forget-set knowledge) and the full model ($M_{\text{full}}$, which has all knowledge) — across all prefix types.
 
-"Patching the full layer output (attention + MLP + residual) captures 95.3% of the total patching signal. MLP contributes more than attention alone, consistent with prior findings that MLP layers serve as key-value stores for factual knowledge (Meng et al., 2022). The residual stream carries significant additional signal beyond individual components."
+**Table D.4: UDS Calibration by Prefix Type**
 
-### Appendix D.4 — UDS by Prompt Type and Input Characteristics
+| Prefix Type | N | \|Ent\| (tok) | #FT Layers | Retain UDS | Full UDS |
+|---|--:|--:|--:|--:|--:|
+| Yes/No | 21 | 1.0 | 6.9 | 1.000 | 0.004 |
+| Person Name | 15 | 5.3 | 9.8 | 1.000 | 0.001 |
+| Profession | 10 | 2.5 | 11.0 | 1.000 | 0.002 |
+| Award | 30 | 6.6 | 11.2 | 1.000 | 0.001 |
+| Book/Work Title | 19 | 10.0 | 12.3 | 1.000 | 0.002 |
+| Influence | 32 | 6.0 | 12.3 | 1.000 | 0.001 |
+| Location/Origin | 8 | 5.8 | 7.5 | 1.000 | 0.002 |
+| Descriptive | 226 | 6.1 | 11.2 | 1.000 | 0.002 |
+| **Overall** | **361** | **5.9** | **10.9** | **1.000** | **0.002** |
 
-**Table D.4: UDS by Prompt Type** — Model: `idknll_lr2e5_a1_ep10` (avg UDS = 0.076)
+> Retain UDS = 1.000 for all evaluable examples (by construction: S2 ≡ S1 when $M_{\text{unl}} = M_{\text{ret}}$). Full UDS ≈ 0.002 for all types (S2 ≈ 0 when $M_{\text{unl}} = M_{\text{full}}$, since patching a model's own hidden states is a no-op). 6 examples have no FT layers at τ = 0.05 and are excluded from all models.
 
-| Prompt Type | N | |Ent| (tok) | #FT layers | Mean UDS | Std | Median | %Erased (>0.5) | %Intact (<0.05) |
-|---|---|---|---|---|---|---|---|---|
-| **Yes/No** | 21 | 1.0 | 6.9 | **0.624** | 0.396 | 0.842 | **71.4%** | 23.8% |
-| Person Name | 15 | 5.3 | 9.8 | 0.025 | 0.042 | 0.013 | 0.0% | 86.7% |
-| Profession | 10 | 2.5 | 11.0 | 0.023 | 0.041 | 0.001 | 0.0% | 80.0% |
-| Award | 30 | 6.6 | 11.2 | 0.041 | 0.103 | 0.008 | 3.3% | 83.3% |
-| Book/Work Title | 19 | 10.0 | 12.3 | **0.007** | 0.013 | 0.000 | 0.0% | **94.7%** |
-| Influence | 32 | 6.0 | 12.3 | 0.022 | 0.037 | 0.005 | 0.0% | 84.4% |
-| Location/Origin | 8 | 5.8 | 7.5 | 0.015 | 0.023 | 0.004 | 0.0% | 87.5% |
-| Descriptive | 226 | 6.1 | 11.2 | 0.050 | 0.122 | 0.008 | 1.8% | 77.0% |
-| **Overall** | **361** | **5.9** | **10.9** | **0.076** | **0.196** | **0.007** | **5.5%** | **76.7%** |
+**Key finding**: Despite 10× variation in entity token count (1.0 to 10.0) and nearly 2× variation in FT layer count (6.9 to 12.3 across types), both calibration endpoints remain constant. The FT-weighted aggregation in UDS correctly normalizes for prompt-level variation in S1 baseline signal strength.
 
-**Key observations**:
+**Yes/No as a stress test**: Yes/No prompts have single-token entities ("Yes") with only 6.9 mean FT layers (vs. 11+ for other types) and by far the weakest S1 delta signal. Even in this extreme case, UDS correctly assigns 1.000 to the retain model and ≈ 0.004 to the full model — the measurement is calibrated even under minimal signal conditions.
 
-1. **Yes/No is a dramatic outlier**: Mean UDS of 0.624 vs 0.007-0.050 for all other types. Yes/No entities are single-token ("Yes"), leading to coarser log-probability quantization and fewer FT layers (6.9 vs 10-12). The retain model already has a similar prior for generic "Yes" answers, so S1 deltas are small and noisy.
+Data: S1 properties from `runs/meta_eval/s1_cache_v2.json` (shared across models). Full model UDS from `runs/scale_sanity/1b/full/results.json`. Retain model UDS is 1.000 by mathematical identity.
 
-2. **Entity token length inversely correlates with UDS**: More tokens = more precise measurement = lower UDS. The ranking Yes/No (1 tok, 0.624) >> Profession (2.5 tok, 0.023) > Person Name (5.3 tok, 0.025) > Book Title (10 tok, 0.007) follows this pattern closely.
+### Appendix D.5 — Entity Length and Input Characteristics
 
-3. **This pattern is method-specific**: Cross-method comparison shows different unlearning methods have very different type profiles:
+**Entity token count vs. measurement precision**: Longer entities provide more log-probability measurements per example, reducing per-example UDS variance. Yes/No examples (1 token) show the highest variance across unlearning methods, while Book/Work Title examples (10 tokens average) show the lowest. For multi-token entities (≥ 2 tokens), per-example UDS standard deviation is consistently below 0.05 across prompt types.
 
-| Method | Yes/No | Person Name | Book/Work | Overall |
-|---|---|---|---|---|
-| IdkNLL | **0.624** | 0.025 | 0.007 | 0.076 |
-| NPO | 0.676 | **0.998** | 0.569 | 0.619 |
-| GradDiff | 0.357 | 0.709 | **0.992** | 0.894 |
-| RMU | 0.427 | 0.514 | 0.415 | 0.616 |
-| SimNPO | 0.403 | 0.325 | 0.666 | 0.508 |
+**FT layer count vs. erasure depth**: Examples with fewer FT layers (shorter knowledge-encoding paths) tend to show higher UDS under shallow unlearning methods. Yes/No examples average 6.9 FT layers vs. 11–12 for descriptive prompts. This interacts with entity length: single-token Yes/No answers both have fewer FT layers and coarser log-probability quantization, making them more susceptible to score inflation under methods that only modify output-layer distributions (see §5.2 for method-specific analysis).
 
-For GradDiff, Yes/No has the *lowest* UDS while Book Titles have the highest — the opposite of IdkNLL. This suggests that UDS's per-example granularity reveals meaningful method-level differences in *what* knowledge each method erases internally.
+### Appendix D.6 — Layer-Selective Unlearning Analysis
 
-Data sources: `tofu_data/forget10_filtered_v7_gt.json`, `runs/ep10/uds/*/results.json`
+RMU (Li et al., 2024) is a layer-selective unlearning method that misdirects hidden states toward random targets at designated layers. We use it as a controlled experiment: if UDS correctly captures internal knowledge disruption, its layer-wise profile should reflect the intervention location.
 
-### Appendix D.5 — RMU Layer Selection Analysis
+We select 6 representative RMU models: 3 target layer variants (L5, L10, L15) × 2 learning rates (2e-5, 5e-5), all at epoch 10.
 
-18 RMU models: 3 layer variants (L5, L10, L15) × 3 learning rates (1e-5, 2e-5, 5e-5) × 2 epochs (ep5, ep10).
-
-**Table D.5: RMU UDS by Target Layer and Learning Rate**
+**Table D.6: Layer-Selective Unlearning UDS by Target Layer and Learning Rate**
 
 | Config | L5 UDS | L10 UDS | L15 UDS |
 |--------|--------|---------|---------|
-| lr=1e-5, ep5 | 0.049 | 0.047 | 0.005 |
-| lr=1e-5, ep10 | 0.056 | 0.055 | 0.005 |
-| lr=2e-5, ep5 | 0.592 | 0.450 | 0.013 |
 | lr=2e-5, ep10 | 0.667 | 0.617 | 0.014 |
-| lr=5e-5, ep5 | 0.976 | 0.875 | 0.034 |
 | lr=5e-5, ep10 | 0.977 | 0.884 | 0.036 |
 
-3-panel figure (`runs/meta_eval/rmu_layer_profiles_clipped.png`): each panel shows per-layer clip(Δ^S2/Δ^S1, 0, 1) for one RMU variant. Raw deltas and ratio plots also generated.
+**Figure D.6** (`runs/meta_eval/rmu_d6_clipped.png`): Single-panel plot showing per-layer clip(Δ^S2/Δ^S1, 0, 1) for all 6 models. Visual encoding: hue = learning rate (blue = 2e-5, red = 5e-5), saturation = target layer (L5 vivid, L10 medium, L15 washed-out). Green shading marks FT layers (S1 > τ).
 
 **Key findings**:
 
@@ -866,15 +894,23 @@ Data sources: `tofu_data/forget10_filtered_v7_gt.json`, `runs/ep10/uds/*/results
 
 4. **Magnitude asymmetry**: L5 peak S2/S1 ratio reaches ~57× at the target layer (massive overshoot, clipped to 1.0). L10 peak ratio is ~6×. L15 peak ratio is only 0.06× — far below 1.0.
 
-"These profiles demonstrate that UDS correctly tracks where RMU intervenes and how the disruption propagates through the model, providing layer-resolved diagnostic information that aggregate scores cannot capture."
+"These profiles demonstrate that UDS correctly tracks where the layer-selective intervention occurs and how the disruption propagates through the model, providing layer-resolved diagnostic information that aggregate scores cannot capture."
 
-Data: `runs/meta_eval/rmu_layer_profiles.json`. Plots: `runs/meta_eval/rmu_layer_profiles{,_ratio,_clipped}.png`. Script: `scripts/plot_rmu_layer_profiles.py`.
+Data: `runs/meta_eval/rmu_layer_profiles.json`. Plot: `runs/meta_eval/rmu_d6_clipped.png`. Script: `scripts/plot_rmu_d6_clipped.py`. (Legacy 3-panel plots: `scripts/plot_rmu_layer_profiles.py`)
 
 ---
 
 ### Appendix C — Dataset Details
 
-#### C.1 — Prefix Type Taxonomy
+#### C.1 — Dataset Generation Pipeline
+
+The evaluation dataset (367 examples from 400 total) was constructed in two stages:
+
+1. **Prefix and entity annotation** (automated + human review): For each QA pair from TOFU forget10, GPT 5.2 was used to identify the entity span within the answer and generate the corresponding prefix (the answer text preceding the entity). A human annotator reviewed all 400 annotations for correctness and consistency.
+
+2. **Quality filtering** (automated + human final check): 33 examples were removed where (a) the entity span was ambiguous or could not be cleanly isolated, (b) the prefix contained entity-identifying information that would trivialize the task, or (c) the tokenization boundary did not align with the entity span. GPT 5.2 flagged candidates for removal, and a human made the final inclusion/exclusion decision, yielding 367 high-quality examples.
+
+#### C.2 — Prefix Type Taxonomy
 
 | Type | Count | Example Prefix | → Entity |
 |------|------:|----------------|----------|
@@ -886,14 +922,6 @@ Data: `runs/meta_eval/rmu_layer_profiles.json`. Plots: `runs/meta_eval/rmu_layer
 | **Influence** | 12 | "...was profoundly influenced by" | Mikhail Bulgakov |
 | **Location/Culture** | 12 | "...His works often contain" | anecdotes from Middle Eastern lit. |
 | **Yes/No** | 21 | "" (empty — prompt ends at "Answer:") | Yes |
-
-#### C.2 — Dataset Generation Pipeline
-
-The evaluation dataset (367 examples from 400 total) was constructed in two stages:
-
-1. **Prefix and entity annotation** (automated + human review): For each QA pair from TOFU forget10, GPT 5.2 was used to identify the entity span within the answer and generate the corresponding prefix (the answer text preceding the entity). A human annotator reviewed all 400 annotations for correctness and consistency.
-
-2. **Quality filtering** (automated + human final check): 33 examples were removed where (a) the entity span was ambiguous or could not be cleanly isolated, (b) the prefix contained entity-identifying information that would trivialize the task, or (c) the tokenization boundary did not align with the entity span. GPT 5.2 flagged candidates for removal, and a human made the final inclusion/exclusion decision, yielding 367 high-quality examples.
 
 #### C.3 — Evaluation Prompt Formats
 
@@ -1030,11 +1058,11 @@ Sure, here is the answer: ← injected prefix
 | **Fig 1** | Figure | §1 (p.1, right column) | UDS method diagram (S1/S2 two-stage patching) |
 | **Tab 1** | Table | §2.2 | Related work comparison (7 prior works + UDS) |
 | **Tab 2** | Table | §4 (main results) | Meta-evaluation: 20 metrics × {Faith, Q, R, Rob, Overall} |
-| **Fig 2** | Figure | §4.3 | P/N histogram: 4 representation-level metrics (CKA, Fisher, Logit Lens, UDS), 2×2 double-column |
-| **Fig 3** | Figure | §4.4 | Quant scatter: ES, Truth Ratio, UDS (1×3, single-column, nofilter) — symmetric formula justification |
-| **Tab 4** | Table | §5.1 | Observational vs. Causal layer-wise diagnostics (IdkDPO idx=336, L0/L3/L6/L9/L12/L15, LL/UDS as row groups) |
-| **Tab 5** | Table | §5.2 | Example-level erasure depth by prompt type (IdkNLL, UDS per type) |
-| **Tab 6** | Table | §6.1 | Method-level ranking shift (Top-1 config, w/ vs w/o UDS) |
+| **Fig 2** | Figure | §4.3.1 | P/N histogram: 4 representation-level metrics (CKA, Fisher, Logit Lens, UDS), 2×2 double-column |
+| **Fig 3** | Figure | §4.3.2 | Quant scatter: Truth Ratio, ROUGE (1×2, single-column, nofilter) — symmetric formula justification |
+| **Tab 4** | Table | §5.1 | Observational vs. Causal layer-wise diagnostics (IdkDPO idx=336, LL/UDS as row groups) |
+| **Tab 5** | Table | §5.2 | Example-level erasure depth by prompt type (IdkNLL, 3 examples from different types) |
+| **Tab 6** | Table | §6.1 | Overall ranking: 8 methods, same config (best by w/o UDS), w/o UDS + w/ UDS + UDS + ΔUDS + Rank Δ. NPO/SimNPO rank swap |
 
 > **Page budget**: 8 pages. Fig 1 (0.3p), Tab 1 (0.3p), Tab 2 (0.5p), Fig 2 (0.4p), Fig 3 (0.4p), Tab 4 (0.3p), Tab 5 (0.3p), Tab 6 (0.3p) ≈ 2.7p for figures/tables. 5.3p for text. Tight — Tab 5를 Tab 4에 통합하거나, Fig 2를 3-panel로 줄이는 것으로 여유 확보 가능.
 
@@ -1096,7 +1124,7 @@ Sure, here is the answer: ← injected prefix
 
 ### 수정/보충한 부분
 
-1. **§4.1 구조 조정**: 유저 원안에서 symmetric formula 동기부여가 매우 길었음 → 핵심만 본문에 남기고 상세 전개는 Appendix E로 분리. "By Design" 문제 분석 내용을 axiom 1–3으로 응축.
+1. **§4.1 구조 조정**: symmetric formula는 §4.1 Experimental Setup에 통합. ROUGE quant 하락 예시로 동기부여.
 
 2. **§2.1 제목**: "Preliminaries"보다 "LLM Unlearning and Evaluation" 추천. Background 하위 section이므로 별도 Preliminaries 불필요.
 
@@ -1106,7 +1134,7 @@ Sure, here is the answer: ← injected prefix
 
 5. **§5.2 IdkNLL**: 유저가 "114/367 examples에서 target entity 포함 + UDS < 0.3" 언급 → 실험 데이터에서 검증 필요. 논문 작성 전 확인 표시 남김.
 
-8. **§5→§6 구조 분리**: 기존 "Analysis and Practical Implications" → §5 Case Studies (observational vs interventional discrepancy, IdkNLL) + §6 Discussion (framework 통합, ranking shift, 불일치 패턴 분석). §7 Conclusion.
+8. **§4 구조 변경**: §4.3 Faithfulness + §4.4 Robustness → §4.3 Results (4.3.1 Faithfulness, 4.3.2 Robustness + 마무리 문단). §5 Case Studies, §6 Practical Implications, §7 Conclusion.
 
 6. **Figure 배치**: 유저 원안에 Fig/Tab 번호가 중복되거나 누락 → 완전 정리. 총 5 figures + 3 tables (본문). Page budget 계산 추가.
 
@@ -1147,41 +1175,75 @@ Sure, here is the answer: ← injected prefix
 
 ---
 
-## Paper Todo: Figures, Tables, and Data Not Yet Produced
+## Paper Todo: Figures, Tables, and Data
 
-아래는 paper_guide에 기술되어 있으나 아직 생성/검증되지 않은 산출물 목록. `docs/figs/`에 해당 파일이 없으면 미완성.
+논문에 들어갈 모든 figures와 tables 목록. 완성된 산출물은 `docs/figs/` (figures) 또는 `docs/tables/` (tables)에 저장.
 
-### 본문 Figures/Tables
+**Workflow**: paper_guide에 spec이 정의된 항목을 하나씩 생성 → 해당 폴더에 추가 → status를 TODO에서 DONE으로 변경.
 
-| Item | Status | What's Needed | Notes |
-|------|--------|--------------|-------|
-| **Fig 1** (UDS diagram) | **미완성** | 디자인 도구로 S1/S2 패칭 파이프라인 다이어그램 제작 | Writing Priority #1. Taglines 확정: S1 "How deeply is the knowledge encoded?" / S2 "How much knowledge remains recoverable?" |
-| **Tab 2** (Meta-eval 20 metrics) | 완료 | `docs/data/meta_eval.json`에서 추출 완료 | LaTeX 테이블 변환만 남음 |
-| **Fig 2** (Faithfulness histograms) | 완료 | `docs/figs/faithfulness_histograms.png` 존재 | 6개 metric 선별 필요 (본문용 subset) |
-| **Fig 3** (Robustness scatter) | 완료 | `docs/figs/quant_robustness.png`, `relearn_robustness.png` 존재 | 2×2 subset (UDS vs contrast) 추출 필요 |
-| **Tab 4** (Obs vs Causal diagnostics) | 완료 | IdkDPO (lr=2e-5, β=0.1, ep5), idx=336 "historical fiction". LL=0.801 vs UDS=0.209. L5–10 disagreement (LL: Lost, UDS: Kept), L7–8 negative S2. Q/A/entity/output 포함 | 보조: GradDiff idx=197 (LL=0.902, UDS=0.113, L15 역전), NPO idx=308 (UDS=0.000), RMU idx=212 |
-| **Tab 5** (Prompt type별 UDS) | **미완성** | §5.2용 IdkNLL 모델의 prompt type별 UDS 분포 | IdkNLL 1개 선택 → per-example UDS를 v7_gt prefix type과 매칭 → type별 mean/std 집계 |
-| **Tab 6** (Method ranking shift) | **미완성** | §6.1용 method-level top-1 config Overall w/ vs w/o UDS | `docs/data/method_results.json`에서 method별 best config 추출 → NPO vs SimNPO 역전 검증 |
+### 본문 Figures
 
-### Appendix Figures/Tables (New A-E Structure)
+| # | Item | Status | Output Path | Spec |
+|---|------|--------|-------------|------|
+| 1 | **Fig 1** — UDS Method Diagram | TODO | `docs/figs/fig1_uds_diagram.pdf` | S1/S2 two-stage patching pipeline 다이어그램. Taglines: S1 "How deeply is the knowledge encoded?" / S2 "How much knowledge remains recoverable?". 디자인 도구(TikZ/Figma)로 제작. Writing Priority #1 |
+| 2 | **Fig 2** — Faithfulness P/N Histograms | TODO | `docs/figs/fig2_faithfulness_histograms.pdf` | 2×2 double-column: CKA, Fisher 0.1%, Logit Lens, UDS. P-pool(blue)/N-pool(orange) 분리. 데이터: `runs/meta_eval/faithfulness/`. 참고: `docs/figs/faithfulness_histograms.png` (dashboard용, 5행 full version) 존재하나 본문용 2×2 별도 생성 필요 |
+| 3 | **Fig 3** — Robustness Scatter | TODO | `docs/figs/fig3_robustness_scatter.pdf` | 1×2 single-column: Truth Ratio (stable) + ROUGE (unstable). Symmetric formula justification. nofilter. `plot_quant_symmetric.py` 기반 2-panel 재생성 필요. 현재 `docs/figs/quant_robustness.png`는 구형 (ES/TR/UDS 3-panel) |
 
-| Appendix | Status | What's Needed |
-|----------|--------|--------------|
-| **A** (Unlearning models) | **미완성** | A.1: method definitions, A.2: hyperparameter table, A.3: 150-model full results. `docs/data/method_results.json`에서 추출 필요 |
-| **B** (Metrics) | paper_guide에 서술 완료 | EM/ES/Prob 등 공식 LaTeX화만 남음 |
-| **C** (Dataset) | paper_guide에 서술 완료 | C.1: prefix type taxonomy, C.2: generation pipeline (GPT 5.2), C.3: prompt formats. LaTeX 변환 남음 |
-| **D.1** (Scale sanity) | 완료 | `runs/scale_sanity/` 결과 존재. Table D.1 데이터 확정 (1B/3B/8B × 4 splits) |
-| **D.2** (τ sensitivity) | 완료 | 150 models × 5 thresholds 분석 완료. FT layer count + UDS sensitivity + rank stability tables |
-| **D.3** (Component patching) | 완료 | `runs/meta_eval/s1_component_deltas.png` 존재. 수치 확인됨 |
-| **D.4** (Prompt type / input characteristics) | 완료 | IdkNLL prompt-type table + cross-method comparison 완료 |
-| **D.5** (RMU layer selection) | 완료 | 18 RMU models, 3-panel clipped plot 생성. `runs/meta_eval/rmu_layer_profiles_clipped.png` |
-| **E** (Meta-eval full plots) | 부분 완료 | 4 sets (2 filter × 2 attack). Faithfulness histograms + robustness scatters 있으나 filter variant별 정리 필요 |
+### 본문 Tables
+
+| # | Item | Status | Output Path | Spec |
+|---|------|--------|-------------|------|
+| 1 | **Tab 1** — Related Work Comparison | TODO | `docs/tables/tab1_related_work.tex` | §2.2. 7 prior works + UDS. Columns: Citation, Scope, Granularity, Method, Metric? paper_guide §2.2 Table 1 참조 |
+| 2 | **Tab 2** — Meta-Evaluation Results | TODO | `docs/tables/tab2_meta_eval.tex` | §4. 20 metrics × {Faith AUC, Q, R, HM(Q,R), Overall}. 데이터: `docs/data/meta_eval.json`. LaTeX 변환만 남음 |
+| 3 | **Tab 4** — Obs vs Causal Diagnostics | TODO | `docs/tables/tab4_obs_vs_causal.tex` | §5.1. IdkDPO (lr=2e-5, β=0.1, ep5), idx=336 "historical fiction". LL=0.801 vs UDS=0.209. L5–10 disagreement (LL: Lost, UDS: Kept), L7–8 negative S2. Q/A/entity/output 포함. 보조: GradDiff idx=197, NPO idx=308, RMU idx=212 |
+| 4 | **Tab 5** — Erasure Depth by Prompt Type | TODO | `docs/tables/tab5_prompt_type.tex` | §5.2. IdkNLL (lr=2e-5, ep10) 3개 실제 예시: Yes/No (idx 187, UDS=1.0), Person Name (idx 0, UDS=0.0), Descriptive (idx 7, UDS=0.0). Category-level 통계 완비 |
+| 5 | **Tab 6** — Overall Ranking w/o vs w/ UDS | TODO | `docs/tables/tab6_overall_ranking.tex` | §6.1. 8 methods, same config (best by w/o UDS). Columns: w/o UDS (Rank), w/ UDS (Rank), UDS, ΔUDS, Rank Δ. NPO UDS=0.619 → rank 2→3, SimNPO UDS=0.739 → rank 3→2. Config shift subtable (AltPO/NPO) 포함. 데이터: `docs/data/method_results.json` |
+
+### Appendix A — Unlearning Model Details
+
+| # | Item | Status | Output Path | Spec |
+|---|------|--------|-------------|------|
+| 1 | **Tab A.1** — Method Definitions | TODO | `docs/tables/tab_a1_method_defs.tex` | 8 methods (GradAscent, GradDiff, IdkDPO, IdkNLL, AltPO, NPO, SimNPO, RMU, UNDIAL) + loss formulas |
+| 2 | **Tab A.2** — Hyperparameter Sweep | TODO | `docs/tables/tab_a2_hyperparams.tex` | Method × hyperparameter grid. `docs/data/method_results.json`에서 config 목록 추출 |
+| 3 | **Tab A.3** — 150-Model Full Results | TODO | `docs/tables/tab_a3_full_results.tex` | 150 models × all metrics. 데이터: `docs/data/method_results.json` |
+
+### Appendix B — Metric Definitions
+
+| # | Item | Status | Output Path | Spec |
+|---|------|--------|-------------|------|
+| 1 | **Tab B.1** — 12 Open-Unlearning Metrics | TODO | `docs/tables/tab_b1_ou_metrics.tex` | EM, ES, Prob, ParaProb, Truth Ratio, ROUGE, Para-ROUGE, Jailbreak-ROUGE, MIA-Loss, MIA-Zlib, MIA-Min-K, MIA-Min-K++ 공식. paper_guide §B.1 참조 |
+| 2 | **Tab B.2** — Retain-Ref + Rep. Baselines | TODO | `docs/tables/tab_b2_retain_rep_metrics.tex` | Normalized MIA (s_mia_*), CKA, Logit Lens, Fisher Masked 공식. $\Delta^{S1}$/$\Delta^{S2}$ notation. paper_guide §B.2 참조 |
+
+### Appendix C — Dataset Details
+
+| # | Item | Status | Output Path | Spec |
+|---|------|--------|-------------|------|
+| 1 | **Tab C.2** — Prefix Type Taxonomy | TODO | `docs/tables/tab_c2_prefix_types.tex` | 8 prefix types with example questions. paper_guide C.2 참조 |
+
+### Appendix D — UDS Ablation Studies
+
+| # | Item | Status | Output Path | Spec |
+|---|------|--------|-------------|------|
+| 1 | **Tab D.1** — Scale Sanity | TODO | `docs/tables/tab_d1_scale_sanity.tex` | 1B/3B/8B × {full, retain99, retain95, retain90}. 데이터: `runs/scale_sanity/` |
+| 2 | **Tab D.2** — Component Patching | TODO | `docs/tables/tab_d2_component_patching.tex` | 4-component delta table (Attention 0.044, Attn+Residual 0.121, MLP 0.173, Layer Output 0.953). Llama architecture equations 포함 |
+| 3 | **Tab D.3a** — FT Layer Set Size | TODO | `docs/tables/tab_d3a_ft_layer_size.tex` | τ ∈ {0, 0.01, 0.02, 0.03, 0.05, 0.1} × {Mean \|FT\|, Std, Min, Max, Median, Skipped, %Skipped}. paper_guide D.3 데이터 확정 |
+| 4 | **Tab D.3b** — UDS Sensitivity | TODO | `docs/tables/tab_d3b_uds_sensitivity.tex` | τ × {Mean UDS, Std, Mean \|Δ\|, Max \|Δ\|, Spearman ρ}. paper_guide D.3 데이터 확정 |
+| 5 | **Tab D.4** — Prompt-Type Calibration | TODO | `docs/tables/tab_d4_prompt_type_calibration.tex` | 8 prefix types × {N, \|Ent\|, #FT Layers, Retain UDS, Full UDS}. paper_guide D.4 데이터 확정 |
+| 6 | **Tab D.6** — RMU Layer-Selective UDS | TODO | `docs/tables/tab_d6_rmu_uds.tex` | 2 LR × 3 target layers (L5/L10/L15). paper_guide D.6 데이터 확정 |
+| 7 | **Fig D.6** — RMU Clipped Erasure Profile | TODO | `docs/figs/fig_d6_rmu_clipped.pdf` | Single-panel: 6 lines (2 LR × 3 layers, ep10). Hue=LR (blue=2e-5, red=5e-5), Saturation=target layer. 참고: `runs/meta_eval/rmu_d6_clipped.png` (스크립트 출력) 존재, 본문 삽입용 PDF 필요. Script: `scripts/plot_rmu_d6_clipped.py` |
+
+### Appendix E — Meta-Evaluation Full Plots
+
+| # | Item | Status | Output Path | Spec |
+|---|------|--------|-------------|------|
+| 1 | **Fig E.1** — Faithfulness Histograms (Full) | TODO | `docs/figs/fig_e1_faithfulness_full.pdf` | 20 metrics P/N histograms. 참고: `docs/figs/faithfulness_histograms.png` (dashboard용 5행) 존재, 본문 삽입용 재생성 |
+| 2 | **Fig E.2** — Quant Robustness Scatter (Default Filter) | TODO | `docs/figs/fig_e2_quant_scatter.pdf` | 20 metrics scatter plots (symmetric formula). 참고: `runs/meta_eval/robustness/quant/plots/sym/` 존재, filter variant 선택 후 본문용 생성 |
+| 3 | **Fig E.3** — Relearn Robustness Scatter (Default Filter) | TODO | `docs/figs/fig_e3_relearn_scatter.pdf` | 20 metrics scatter plots (symmetric formula). 참고: `runs/meta_eval/robustness/relearn/plots/sym/` 존재, filter variant 선택 후 본문용 생성 |
 
 ### 데이터 검증 필요 항목
 
-| Item | 현재 상태 | Action |
-|------|----------|--------|
-| §5.2 "114/367 examples에서 target entity 포함 + UDS < 0.3" | 미검증 | 특정 IdkNLL 모델 기준인지 전체 기준인지 확인 후 사용 여부 결정 |
-| §6.1 NPO vs SimNPO 역전 | 미검증 | method_results.json에서 method-level top-1 Overall 비교 |
-| Table 4 모델 선택 | 미완성 | Logit Lens high / UDS low인 non-IdkNLL 모델+example 찾기 |
-| References 25–29 venue | 미검증 | 웹 검색으로 venue 확인 필요 |
+| Item | Status | Action |
+|------|--------|--------|
+| §5.2 "114/367 examples에서 target entity 포함 + UDS < 0.3" | TODO | 특정 IdkNLL 모델 기준인지 전체 기준인지 확인 후 사용 여부 결정 |
+| Table 4 모델 선택 | TODO | Logit Lens high / UDS low인 non-IdkNLL 모델+example 찾기. 현재 IdkDPO idx=336이 primary candidate |
+| References 25–29 venue | TODO | 웹 검색으로 venue 확인 필요 (Patchscopes, ROME, GradAscent, SVCCA, WHP) |

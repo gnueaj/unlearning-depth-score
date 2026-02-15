@@ -315,6 +315,7 @@ Q = min(before / after, 1)                                 # Quantization
 - `undial_lr3e4_b10_a5_ep5` UDS bug: metrics_before에서 uds=0으로 기록됨 → 0.8708로 post-hoc 패치 완료
 
 ## Operational Notes
+- **Figure 글씨체는 Roboto** — `scripts/plot_style.py`의 `apply_style()` 사용. `font-roboto` 패키지 필요 (`pip install font-roboto`). LaTeX(`text.usetex`) 비활성화, `mathtext.fontset=dejavusans`.
 - **절대 CUDA_VISIBLE_DEVICES 환경변수 사용하지 말 것** → 스크립트의 `--gpu` 인자 사용
 - **장시간 실험은 반드시 `nohup`으로 실행** → 터미널 끊어져도 프로세스 유지
 - Use `--resume` paths for interrupted long runs.
