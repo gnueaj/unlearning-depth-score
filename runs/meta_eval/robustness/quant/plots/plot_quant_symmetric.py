@@ -132,6 +132,8 @@ def parse_args():
                         help="(Deprecated) No longer used; truth_ratio always gets tight axes.")
     parser.add_argument("--utility_only", action="store_true",
                         help="Filter by utility_rel >= 0.8 only.")
+    parser.add_argument("--faithfulness_only", action="store_true",
+                        help="Filter by faithfulness threshold only (no utility filter).")
     parser.add_argument("--lr_filter", type=str, default=None,
                         help="Filter to specific learning rate. Implies utility filter.")
     return parser.parse_args()
@@ -189,7 +191,39 @@ def main():
 
     # --- Filtering ---
     utility_models = None
-    if args.lr_filter or args.utility_only:
+    if args.faithfulness_only:
+        # Apply only faithfulness threshold per-metric (no utility filter)
+        usable_path_f = base / 'runs/meta_eval/robustness/usable_models.json'
+        with open(usable_path_f) as f:
+            usable_meta = json.load(f)
+        thresholds = usable_meta['criteria']['metric_threshold_filter']['thresholds']
+        usable_per_metric = {}
+        for metric in metrics:
+            usable_key = usable_key_map.get(metric, metric)
+            t_info = thresholds.get(usable_key)
+            if t_info is None:
+                usable_per_metric[usable_key] = sorted(quant_models)
+                continue
+            t_val = t_info['threshold']
+            passed = []
+            for model_name in sorted(quant_models):
+                mb = quant_data[model_name].get('metrics_before', {})
+                val = get_metric_val(mb, metric)
+                if val is None:
+                    continue
+                if usable_key == 'uds':
+                    # threshold in (1-UDS) space; pass if UDS >= (1-threshold)
+                    if val >= (1.0 - t_val):
+                        passed.append(model_name)
+                elif t_info.get('direction') == 'pass_if_ge':
+                    if val >= t_val:
+                        passed.append(model_name)
+                else:
+                    # default: pass if value <= threshold
+                    if val <= t_val:
+                        passed.append(model_name)
+            usable_per_metric[usable_key] = passed
+    elif args.lr_filter or args.utility_only:
         mr_path = base / 'docs/data/method_results.json'
         with open(mr_path) as f:
             mr_data = json.load(f)
@@ -267,7 +301,27 @@ def main():
             print(f"{metric:20s}: SKIP (no retain data)")
             continue
 
-        if args.lr_filter or args.utility_only:
+        if args.faithfulness_only:
+            # Apply faithfulness threshold for rep baselines
+            t_info = thresholds.get(metric)
+            if t_info is not None:
+                t_val = t_info['threshold']
+                usable_set = set()
+                for model_name in rep_models:
+                    md = rep_data.get(model_name, {})
+                    bv_raw = md.get(bkey)
+                    if bv_raw is None:
+                        continue
+                    direction = t_info.get('direction', 'pass_if_le')
+                    if direction == 'pass_if_ge':
+                        if bv_raw >= t_val:
+                            usable_set.add(model_name)
+                    else:
+                        if bv_raw <= t_val:
+                            usable_set.add(model_name)
+            else:
+                usable_set = rep_models
+        elif args.lr_filter or args.utility_only:
             usable_set = (utility_models & rep_models) if utility_models else rep_models
         elif args.no_filter:
             usable_set = rep_models
@@ -319,6 +373,12 @@ def main():
         filter_label = f'Utility + LR={args.lr_filter} Filtered'
         if not args.out_tag:
             args.out_tag = f'lr{args.lr_filter}'
+    elif args.faithfulness_only:
+        results_name = 'quant_sym_results.json'
+        plot_name = 'quant_sym.png'
+        filter_label = 'Faithfulness Filtered'
+        if not args.out_tag:
+            args.out_tag = 'faithfulness_only'
     elif args.utility_only:
         results_name = 'quant_sym_results.json'
         plot_name = 'quant_sym.png'

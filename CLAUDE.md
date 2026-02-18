@@ -88,16 +88,22 @@ Each stage patches hidden states from source model into full model at layer `l`,
 - **Scope**: Entity span only (e.g., "doctor" in "X is a doctor")
 - **Metric**: Mean log-probability of entity tokens
 
-### Delta and FT Layers
+### Delta and KG Layers
 ```
 Δ_l = logprob_full - logprob_patched
-FT_layers = { l : Δ^S1_l > τ }     (τ = 0.05)
+KG_layers = { l : Δ^S1_l > τ }     (τ = 0.05)
 ```
-FT layers = where retain model lacks knowledge the full model has.
+KG layers = where retain model lacks knowledge the full model has.
+
+### Layer Erasure Ratio (LER)
+```
+LER_{i,l} = clip(Δ^S2_l / Δ^S1_l, 0, 1)
+```
+LER = 1: erasure at layer l matches retain (erased). LER = 0: knowledge intact.
 
 ### UDS Formula
 ```
-UDS_i = Σ_{l∈FT} [ Δ^S1_l × clip(Δ^S2_l / Δ^S1_l, 0, 1) ] / Σ_{l∈FT} Δ^S1_l
+UDS_i = Σ_{l∈KG} [ Δ^S1_l × LER_{i,l} ] / Σ_{l∈KG} Δ^S1_l
 ```
 
 ### Interpretation
@@ -137,9 +143,9 @@ Anchor data: `runs/meta_eval/representation_baselines/anchor/anchor_cache.json`
   ```
   k_{m,l} = mean logprob of entity tokens when decoding H^l_m through full's decoder
   d_{m,l} = k_{full,l} - k_{m,l}      # knowledge gap at layer l
-  score = Σ_{l∈FT} [Δ^S1_l · clip(d_{m,l} / d_{S1,l}, 0, 1)] / Σ_{l∈FT} Δ^S1_l
+  score = Σ_{l∈KG} [Δ^S1_l · clip(d_{m,l} / d_{S1,l}, 0, 1)] / Σ_{l∈KG} Δ^S1_l
   ```
-- **Parameters**: τ = 0.05 (FT layer threshold, same as UDS), 367 examples (entity-span teacher forcing)
+- **Parameters**: τ = 0.05 (KG layer threshold, same as UDS), 367 examples (entity-span teacher forcing)
 - **Key implementation detail**: Last layer of `output_hidden_states` has the source model's RMSNorm baked in (post-final-norm). Fix: forward hook on `model.model.norm` captures pre-norm input for last layer. All other layers from `output_hidden_states[l+1]` are pre-norm and safe.
 - **Interpretation**: Same as UDS (1.0 = erased, 0.0 = intact), but uses frozen decoder instead of activation patching
 - **Faithfulness AUC**: 0.927

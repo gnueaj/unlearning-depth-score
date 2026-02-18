@@ -1,0 +1,42 @@
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{times}
+\usepackage{booktabs}
+\usepackage{pifont}
+\usepackage[table]{xcolor}
+\usepackage{array}
+\usepackage{adjustbox}
+
+\newcommand{\yes}{\textcolor{green!50!black}{\ding{51}}}
+\newcommand{\no}{\textcolor{red!40!black}{\ding{55}}}
+\newcommand{\pmark}{\textcolor{orange!70!black}{$\triangle$\textsuperscript{\dag}}}
+
+\begin{document}
+\begin{table}[h]
+\centering
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Work} & \textbf{Score} & \textbf{Causal} & \textbf{Train-Free} & \textbf{Data-Inv} \\
+\midrule
+Lynch et al.~(2024) & \no & \no & \no & \pmark \\
+Guo et al.~(2025) & \no & \pmark & \no & \no \\
+Hong et al.~(2025) & \no & \pmark & \yes & \no \\
+Patil et al.~(2024) & \no & \no & \yes & \yes \\
+Hong et al.~(2024a) & \yes & \yes & \yes & \no \\
+\midrule
+\textbf{UDS (Ours)} & \yes & \yes & \yes & \yes \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+
+\vspace{5pt}
+\caption{Comparison of white-box unlearning analysis.
+\textbf{Score}: proposes a metric quantifying retained knowledge.
+\textbf{Causal}: controlled internal intervention (\pmark{} = causal localization but observational assessment).
+\textbf{Train-Free}: no auxiliary training.
+\textbf{Data-Inv}: applicable to new forget sets without dataset-specific adaptation (\pmark{} = general approach but requires retraining probes).
+}
+\label{tab:related-work}
+\end{table}
+\end{document}

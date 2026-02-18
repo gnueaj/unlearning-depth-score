@@ -145,6 +145,8 @@ def parse_args():
                         help="(Deprecated) No longer used; truth_ratio always gets tight axes.")
     parser.add_argument("--utility_only", action="store_true",
                         help="Filter by utility_rel >= 0.8 only.")
+    parser.add_argument("--faithfulness_only", action="store_true",
+                        help="Filter by faithfulness threshold only (no utility filter).")
     parser.add_argument("--before_filter", action="store_true",
                         help="Utility + geometric: before_knowledge < 1.0 - retain_shift.")
     return parser.parse_args()
@@ -201,7 +203,38 @@ def main():
 
     # --- Filtering ---
     utility_models = None
-    if args.utility_only or args.before_filter:
+    thresholds = None
+    if args.faithfulness_only:
+        # Apply only faithfulness threshold per-metric (no utility filter)
+        usable_path_f = base / 'runs/meta_eval/robustness/usable_models.json'
+        with open(usable_path_f) as f:
+            usable_meta = json.load(f)
+        thresholds = usable_meta['criteria']['metric_threshold_filter']['thresholds']
+        usable_per_metric = {}
+        for metric in metrics:
+            usable_key = usable_key_map.get(metric, metric)
+            t_info = thresholds.get(usable_key)
+            if t_info is None:
+                usable_per_metric[usable_key] = sorted(relearn_models)
+                continue
+            t_val = t_info['threshold']
+            passed = []
+            for model_name in sorted(relearn_models):
+                mb = relearn_data[model_name].get('metrics_before', {})
+                val = get_metric_val(mb, metric)
+                if val is None:
+                    continue
+                if usable_key == 'uds':
+                    if val >= (1.0 - t_val):
+                        passed.append(model_name)
+                elif t_info.get('direction') == 'pass_if_ge':
+                    if val >= t_val:
+                        passed.append(model_name)
+                else:
+                    if val <= t_val:
+                        passed.append(model_name)
+            usable_per_metric[usable_key] = passed
+    elif args.utility_only or args.before_filter:
         mr_path = base / 'docs/data/method_results.json'
         with open(mr_path) as f:
             mr_data = json.load(f)
@@ -307,7 +340,27 @@ def main():
         rb, ra = 1.0 - rb_raw, 1.0 - ra_raw
         retain_shift = ra - rb
 
-        if args.utility_only or args.before_filter:
+        if args.faithfulness_only:
+            # Apply faithfulness threshold for rep baselines
+            t_info = thresholds.get(metric) if thresholds else None
+            if t_info is not None:
+                t_val = t_info['threshold']
+                usable_set = set()
+                for model_name in rep_models:
+                    md = rep_data.get(model_name, {})
+                    bv_raw = md.get(bkey)
+                    if bv_raw is None:
+                        continue
+                    direction = t_info.get('direction', 'pass_if_le')
+                    if direction == 'pass_if_ge':
+                        if bv_raw >= t_val:
+                            usable_set.add(model_name)
+                    else:
+                        if bv_raw <= t_val:
+                            usable_set.add(model_name)
+            else:
+                usable_set = rep_models
+        elif args.utility_only or args.before_filter:
             usable_set = (utility_models & rep_models) if utility_models else rep_models
         elif args.no_filter:
             usable_set = rep_models
@@ -372,6 +425,12 @@ def main():
         filter_label = 'Utility + Before-Value Filtered'
         if not args.out_tag:
             args.out_tag = 'before_filter'
+    elif args.faithfulness_only:
+        results_name = 'relearn_sym_results.json'
+        plot_name = 'relearn_sym.png'
+        filter_label = 'Faithfulness Filtered'
+        if not args.out_tag:
+            args.out_tag = 'faithfulness_only'
     elif args.utility_only:
         results_name = 'relearn_sym_results.json'
         plot_name = 'relearn_sym.png'

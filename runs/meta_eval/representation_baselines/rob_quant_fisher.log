@@ -1,0 +1,462 @@
+logit_lens quant done, starting fisher quant...
+Methods: ['fisher_masked']
+Output: runs/meta_eval/representation_baselines
+Attention: sdpa
+
+[Setup] Loading tokenizer and data...
+  Data: 367 examples
+  Contexts: 367 (after entity span filtering)
+
+[Setup] Loading full model...
+  Loaded hidden_full from runs/meta_eval/representation_baselines/anchor/hidden_cache/hidden_full.pt
+  Loaded hidden_ret from runs/meta_eval/representation_baselines/anchor/hidden_cache/hidden_ret.pt
+  Loaded Fisher mask from runs/meta_eval/representation_baselines/anchor/fisher_mask.pt
+
+[Robustness Quant] 151 models, methods=['fisher_masked'] (clear_cache=False)
+
+[1/151] retain
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[2/151] altpo_lr1e5_b01_a1_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[3/151] altpo_lr1e5_b01_a2_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[4/151] altpo_lr1e5_b01_a5_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[5/151] altpo_lr2e5_b01_a1_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[6/151] altpo_lr2e5_b01_a2_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 6277785 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 6277785 is out of bounds for dimension 0 with size 4096
+
+[7/151] altpo_lr2e5_b01_a5_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[8/151] altpo_lr5e5_b01_a1_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[9/151] altpo_lr5e5_b01_a2_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[10/151] altpo_lr5e5_b01_a5_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[11/151] altpo_lr1e5_b01_a1_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[12/151] altpo_lr1e5_b01_a2_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 6277785 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 6277785 is out of bounds for dimension 0 with size 4096
+
+[13/151] altpo_lr1e5_b01_a5_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[14/151] altpo_lr2e5_b01_a1_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[15/151] altpo_lr2e5_b01_a2_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[16/151] altpo_lr2e5_b01_a5_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 6277785 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 6277785 is out of bounds for dimension 0 with size 4096
+
+[17/151] altpo_lr5e5_b01_a1_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[18/151] altpo_lr5e5_b01_a2_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[19/151] altpo_lr5e5_b01_a5_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 6277785 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 6277785 is out of bounds for dimension 0 with size 4096
+
+[20/151] graddiff_lr1e5_a1_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[21/151] graddiff_lr1e5_a2_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[22/151] graddiff_lr1e5_a5_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[23/151] graddiff_lr2e5_a1_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[24/151] graddiff_lr2e5_a2_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[25/151] graddiff_lr2e5_a5_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[26/151] graddiff_lr5e5_a1_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[27/151] graddiff_lr5e5_a2_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[28/151] graddiff_lr5e5_a5_ep5
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[29/151] graddiff_lr1e5_a1_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[30/151] graddiff_lr1e5_a2_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[31/151] graddiff_lr1e5_a5_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[32/151] graddiff_lr2e5_a1_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 6277785 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 6277785 is out of bounds for dimension 0 with size 4096
+
+[33/151] graddiff_lr2e5_a2_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5360051 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5360051 is out of bounds for dimension 0 with size 4096
+
+[34/151] graddiff_lr2e5_a5_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...
+  ERROR: index 5312592 is out of bounds for dimension 0 with size 4096
+Traceback (most recent call last):
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 1870, in main
+    res = compute_fisher_masked_scores(fisher_raw_q, anchor_cache["fisher_mask"], f)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jaeung/activation-patching-unlearning/scripts/compute_representation_baselines.py", line 664, in compute_fisher_masked_scores
+    unl_at_m = f_unl[indices.long()].mean().item()
+               ~~~~~^^^^^^^^^^^^^^^^
+IndexError: index 5312592 is out of bounds for dimension 0 with size 4096
+
+[35/151] graddiff_lr5e5_a1_ep10
+  Loading quantized model (NF4)...
+  Computing Fisher Masked (quantized)...

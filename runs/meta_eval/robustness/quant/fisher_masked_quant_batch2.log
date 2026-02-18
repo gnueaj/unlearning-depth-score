@@ -1,0 +1,544 @@
+Methods: ['fisher_masked']
+Output: runs/meta_eval/representation_baselines
+Attention: sdpa
+
+[Setup] Loading tokenizer and data...
+  Data: 367 examples
+  Contexts: 367 (after entity span filtering)
+
+[Setup] Loading full model...
+  Loaded hidden_full from runs/meta_eval/representation_baselines/anchor/hidden_cache/hidden_full.pt
+  Loaded hidden_ret from runs/meta_eval/representation_baselines/anchor/hidden_cache/hidden_ret.pt
+  Loaded Fisher mask from runs/meta_eval/representation_baselines/anchor/fisher_mask.pt
+
+[Robustness Quant] 75 models, methods=['fisher_masked'] (clear_cache=False)
+
+[1/75] npo_lr2e5_b01_a1_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+  fisher_masked_0.0001: 0.2323->0.2851 | fisher_masked_0.001: 0.2312->0.2847 | fisher_masked_0.01: 0.2327->0.2889 (417.1s)
+
+[2/75] npo_lr2e5_b01_a2_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.4977->0.5884 | fisher_masked_0.001: 0.4955->0.5851 | fisher_masked_0.01: 0.4925->0.5888 (127.5s)
+
+[3/75] npo_lr2e5_b01_a5_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.9990->0.9995 | fisher_masked_0.001: 0.9988->0.9995 | fisher_masked_0.01: 0.9995->1.0000 (180.2s)
+
+[4/75] npo_lr5e5_b01_a1_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.4197->0.4800 | fisher_masked_0.001: 0.4172->0.4773 | fisher_masked_0.01: 0.4212->0.4868 (468.2s)
+
+[5/75] npo_lr5e5_b01_a2_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.5329->0.6527 | fisher_masked_0.001: 0.5227->0.6474 | fisher_masked_0.01: 0.5255->0.6554 (190.4s)
+
+[6/75] npo_lr5e5_b01_a5_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.7786->0.9340 | fisher_masked_0.001: 0.7749->0.9319 | fisher_masked_0.01: 0.7851->0.9431 (183.2s)
+
+[7/75] npo_lr1e5_b01_a1_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0302->0.0520 | fisher_masked_0.001: 0.0313->0.0545 | fisher_masked_0.01: 0.0341->0.0594 (313.9s)
+
+[8/75] npo_lr1e5_b01_a2_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0582->0.0938 | fisher_masked_0.001: 0.0584->0.0958 | fisher_masked_0.01: 0.0610->0.1003 (305.2s)
+
+[9/75] npo_lr1e5_b01_a5_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.3057->0.2512 | fisher_masked_0.001: 0.3030->0.2512 | fisher_masked_0.01: 0.3029->0.2541 (652.2s)
+
+[10/75] npo_lr2e5_b01_a1_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.3035->0.3318 | fisher_masked_0.001: 0.3029->0.3311 | fisher_masked_0.01: 0.3025->0.3352 (122.6s)
+
+[11/75] npo_lr2e5_b01_a2_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.6090->0.6679 | fisher_masked_0.001: 0.6024->0.6636 | fisher_masked_0.01: 0.5987->0.6679 (208.0s)
+
+[12/75] npo_lr2e5_b01_a5_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.9995->0.9997 | fisher_masked_0.001: 0.9995->0.9998 | fisher_masked_0.01: 1.0000->1.0000 (265.8s)
+
+[13/75] npo_lr5e5_b01_a1_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.5059->0.6074 | fisher_masked_0.001: 0.5028->0.6043 | fisher_masked_0.01: 0.5063->0.6152 (214.2s)
+
+[14/75] npo_lr5e5_b01_a2_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.7329->0.8585 | fisher_masked_0.001: 0.7219->0.8495 | fisher_masked_0.01: 0.7196->0.8574 (90.8s)
+
+[15/75] npo_lr5e5_b01_a5_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.9229->0.9960 | fisher_masked_0.001: 0.9202->0.9934 | fisher_masked_0.01: 0.9247->0.9952 (894.2s)
+
+[16/75] rmu_lr1e5_l5_s10_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.1143->0.9615 | fisher_masked_0.001: 0.1129->0.9392 | fisher_masked_0.01: 0.1119->0.9134 (461.4s)
+
+[17/75] rmu_lr1e5_l10_s10_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0917->0.5755 | fisher_masked_0.001: 0.0902->0.5734 | fisher_masked_0.01: 0.0893->0.5774 (196.0s)
+
+[18/75] rmu_lr1e5_l15_s10_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0208->0.3509 | fisher_masked_0.001: 0.0194->0.3495 | fisher_masked_0.01: 0.0191->0.3522 (263.5s)
+
+[19/75] rmu_lr2e5_l5_s10_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.9995->1.0000 | fisher_masked_0.001: 0.9988->1.0000 | fisher_masked_0.01: 0.9981->1.0000 (113.3s)
+
+[20/75] rmu_lr2e5_l10_s10_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.9901->1.0000 | fisher_masked_0.001: 0.9860->1.0000 | fisher_masked_0.01: 0.9812->1.0000 (155.1s)
+
+[21/75] rmu_lr2e5_l15_s10_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0561->0.3848 | fisher_masked_0.001: 0.0561->0.3830 | fisher_masked_0.01: 0.0552->0.3852 (315.2s)
+
+[22/75] rmu_lr5e5_l5_s10_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.9912->0.9922 | fisher_masked_0.001: 0.9965->0.9998 | fisher_masked_0.01: 1.0000->1.0000 (1069.2s)
+
+[23/75] rmu_lr5e5_l10_s10_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (647.2s)
+
+[24/75] rmu_lr5e5_l15_s10_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.1394->0.4904 | fisher_masked_0.001: 0.1372->0.4887 | fisher_masked_0.01: 0.1368->0.4910 (130.9s)
+
+[25/75] rmu_lr1e5_l5_s10_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.1444->0.9665 | fisher_masked_0.001: 0.1426->0.9468 | fisher_masked_0.01: 0.1423->0.9232 (710.8s)
+
+[26/75] rmu_lr1e5_l10_s10_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.1074->0.5882 | fisher_masked_0.001: 0.1049->0.5855 | fisher_masked_0.01: 0.1044->0.5897 (185.0s)
+
+[27/75] rmu_lr1e5_l15_s10_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0249->0.3525 | fisher_masked_0.001: 0.0242->0.3513 | fisher_masked_0.01: 0.0235->0.3540 (124.9s)
+
+[28/75] rmu_lr2e5_l5_s10_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.9997->1.0000 | fisher_masked_0.001: 0.9993->1.0000 | fisher_masked_0.01: 0.9990->1.0000 (308.0s)
+
+[29/75] rmu_lr2e5_l10_s10_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (236.4s)
+
+[30/75] rmu_lr2e5_l15_s10_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0601->0.3919 | fisher_masked_0.001: 0.0598->0.3901 | fisher_masked_0.01: 0.0586->0.3928 (204.1s)
+
+[31/75] rmu_lr5e5_l5_s10_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.9887->0.9906 | fisher_masked_0.001: 0.9929->0.9984 | fisher_masked_0.01: 1.0000->1.0000 (108.2s)
+
+[32/75] rmu_lr5e5_l10_s10_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (295.6s)
+
+[33/75] rmu_lr5e5_l15_s10_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.1591->0.5194 | fisher_masked_0.001: 0.1565->0.5170 | fisher_masked_0.01: 0.1559->0.5196 (441.0s)
+
+[34/75] simnpo_lr1e5_b35_a1_d1_g0125_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.3771->0.6220 | fisher_masked_0.001: 0.3709->0.6188 | fisher_masked_0.01: 0.3629->0.6211 (71.0s)
+
+[35/75] simnpo_lr1e5_b35_a1_d1_g025_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.7613->0.9902 | fisher_masked_0.001: 0.7490->0.9783 | fisher_masked_0.01: 0.7332->0.9644 (90.4s)
+
+[36/75] simnpo_lr1e5_b45_a1_d1_g0125_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.3848->0.6349 | fisher_masked_0.001: 0.3782->0.6315 | fisher_masked_0.01: 0.3688->0.6338 (137.1s)
+
+[37/75] simnpo_lr1e5_b45_a1_d1_g025_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.7809->0.9905 | fisher_masked_0.001: 0.7679->0.9789 | fisher_masked_0.01: 0.7547->0.9654 (93.3s)
+
+[38/75] simnpo_lr2e5_b35_a1_d1_g0125_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 0.9998->0.9998 | fisher_masked_0.01: 0.9998->0.9999 (584.5s)
+
+[39/75] simnpo_lr2e5_b35_a1_d1_g025_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (147.3s)
+
+[40/75] simnpo_lr2e5_b45_a1_d1_g0125_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 0.9997->0.9995 | fisher_masked_0.01: 0.9997->0.9995 (119.3s)
+
+[41/75] simnpo_lr2e5_b45_a1_d1_g025_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (118.8s)
+
+[42/75] simnpo_lr5e5_b35_a1_d1_g0125_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (124.6s)
+
+[43/75] simnpo_lr5e5_b35_a1_d1_g025_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (179.4s)
+
+[44/75] simnpo_lr5e5_b45_a1_d1_g0125_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.9999->1.0000 | fisher_masked_0.001: 0.9996->1.0000 | fisher_masked_0.01: 0.9999->1.0000 (212.6s)
+
+[45/75] simnpo_lr5e5_b45_a1_d1_g025_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (175.4s)
+
+[46/75] simnpo_lr1e5_b35_a1_d1_g0125_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.5248->0.6381 | fisher_masked_0.001: 0.5182->0.6347 | fisher_masked_0.01: 0.5057->0.6367 (299.0s)
+
+[47/75] simnpo_lr1e5_b35_a1_d1_g025_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.9921->0.9906 | fisher_masked_0.001: 0.9818->0.9798 | fisher_masked_0.01: 0.9660->0.9669 (152.1s)
+
+[48/75] simnpo_lr1e5_b45_a1_d1_g0125_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.5446->0.6470 | fisher_masked_0.001: 0.5338->0.6437 | fisher_masked_0.01: 0.5258->0.6454 (927.8s)
+
+[49/75] simnpo_lr1e5_b45_a1_d1_g025_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.9926->0.9912 | fisher_masked_0.001: 0.9826->0.9806 | fisher_masked_0.01: 0.9676->0.9684 (434.5s)
+
+[50/75] simnpo_lr2e5_b35_a1_d1_g0125_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (80.8s)
+
+[51/75] simnpo_lr2e5_b35_a1_d1_g025_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (89.9s)
+
+[52/75] simnpo_lr2e5_b45_a1_d1_g0125_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (76.1s)
+
+[53/75] simnpo_lr2e5_b45_a1_d1_g025_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (97.2s)
+
+[54/75] simnpo_lr5e5_b35_a1_d1_g0125_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (277.3s)
+
+[55/75] simnpo_lr5e5_b35_a1_d1_g025_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (473.6s)
+
+[56/75] simnpo_lr5e5_b45_a1_d1_g0125_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (200.8s)
+
+[57/75] simnpo_lr5e5_b45_a1_d1_g025_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 1.0000->1.0000 | fisher_masked_0.001: 1.0000->1.0000 | fisher_masked_0.01: 1.0000->1.0000 (77.4s)
+
+[58/75] undial_lr1e5_b10_a1_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0600->0.3553 | fisher_masked_0.001: 0.0588->0.3549 | fisher_masked_0.01: 0.0585->0.3587 (111.0s)
+
+[59/75] undial_lr1e5_b10_a2_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0603->0.4393 | fisher_masked_0.001: 0.0602->0.4402 | fisher_masked_0.01: 0.0598->0.4452 (331.1s)
+
+[60/75] undial_lr1e5_b10_a5_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0461->0.4092 | fisher_masked_0.001: 0.0442->0.4091 | fisher_masked_0.01: 0.0445->0.4131 (361.5s)
+
+[61/75] undial_lr1e4_b10_a1_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0004->0.0009 | fisher_masked_0.001: 0.0013->0.0024 | fisher_masked_0.01: 0.0035->0.0060 (223.9s)
+
+[62/75] undial_lr1e4_b10_a2_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0009->0.0125 | fisher_masked_0.001: 0.0020->0.0129 | fisher_masked_0.01: 0.0050->0.0158 (341.5s)
+
+[63/75] undial_lr1e4_b10_a5_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0004->0.0011 | fisher_masked_0.001: 0.0011->0.0025 | fisher_masked_0.01: 0.0029->0.0062 (623.9s)
+
+[64/75] undial_lr3e4_b10_a1_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0000->0.0000 | fisher_masked_0.001: 0.0008->0.0010 | fisher_masked_0.01: 0.0005->0.0007 (69.2s)
+
+[65/75] undial_lr3e4_b10_a2_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0000->0.0000 | fisher_masked_0.001: 0.0007->0.0008 | fisher_masked_0.01: 0.0003->0.0005 (114.6s)
+
+[66/75] undial_lr3e4_b10_a5_ep5
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0003->0.0219 | fisher_masked_0.001: 0.0008->0.0236 | fisher_masked_0.01: 0.0005->0.0232 (230.4s)
+
+[67/75] undial_lr1e5_b10_a1_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0880->0.3576 | fisher_masked_0.001: 0.0869->0.3571 | fisher_masked_0.01: 0.0866->0.3607 (96.4s)
+
+[68/75] undial_lr1e5_b10_a2_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0821->0.4440 | fisher_masked_0.001: 0.0797->0.4442 | fisher_masked_0.01: 0.0792->0.4493 (160.5s)
+
+[69/75] undial_lr1e5_b10_a5_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0483->0.4145 | fisher_masked_0.001: 0.0479->0.4143 | fisher_masked_0.01: 0.0476->0.4185 (108.6s)
+
+[70/75] undial_lr1e4_b10_a1_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0019->0.0313 | fisher_masked_0.001: 0.0038->0.0304 | fisher_masked_0.01: 0.0083->0.0336 (127.2s)
+
+[71/75] undial_lr1e4_b10_a2_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0066->0.0631 | fisher_masked_0.001: 0.0074->0.0609 | fisher_masked_0.01: 0.0107->0.0629 (218.7s)
+
+[72/75] undial_lr1e4_b10_a5_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0014->0.0537 | fisher_masked_0.001: 0.0031->0.0522 | fisher_masked_0.01: 0.0068->0.0550 (1082.0s)
+
+[73/75] undial_lr3e4_b10_a1_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0000->0.0000 | fisher_masked_0.001: 0.0008->0.0010 | fisher_masked_0.01: 0.0007->0.0009 (485.5s)
+
+[74/75] undial_lr3e4_b10_a2_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0385->0.0559 | fisher_masked_0.001: 0.0409->0.0724 | fisher_masked_0.01: 0.0410->0.0858 (644.3s)
+
+[75/75] undial_lr3e4_b10_a5_ep10
+  Loading quantized model (NF4)...
+  Dequantizing for Fisher computation...
+  Target dtype for dequantization: torch.float16
+  Dequantized 112 Linear4bit layers to torch.float16
+  fisher_masked_0.0001: 0.0000->0.0048 | fisher_masked_0.001: 0.0005->0.0045 | fisher_masked_0.01: 0.0002->0.0031 (374.7s)
+
+============================================================
+Done! Results saved to runs/meta_eval/robustness/quant/rep_baselines_results.json
+============================================================

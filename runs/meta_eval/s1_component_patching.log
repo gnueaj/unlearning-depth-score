@@ -1,0 +1,30 @@
+GPU: 0
+Attention: sdpa
+Components: ['mlp', 'attn']
+Batch size: 32
+
+Loading full model...
+Loading retain model...
+Layers: 16
+Preparing examples...
+Examples: 367/367
+
+============================================================
+Computing S1 for MLP
+============================================================
+S1 mlp:   0%|          | 0/12 [00:00<?, ?it/s]Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+S1 mlp:   8%|▊         | 1/12 [00:01<00:20,  1.87s/it]S1 mlp:  17%|█▋        | 2/12 [00:03<00:18,  1.86s/it]S1 mlp:  25%|██▌       | 3/12 [00:06<00:19,  2.16s/it]S1 mlp:  33%|███▎      | 4/12 [00:08<00:16,  2.01s/it]S1 mlp:  42%|████▏     | 5/12 [00:09<00:12,  1.83s/it]S1 mlp:  50%|█████     | 6/12 [00:11<00:11,  1.87s/it]S1 mlp:  58%|█████▊    | 7/12 [00:12<00:08,  1.69s/it]S1 mlp:  67%|██████▋   | 8/12 [00:14<00:06,  1.62s/it]S1 mlp:  75%|███████▌  | 9/12 [00:15<00:04,  1.59s/it]S1 mlp:  83%|████████▎ | 10/12 [00:17<00:03,  1.69s/it]S1 mlp:  92%|█████████▏| 11/12 [00:19<00:01,  1.76s/it]S1 mlp: 100%|██████████| 12/12 [00:20<00:00,  1.44s/it]S1 mlp: 100%|██████████| 12/12 [00:20<00:00,  1.70s/it]
+Done in 20s (0.3min)
+Detail log: runs/meta_eval/s1_mlp_sdpa.log
+
+============================================================
+Computing S1 for ATTN
+============================================================
+S1 attn:   0%|          | 0/12 [00:00<?, ?it/s]S1 attn:   8%|▊         | 1/12 [00:01<00:20,  1.82s/it]S1 attn:  17%|█▋        | 2/12 [00:03<00:18,  1.87s/it]S1 attn:  25%|██▌       | 3/12 [00:06<00:19,  2.22s/it]S1 attn:  33%|███▎      | 4/12 [00:08<00:16,  2.08s/it]S1 attn:  42%|████▏     | 5/12 [00:09<00:13,  1.90s/it]S1 attn:  50%|█████     | 6/12 [00:11<00:11,  1.96s/it]S1 attn:  58%|█████▊    | 7/12 [00:13<00:08,  1.77s/it]S1 attn:  67%|██████▋   | 8/12 [00:14<00:06,  1.69s/it]S1 attn:  75%|███████▌  | 9/12 [00:16<00:04,  1.66s/it]S1 attn:  83%|████████▎ | 10/12 [00:18<00:03,  1.77s/it]S1 attn:  92%|█████████▏| 11/12 [00:20<00:01,  1.83s/it]S1 attn: 100%|██████████| 12/12 [00:21<00:00,  1.50s/it]S1 attn: 100%|██████████| 12/12 [00:21<00:00,  1.76s/it]
+Done in 21s (0.4min)
+Detail log: runs/meta_eval/s1_attn_sdpa.log
+
+Loading residual cache: runs/meta_eval/s1_cache_sdpa.json
+Comparison log: runs/meta_eval/s1_component_comparison_sdpa.log
+
+Done!

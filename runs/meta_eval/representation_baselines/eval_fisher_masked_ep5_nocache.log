@@ -1,0 +1,703 @@
+Methods: ['fisher_masked']
+Output: runs/meta_eval/representation_baselines
+Attention: sdpa
+
+[Setup] Loading tokenizer and data...
+  Data: 367 examples
+  Contexts: 367 (after entity span filtering)
+
+[Setup] Loading full model...
+  Loaded hidden_full from runs/meta_eval/representation_baselines/anchor/hidden_cache/hidden_full.pt
+  Loaded hidden_ret from runs/meta_eval/representation_baselines/anchor/hidden_cache/hidden_ret.pt
+  Loaded Fisher mask from runs/meta_eval/representation_baselines/anchor/fisher_mask.pt
+
+[Eval All] 76 models (clear_cache=False)
+[1/76] retain - already computed, skipping
+[2/76] altpo_lr1e5_b01_a1_ep5 - already computed, skipping
+[3/76] altpo_lr1e5_b01_a2_ep5 - already computed, skipping
+[4/76] altpo_lr1e5_b01_a5_ep5 - already computed, skipping
+[5/76] altpo_lr2e5_b01_a1_ep5 - already computed, skipping
+[6/76] altpo_lr2e5_b01_a2_ep5 - already computed, skipping
+[7/76] altpo_lr2e5_b01_a5_ep5 - already computed, skipping
+[8/76] altpo_lr5e5_b01_a1_ep5 - already computed, skipping
+
+[9/76] altpo_lr5e5_b01_a2_ep5
+
+[Eval] Loading altpo_lr5e5_b01_a2_ep5...
+[Eval] Computing Fisher (masked) for altpo_lr5e5_b01_a2_ep5...
+Starting from v4.46, the `logits` model output will have the same type as the model (except at train time, where it will always be FP32)
+  fisher_masked_0.0001: 0.6735157204556508
+  fisher_masked_0.001: 0.6627114766290804
+  fisher_masked_0.01: 0.6582729030181624
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/altpo_lr5e5_b01_a2_ep5.log
+  fisher_masked_0.0001=0.6735 | fisher_masked_0.001=0.6627 | fisher_masked_0.01=0.6583 (307.6s)
+
+[10/76] altpo_lr5e5_b01_a5_ep5
+
+[Eval] Loading altpo_lr5e5_b01_a5_ep5...
+[Eval] Computing Fisher (masked) for altpo_lr5e5_b01_a5_ep5...
+  fisher_masked_0.0001: 0.6048884321139067
+  fisher_masked_0.001: 0.5990853416350563
+  fisher_masked_0.01: 0.5943139641388194
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/altpo_lr5e5_b01_a5_ep5.log
+  fisher_masked_0.0001=0.6049 | fisher_masked_0.001=0.5991 | fisher_masked_0.01=0.5943 (754.0s)
+
+[11/76] graddiff_lr1e5_a1_ep5
+
+[Eval] Loading graddiff_lr1e5_a1_ep5...
+[Eval] Computing Fisher (masked) for graddiff_lr1e5_a1_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 0.9997318499767689
+  fisher_masked_0.01: 0.9996129586532989
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/graddiff_lr1e5_a1_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=0.9997 | fisher_masked_0.01=0.9996 (97.8s)
+
+[12/76] graddiff_lr1e5_a2_ep5
+
+[Eval] Loading graddiff_lr1e5_a2_ep5...
+[Eval] Computing Fisher (masked) for graddiff_lr1e5_a2_ep5...
+  fisher_masked_0.0001: 0.997564390509087
+  fisher_masked_0.001: 0.9920150849008951
+  fisher_masked_0.01: 0.9857762210756962
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/graddiff_lr1e5_a2_ep5.log
+  fisher_masked_0.0001=0.9976 | fisher_masked_0.001=0.9920 | fisher_masked_0.01=0.9858 (277.0s)
+
+[13/76] graddiff_lr1e5_a5_ep5
+
+[Eval] Loading graddiff_lr1e5_a5_ep5...
+[Eval] Computing Fisher (masked) for graddiff_lr1e5_a5_ep5...
+  fisher_masked_0.0001: 0.17166419760810375
+  fisher_masked_0.001: 0.16769091933328134
+  fisher_masked_0.01: 0.16559078284194143
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/graddiff_lr1e5_a5_ep5.log
+  fisher_masked_0.0001=0.1717 | fisher_masked_0.001=0.1677 | fisher_masked_0.01=0.1656 (904.5s)
+
+[14/76] graddiff_lr2e5_a1_ep5
+
+[Eval] Loading graddiff_lr2e5_a1_ep5...
+[Eval] Computing Fisher (masked) for graddiff_lr2e5_a1_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 1.0
+  fisher_masked_0.01: 1.0
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/graddiff_lr2e5_a1_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=1.0000 | fisher_masked_0.01=1.0000 (596.1s)
+
+[15/76] graddiff_lr2e5_a2_ep5
+
+[Eval] Loading graddiff_lr2e5_a2_ep5...
+[Eval] Computing Fisher (masked) for graddiff_lr2e5_a2_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 1.0
+  fisher_masked_0.01: 1.0
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/graddiff_lr2e5_a2_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=1.0000 | fisher_masked_0.01=1.0000 (110.2s)
+
+[16/76] graddiff_lr2e5_a5_ep5
+
+[Eval] Loading graddiff_lr2e5_a5_ep5...
+[Eval] Computing Fisher (masked) for graddiff_lr2e5_a5_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 1.0
+  fisher_masked_0.01: 1.0
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/graddiff_lr2e5_a5_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=1.0000 | fisher_masked_0.01=1.0000 (165.1s)
+
+[17/76] graddiff_lr5e5_a1_ep5
+
+[Eval] Loading graddiff_lr5e5_a1_ep5...
+[Eval] Computing Fisher (masked) for graddiff_lr5e5_a1_ep5...
+  fisher_masked_0.0001: 0.9926898616290714
+  fisher_masked_0.001: 0.9846856455919433
+  fisher_masked_0.01: 0.979035231583965
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/graddiff_lr5e5_a1_ep5.log
+  fisher_masked_0.0001=0.9927 | fisher_masked_0.001=0.9847 | fisher_masked_0.01=0.9790 (176.3s)
+
+[18/76] graddiff_lr5e5_a2_ep5
+
+[Eval] Loading graddiff_lr5e5_a2_ep5...
+[Eval] Computing Fisher (masked) for graddiff_lr5e5_a2_ep5...
+  fisher_masked_0.0001: 0.992842087289391
+  fisher_masked_0.001: 0.9850953195418565
+  fisher_masked_0.01: 0.9776644566877527
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/graddiff_lr5e5_a2_ep5.log
+  fisher_masked_0.0001=0.9928 | fisher_masked_0.001=0.9851 | fisher_masked_0.01=0.9777 (208.2s)
+
+[19/76] graddiff_lr5e5_a5_ep5
+
+[Eval] Loading graddiff_lr5e5_a5_ep5...
+[Eval] Computing Fisher (masked) for graddiff_lr5e5_a5_ep5...
+  fisher_masked_0.0001: 0.0023909368688276697
+  fisher_masked_0.001: 0.004033443806688662
+  fisher_masked_0.01: 0.013377414081082482
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/graddiff_lr5e5_a5_ep5.log
+  fisher_masked_0.0001=0.0024 | fisher_masked_0.001=0.0040 | fisher_masked_0.01=0.0134 (64.6s)
+
+[20/76] idkdpo_lr1e5_b01_a1_ep5
+
+[Eval] Loading idkdpo_lr1e5_b01_a1_ep5...
+[Eval] Computing Fisher (masked) for idkdpo_lr1e5_b01_a1_ep5...
+  fisher_masked_0.0001: 0.5601671879814533
+  fisher_masked_0.001: 0.555309792404737
+  fisher_masked_0.01: 0.5494653591584805
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idkdpo_lr1e5_b01_a1_ep5.log
+  fisher_masked_0.0001=0.5602 | fisher_masked_0.001=0.5553 | fisher_masked_0.01=0.5495 (59.5s)
+
+[21/76] idkdpo_lr1e5_b01_a2_ep5
+
+[Eval] Loading idkdpo_lr1e5_b01_a2_ep5...
+[Eval] Computing Fisher (masked) for idkdpo_lr1e5_b01_a2_ep5...
+  fisher_masked_0.0001: 0.4331679863683043
+  fisher_masked_0.001: 0.42640392837159674
+  fisher_masked_0.01: 0.4238213584718046
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idkdpo_lr1e5_b01_a2_ep5.log
+  fisher_masked_0.0001=0.4332 | fisher_masked_0.001=0.4264 | fisher_masked_0.01=0.4238 (57.5s)
+
+[22/76] idkdpo_lr1e5_b01_a5_ep5
+
+[Eval] Loading idkdpo_lr1e5_b01_a5_ep5...
+[Eval] Computing Fisher (masked) for idkdpo_lr1e5_b01_a5_ep5...
+  fisher_masked_0.0001: 0.27436686372331887
+  fisher_masked_0.001: 0.2712342219831338
+  fisher_masked_0.01: 0.2671977586554153
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idkdpo_lr1e5_b01_a5_ep5.log
+  fisher_masked_0.0001=0.2744 | fisher_masked_0.001=0.2712 | fisher_masked_0.01=0.2672 (219.3s)
+
+[23/76] idkdpo_lr2e5_b01_a1_ep5
+
+[Eval] Loading idkdpo_lr2e5_b01_a1_ep5...
+[Eval] Computing Fisher (masked) for idkdpo_lr2e5_b01_a1_ep5...
+  fisher_masked_0.0001: 0.999397716202894
+  fisher_masked_0.001: 0.9983613055529127
+  fisher_masked_0.01: 0.997258460102411
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idkdpo_lr2e5_b01_a1_ep5.log
+  fisher_masked_0.0001=0.9994 | fisher_masked_0.001=0.9984 | fisher_masked_0.01=0.9973 (101.2s)
+
+[24/76] idkdpo_lr2e5_b01_a2_ep5
+
+[Eval] Loading idkdpo_lr2e5_b01_a2_ep5...
+[Eval] Computing Fisher (masked) for idkdpo_lr2e5_b01_a2_ep5...
+  fisher_masked_0.0001: 0.9969422508985987
+  fisher_masked_0.001: 0.9927152539241252
+  fisher_masked_0.01: 0.9885177628136131
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idkdpo_lr2e5_b01_a2_ep5.log
+  fisher_masked_0.0001=0.9969 | fisher_masked_0.001=0.9927 | fisher_masked_0.01=0.9885 (126.9s)
+
+[25/76] idkdpo_lr2e5_b01_a5_ep5
+
+[Eval] Loading idkdpo_lr2e5_b01_a5_ep5...
+[Eval] Computing Fisher (masked) for idkdpo_lr2e5_b01_a5_ep5...
+  fisher_masked_0.0001: 0.7613035837482945
+  fisher_masked_0.001: 0.7541656691829471
+  fisher_masked_0.01: 0.750469925776405
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idkdpo_lr2e5_b01_a5_ep5.log
+  fisher_masked_0.0001=0.7613 | fisher_masked_0.001=0.7542 | fisher_masked_0.01=0.7505 (77.1s)
+
+[26/76] idkdpo_lr5e5_b01_a1_ep5
+
+[Eval] Loading idkdpo_lr5e5_b01_a1_ep5...
+[Eval] Computing Fisher (masked) for idkdpo_lr5e5_b01_a1_ep5...
+  fisher_masked_0.0001: 0.7210498305669923
+  fisher_masked_0.001: 0.7162819738852798
+  fisher_masked_0.01: 0.7142974705466779
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idkdpo_lr5e5_b01_a1_ep5.log
+  fisher_masked_0.0001=0.7210 | fisher_masked_0.001=0.7163 | fisher_masked_0.01=0.7143 (70.2s)
+
+[27/76] idkdpo_lr5e5_b01_a2_ep5
+
+[Eval] Loading idkdpo_lr5e5_b01_a2_ep5...
+[Eval] Computing Fisher (masked) for idkdpo_lr5e5_b01_a2_ep5...
+  fisher_masked_0.0001: 0.5855623948872575
+  fisher_masked_0.001: 0.5805829647709094
+  fisher_masked_0.01: 0.5803481555953826
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idkdpo_lr5e5_b01_a2_ep5.log
+  fisher_masked_0.0001=0.5856 | fisher_masked_0.001=0.5806 | fisher_masked_0.01=0.5803 (59.7s)
+
+[28/76] idkdpo_lr5e5_b01_a5_ep5
+
+[Eval] Loading idkdpo_lr5e5_b01_a5_ep5...
+[Eval] Computing Fisher (masked) for idkdpo_lr5e5_b01_a5_ep5...
+  fisher_masked_0.0001: 0.5305626104335827
+  fisher_masked_0.001: 0.5243905557774163
+  fisher_masked_0.01: 0.5260169293399706
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idkdpo_lr5e5_b01_a5_ep5.log
+  fisher_masked_0.0001=0.5306 | fisher_masked_0.001=0.5244 | fisher_masked_0.01=0.5260 (63.0s)
+
+[29/76] idknll_lr1e5_a1_ep5
+
+[Eval] Loading idknll_lr1e5_a1_ep5...
+[Eval] Computing Fisher (masked) for idknll_lr1e5_a1_ep5...
+  fisher_masked_0.0001: 0.10156429168506562
+  fisher_masked_0.001: 0.10102947006003364
+  fisher_masked_0.01: 0.10096257610416556
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idknll_lr1e5_a1_ep5.log
+  fisher_masked_0.0001=0.1016 | fisher_masked_0.001=0.1010 | fisher_masked_0.01=0.1010 (88.6s)
+
+[30/76] idknll_lr1e5_a2_ep5
+
+[Eval] Loading idknll_lr1e5_a2_ep5...
+[Eval] Computing Fisher (masked) for idknll_lr1e5_a2_ep5...
+  fisher_masked_0.0001: 0.10926988725760911
+  fisher_masked_0.001: 0.10733100481912393
+  fisher_masked_0.01: 0.10714720854436185
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idknll_lr1e5_a2_ep5.log
+  fisher_masked_0.0001=0.1093 | fisher_masked_0.001=0.1073 | fisher_masked_0.01=0.1071 (192.7s)
+
+[31/76] idknll_lr1e5_a5_ep5
+
+[Eval] Loading idknll_lr1e5_a5_ep5...
+[Eval] Computing Fisher (masked) for idknll_lr1e5_a5_ep5...
+  fisher_masked_0.0001: 0.1093244899298464
+  fisher_masked_0.001: 0.10918943634683345
+  fisher_masked_0.01: 0.10815513533865048
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idknll_lr1e5_a5_ep5.log
+  fisher_masked_0.0001=0.1093 | fisher_masked_0.001=0.1092 | fisher_masked_0.01=0.1082 (461.1s)
+
+[32/76] idknll_lr2e5_a1_ep5
+
+[Eval] Loading idknll_lr2e5_a1_ep5...
+[Eval] Computing Fisher (masked) for idknll_lr2e5_a1_ep5...
+  fisher_masked_0.0001: 0.19852871317055185
+  fisher_masked_0.001: 0.19619679693692685
+  fisher_masked_0.01: 0.1957398452699261
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idknll_lr2e5_a1_ep5.log
+  fisher_masked_0.0001=0.1985 | fisher_masked_0.001=0.1962 | fisher_masked_0.01=0.1957 (242.9s)
+
+[33/76] idknll_lr2e5_a2_ep5
+
+[Eval] Loading idknll_lr2e5_a2_ep5...
+[Eval] Computing Fisher (masked) for idknll_lr2e5_a2_ep5...
+  fisher_masked_0.0001: 0.17395420058116998
+  fisher_masked_0.001: 0.1713779864819964
+  fisher_masked_0.01: 0.1709368103937317
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idknll_lr2e5_a2_ep5.log
+  fisher_masked_0.0001=0.1740 | fisher_masked_0.001=0.1714 | fisher_masked_0.01=0.1709 (85.9s)
+
+[34/76] idknll_lr2e5_a5_ep5
+
+[Eval] Loading idknll_lr2e5_a5_ep5...
+[Eval] Computing Fisher (masked) for idknll_lr2e5_a5_ep5...
+  fisher_masked_0.0001: 0.16845753135599967
+  fisher_masked_0.001: 0.16731848691911597
+  fisher_masked_0.01: 0.16637292126195505
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idknll_lr2e5_a5_ep5.log
+  fisher_masked_0.0001=0.1685 | fisher_masked_0.001=0.1673 | fisher_masked_0.01=0.1664 (119.7s)
+
+[35/76] idknll_lr5e5_a1_ep5
+
+[Eval] Loading idknll_lr5e5_a1_ep5...
+[Eval] Computing Fisher (masked) for idknll_lr5e5_a1_ep5...
+  fisher_masked_0.0001: 0.28809033566091896
+  fisher_masked_0.001: 0.2865411391770078
+  fisher_masked_0.01: 0.2902429478255485
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idknll_lr5e5_a1_ep5.log
+  fisher_masked_0.0001=0.2881 | fisher_masked_0.001=0.2865 | fisher_masked_0.01=0.2902 (98.0s)
+
+[36/76] idknll_lr5e5_a2_ep5
+
+[Eval] Loading idknll_lr5e5_a2_ep5...
+[Eval] Computing Fisher (masked) for idknll_lr5e5_a2_ep5...
+  fisher_masked_0.0001: 0.33734856628537435
+  fisher_masked_0.001: 0.33644691133596866
+  fisher_masked_0.01: 0.33828472600367415
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idknll_lr5e5_a2_ep5.log
+  fisher_masked_0.0001=0.3373 | fisher_masked_0.001=0.3364 | fisher_masked_0.01=0.3383 (108.3s)
+
+[37/76] idknll_lr5e5_a5_ep5
+
+[Eval] Loading idknll_lr5e5_a5_ep5...
+[Eval] Computing Fisher (masked) for idknll_lr5e5_a5_ep5...
+  fisher_masked_0.0001: 0.25954141022605437
+  fisher_masked_0.001: 0.259018478583469
+  fisher_masked_0.01: 0.26253708594338376
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/idknll_lr5e5_a5_ep5.log
+  fisher_masked_0.0001=0.2595 | fisher_masked_0.001=0.2590 | fisher_masked_0.01=0.2625 (244.3s)
+
+[38/76] npo_lr1e5_b01_a1_ep5
+
+[Eval] Loading npo_lr1e5_b01_a1_ep5...
+[Eval] Computing Fisher (masked) for npo_lr1e5_b01_a1_ep5...
+  fisher_masked_0.0001: 0.00045668061796718225
+  fisher_masked_0.001: 0.0017094909568505148
+  fisher_masked_0.01: 0.003798096809994468
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/npo_lr1e5_b01_a1_ep5.log
+  fisher_masked_0.0001=0.0005 | fisher_masked_0.001=0.0017 | fisher_masked_0.01=0.0038 (91.1s)
+
+[39/76] npo_lr1e5_b01_a2_ep5
+
+[Eval] Loading npo_lr1e5_b01_a2_ep5...
+[Eval] Computing Fisher (masked) for npo_lr1e5_b01_a2_ep5...
+  fisher_masked_0.0001: 0.0013965105595202525
+  fisher_masked_0.001: 0.0034785577578373603
+  fisher_masked_0.01: 0.006426974036364182
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/npo_lr1e5_b01_a2_ep5.log
+  fisher_masked_0.0001=0.0014 | fisher_masked_0.001=0.0035 | fisher_masked_0.01=0.0064 (195.8s)
+
+[40/76] npo_lr1e5_b01_a5_ep5
+
+[Eval] Loading npo_lr1e5_b01_a5_ep5...
+[Eval] Computing Fisher (masked) for npo_lr1e5_b01_a5_ep5...
+  fisher_masked_0.0001: 0.09299994498018141
+  fisher_masked_0.001: 0.09303337259013972
+  fisher_masked_0.01: 0.09404415948589682
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/npo_lr1e5_b01_a5_ep5.log
+  fisher_masked_0.0001=0.0930 | fisher_masked_0.001=0.0930 | fisher_masked_0.01=0.0940 (162.8s)
+
+[41/76] npo_lr2e5_b01_a1_ep5
+
+[Eval] Loading npo_lr2e5_b01_a1_ep5...
+[Eval] Computing Fisher (masked) for npo_lr2e5_b01_a1_ep5...
+  fisher_masked_0.0001: 0.2323128768545718
+  fisher_masked_0.001: 0.23116063034920545
+  fisher_masked_0.01: 0.23271861041935626
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/npo_lr2e5_b01_a1_ep5.log
+  fisher_masked_0.0001=0.2323 | fisher_masked_0.001=0.2312 | fisher_masked_0.01=0.2327 (265.6s)
+
+[42/76] npo_lr2e5_b01_a2_ep5
+
+[Eval] Loading npo_lr2e5_b01_a2_ep5...
+[Eval] Computing Fisher (masked) for npo_lr2e5_b01_a2_ep5...
+  fisher_masked_0.0001: 0.49767194536355686
+  fisher_masked_0.001: 0.49547500455350446
+  fisher_masked_0.01: 0.4924731721294839
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/npo_lr2e5_b01_a2_ep5.log
+  fisher_masked_0.0001=0.4977 | fisher_masked_0.001=0.4955 | fisher_masked_0.01=0.4925 (209.7s)
+
+[43/76] npo_lr2e5_b01_a5_ep5
+
+[Eval] Loading npo_lr2e5_b01_a5_ep5...
+[Eval] Computing Fisher (masked) for npo_lr2e5_b01_a5_ep5...
+  fisher_masked_0.0001: 0.99903369833116
+  fisher_masked_0.001: 0.9987933243240382
+  fisher_masked_0.01: 0.9995484513846647
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/npo_lr2e5_b01_a5_ep5.log
+  fisher_masked_0.0001=0.9990 | fisher_masked_0.001=0.9988 | fisher_masked_0.01=0.9995 (116.3s)
+
+[44/76] npo_lr5e5_b01_a1_ep5
+
+[Eval] Loading npo_lr5e5_b01_a1_ep5...
+[Eval] Computing Fisher (masked) for npo_lr5e5_b01_a1_ep5...
+  fisher_masked_0.0001: 0.41970263580414957
+  fisher_masked_0.001: 0.41721977356832396
+  fisher_masked_0.01: 0.42116038670157374
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/npo_lr5e5_b01_a1_ep5.log
+  fisher_masked_0.0001=0.4197 | fisher_masked_0.001=0.4172 | fisher_masked_0.01=0.4212 (174.9s)
+
+[45/76] npo_lr5e5_b01_a2_ep5
+
+[Eval] Loading npo_lr5e5_b01_a2_ep5...
+[Eval] Computing Fisher (masked) for npo_lr5e5_b01_a2_ep5...
+  fisher_masked_0.0001: 0.532859231846036
+  fisher_masked_0.001: 0.5227220623089214
+  fisher_masked_0.01: 0.5254847151152198
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/npo_lr5e5_b01_a2_ep5.log
+  fisher_masked_0.0001=0.5329 | fisher_masked_0.001=0.5227 | fisher_masked_0.01=0.5255 (69.3s)
+
+[46/76] npo_lr5e5_b01_a5_ep5
+
+[Eval] Loading npo_lr5e5_b01_a5_ep5...
+[Eval] Computing Fisher (masked) for npo_lr5e5_b01_a5_ep5...
+  fisher_masked_0.0001: 0.7785514098082389
+  fisher_masked_0.001: 0.7748579379896162
+  fisher_masked_0.01: 0.7850941348347154
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/npo_lr5e5_b01_a5_ep5.log
+  fisher_masked_0.0001=0.7786 | fisher_masked_0.001=0.7749 | fisher_masked_0.01=0.7851 (98.6s)
+
+[47/76] rmu_lr1e5_l5_s10_ep5
+
+[Eval] Loading rmu_lr1e5_l5_s10_ep5...
+[Eval] Computing Fisher (masked) for rmu_lr1e5_l5_s10_ep5...
+  fisher_masked_0.0001: 0.11434793604316355
+  fisher_masked_0.001: 0.1129174727122272
+  fisher_masked_0.01: 0.11192881466172434
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/rmu_lr1e5_l5_s10_ep5.log
+  fisher_masked_0.0001=0.1143 | fisher_masked_0.001=0.1129 | fisher_masked_0.01=0.1119 (53.6s)
+
+[48/76] rmu_lr1e5_l10_s10_ep5
+
+[Eval] Loading rmu_lr1e5_l10_s10_ep5...
+[Eval] Computing Fisher (masked) for rmu_lr1e5_l10_s10_ep5...
+  fisher_masked_0.0001: 0.09174077420493272
+  fisher_masked_0.001: 0.09023641596668006
+  fisher_masked_0.01: 0.08932708134049563
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/rmu_lr1e5_l10_s10_ep5.log
+  fisher_masked_0.0001=0.0917 | fisher_masked_0.001=0.0902 | fisher_masked_0.01=0.0893 (214.0s)
+
+[49/76] rmu_lr1e5_l15_s10_ep5
+
+[Eval] Loading rmu_lr1e5_l15_s10_ep5...
+[Eval] Computing Fisher (masked) for rmu_lr1e5_l15_s10_ep5...
+  fisher_masked_0.0001: 0.02083175615699218
+  fisher_masked_0.001: 0.01943353446699117
+  fisher_masked_0.01: 0.019094821616060114
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/rmu_lr1e5_l15_s10_ep5.log
+  fisher_masked_0.0001=0.0208 | fisher_masked_0.001=0.0194 | fisher_masked_0.01=0.0191 (63.6s)
+
+[50/76] rmu_lr2e5_l5_s10_ep5
+
+[Eval] Loading rmu_lr2e5_l5_s10_ep5...
+[Eval] Computing Fisher (masked) for rmu_lr2e5_l5_s10_ep5...
+  fisher_masked_0.0001: 0.9995102307591598
+  fisher_masked_0.001: 0.9988082222158946
+  fisher_masked_0.01: 0.9980970481994917
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/rmu_lr2e5_l5_s10_ep5.log
+  fisher_masked_0.0001=0.9995 | fisher_masked_0.001=0.9988 | fisher_masked_0.01=0.9981 (173.3s)
+
+[51/76] rmu_lr2e5_l10_s10_ep5
+
+[Eval] Loading rmu_lr2e5_l10_s10_ep5...
+[Eval] Computing Fisher (masked) for rmu_lr2e5_l10_s10_ep5...
+  fisher_masked_0.0001: 0.9901251891815266
+  fisher_masked_0.001: 0.9859518990517808
+  fisher_masked_0.01: 0.981196148933078
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/rmu_lr2e5_l10_s10_ep5.log
+  fisher_masked_0.0001=0.9901 | fisher_masked_0.001=0.9860 | fisher_masked_0.01=0.9812 (55.0s)
+
+[52/76] rmu_lr2e5_l15_s10_ep5
+
+[Eval] Loading rmu_lr2e5_l15_s10_ep5...
+[Eval] Computing Fisher (masked) for rmu_lr2e5_l15_s10_ep5...
+  fisher_masked_0.0001: 0.05613321226124887
+  fisher_masked_0.001: 0.05614034657096737
+  fisher_masked_0.01: 0.055235005779376234
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/rmu_lr2e5_l15_s10_ep5.log
+  fisher_masked_0.0001=0.0561 | fisher_masked_0.001=0.0561 | fisher_masked_0.01=0.0552 (195.1s)
+
+[53/76] rmu_lr5e5_l5_s10_ep5
+
+[Eval] Loading rmu_lr5e5_l5_s10_ep5...
+[Eval] Computing Fisher (masked) for rmu_lr5e5_l5_s10_ep5...
+  fisher_masked_0.0001: 0.9911841506549343
+  fisher_masked_0.001: 0.996484251091639
+  fisher_masked_0.01: 1.0
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/rmu_lr5e5_l5_s10_ep5.log
+  fisher_masked_0.0001=0.9912 | fisher_masked_0.001=0.9965 | fisher_masked_0.01=1.0000 (302.4s)
+
+[54/76] rmu_lr5e5_l10_s10_ep5
+
+[Eval] Loading rmu_lr5e5_l10_s10_ep5...
+[Eval] Computing Fisher (masked) for rmu_lr5e5_l10_s10_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 1.0
+  fisher_masked_0.01: 1.0
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/rmu_lr5e5_l10_s10_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=1.0000 | fisher_masked_0.01=1.0000 (284.1s)
+
+[55/76] rmu_lr5e5_l15_s10_ep5
+
+[Eval] Loading rmu_lr5e5_l15_s10_ep5...
+[Eval] Computing Fisher (masked) for rmu_lr5e5_l15_s10_ep5...
+  fisher_masked_0.0001: 0.1394055994082319
+  fisher_masked_0.001: 0.13722605076287406
+  fisher_masked_0.01: 0.13678022013559096
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/rmu_lr5e5_l15_s10_ep5.log
+  fisher_masked_0.0001=0.1394 | fisher_masked_0.001=0.1372 | fisher_masked_0.01=0.1368 (163.5s)
+
+[56/76] simnpo_lr1e5_b35_a1_d1_g0125_ep5
+
+[Eval] Loading simnpo_lr1e5_b35_a1_d1_g0125_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr1e5_b35_a1_d1_g0125_ep5...
+  fisher_masked_0.0001: 0.37705629318370654
+  fisher_masked_0.001: 0.37088934712187044
+  fisher_masked_0.01: 0.36291041393062967
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr1e5_b35_a1_d1_g0125_ep5.log
+  fisher_masked_0.0001=0.3771 | fisher_masked_0.001=0.3709 | fisher_masked_0.01=0.3629 (178.0s)
+
+[57/76] simnpo_lr1e5_b35_a1_d1_g025_ep5
+
+[Eval] Loading simnpo_lr1e5_b35_a1_d1_g025_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr1e5_b35_a1_d1_g025_ep5...
+  fisher_masked_0.0001: 0.7612771100296457
+  fisher_masked_0.001: 0.7489590854665253
+  fisher_masked_0.01: 0.7332142686637749
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr1e5_b35_a1_d1_g025_ep5.log
+  fisher_masked_0.0001=0.7613 | fisher_masked_0.001=0.7490 | fisher_masked_0.01=0.7332 (557.9s)
+
+[58/76] simnpo_lr1e5_b45_a1_d1_g0125_ep5
+
+[Eval] Loading simnpo_lr1e5_b45_a1_d1_g0125_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr1e5_b45_a1_d1_g0125_ep5...
+  fisher_masked_0.0001: 0.38478339889234625
+  fisher_masked_0.001: 0.37816665148776124
+  fisher_masked_0.01: 0.3688289542517148
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr1e5_b45_a1_d1_g0125_ep5.log
+  fisher_masked_0.0001=0.3848 | fisher_masked_0.001=0.3782 | fisher_masked_0.01=0.3688 (200.7s)
+
+[59/76] simnpo_lr1e5_b45_a1_d1_g025_ep5
+
+[Eval] Loading simnpo_lr1e5_b45_a1_d1_g025_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr1e5_b45_a1_d1_g025_ep5...
+  fisher_masked_0.0001: 0.7809042894329394
+  fisher_masked_0.001: 0.7679381759128965
+  fisher_masked_0.01: 0.7547113107604888
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr1e5_b45_a1_d1_g025_ep5.log
+  fisher_masked_0.0001=0.7809 | fisher_masked_0.001=0.7679 | fisher_masked_0.01=0.7547 (211.4s)
+
+[60/76] simnpo_lr2e5_b35_a1_d1_g0125_ep5
+
+[Eval] Loading simnpo_lr2e5_b35_a1_d1_g0125_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr2e5_b35_a1_d1_g0125_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 0.9998063360943329
+  fisher_masked_0.01: 0.9998064793266496
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr2e5_b35_a1_d1_g0125_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=0.9998 | fisher_masked_0.01=0.9998 (185.4s)
+
+[61/76] simnpo_lr2e5_b35_a1_d1_g025_ep5
+
+[Eval] Loading simnpo_lr2e5_b35_a1_d1_g025_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr2e5_b35_a1_d1_g025_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 1.0
+  fisher_masked_0.01: 1.0
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr2e5_b35_a1_d1_g025_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=1.0000 | fisher_masked_0.01=1.0000 (101.1s)
+
+[62/76] simnpo_lr2e5_b45_a1_d1_g0125_ep5
+
+[Eval] Loading simnpo_lr2e5_b45_a1_d1_g0125_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr2e5_b45_a1_d1_g0125_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 0.9997020555297431
+  fisher_masked_0.01: 0.9996774655444158
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr2e5_b45_a1_d1_g0125_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=0.9997 | fisher_masked_0.01=0.9997 (186.3s)
+
+[63/76] simnpo_lr2e5_b45_a1_d1_g025_ep5
+
+[Eval] Loading simnpo_lr2e5_b45_a1_d1_g025_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr2e5_b45_a1_d1_g025_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 1.0
+  fisher_masked_0.01: 1.0
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr2e5_b45_a1_d1_g025_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=1.0000 | fisher_masked_0.01=1.0000 (59.6s)
+
+[64/76] simnpo_lr5e5_b35_a1_d1_g0125_ep5
+
+[Eval] Loading simnpo_lr5e5_b35_a1_d1_g0125_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr5e5_b35_a1_d1_g0125_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 1.0
+  fisher_masked_0.01: 1.0
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr5e5_b35_a1_d1_g0125_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=1.0000 | fisher_masked_0.01=1.0000 (45.4s)
+
+[65/76] simnpo_lr5e5_b35_a1_d1_g025_ep5
+
+[Eval] Loading simnpo_lr5e5_b35_a1_d1_g025_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr5e5_b35_a1_d1_g025_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 1.0
+  fisher_masked_0.01: 1.0
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr5e5_b35_a1_d1_g025_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=1.0000 | fisher_masked_0.01=1.0000 (76.4s)
+
+[66/76] simnpo_lr5e5_b45_a1_d1_g0125_ep5
+
+[Eval] Loading simnpo_lr5e5_b45_a1_d1_g0125_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr5e5_b45_a1_d1_g0125_ep5...
+  fisher_masked_0.0001: 0.9999205779625521
+  fisher_masked_0.001: 0.9995530833339894
+  fisher_masked_0.01: 0.9998709862177664
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr5e5_b45_a1_d1_g0125_ep5.log
+  fisher_masked_0.0001=0.9999 | fisher_masked_0.001=0.9996 | fisher_masked_0.01=0.9999 (45.2s)
+
+[67/76] simnpo_lr5e5_b45_a1_d1_g025_ep5
+
+[Eval] Loading simnpo_lr5e5_b45_a1_d1_g025_ep5...
+[Eval] Computing Fisher (masked) for simnpo_lr5e5_b45_a1_d1_g025_ep5...
+  fisher_masked_0.0001: 1.0
+  fisher_masked_0.001: 1.0
+  fisher_masked_0.01: 1.0
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/simnpo_lr5e5_b45_a1_d1_g025_ep5.log
+  fisher_masked_0.0001=1.0000 | fisher_masked_0.001=1.0000 | fisher_masked_0.01=1.0000 (161.6s)
+
+[68/76] undial_lr1e5_b10_a1_ep5
+
+[Eval] Loading undial_lr1e5_b10_a1_ep5...
+[Eval] Computing Fisher (masked) for undial_lr1e5_b10_a1_ep5...
+  fisher_masked_0.0001: 0.060010002149136404
+  fisher_masked_0.001: 0.05883674799191098
+  fisher_masked_0.01: 0.05851681074851684
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/undial_lr1e5_b10_a1_ep5.log
+  fisher_masked_0.0001=0.0600 | fisher_masked_0.001=0.0588 | fisher_masked_0.01=0.0585 (197.1s)
+
+[69/76] undial_lr1e5_b10_a2_ep5
+
+[Eval] Loading undial_lr1e5_b10_a2_ep5...
+[Eval] Computing Fisher (masked) for undial_lr1e5_b10_a2_ep5...
+  fisher_masked_0.0001: 0.060347545966370895
+  fisher_masked_0.001: 0.06017377595849726
+  fisher_masked_0.01: 0.05982308453054731
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/undial_lr1e5_b10_a2_ep5.log
+  fisher_masked_0.0001=0.0603 | fisher_masked_0.001=0.0602 | fisher_masked_0.01=0.0598 (984.4s)
+
+[70/76] undial_lr1e5_b10_a5_ep5
+
+[Eval] Loading undial_lr1e5_b10_a5_ep5...
+[Eval] Computing Fisher (masked) for undial_lr1e5_b10_a5_ep5...
+  fisher_masked_0.0001: 0.04611941280802389
+  fisher_masked_0.001: 0.04424489658447042
+  fisher_masked_0.01: 0.04449455129034472
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/undial_lr1e5_b10_a5_ep5.log
+  fisher_masked_0.0001=0.0461 | fisher_masked_0.001=0.0442 | fisher_masked_0.01=0.0445 (233.7s)
+
+[71/76] undial_lr1e4_b10_a1_ep5
+
+[Eval] Loading undial_lr1e4_b10_a1_ep5...
+[Eval] Computing Fisher (masked) for undial_lr1e4_b10_a1_ep5...
+  fisher_masked_0.0001: 0.00042027719159840727
+  fisher_masked_0.001: 0.0013147045103465624
+  fisher_masked_0.01: 0.003507859113463377
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/undial_lr1e4_b10_a1_ep5.log
+  fisher_masked_0.0001=0.0004 | fisher_masked_0.001=0.0013 | fisher_masked_0.01=0.0035 (56.2s)
+
+[72/76] undial_lr1e4_b10_a2_ep5
+
+[Eval] Loading undial_lr1e4_b10_a2_ep5...
+[Eval] Computing Fisher (masked) for undial_lr1e4_b10_a2_ep5...
+  fisher_masked_0.0001: 0.0008504810903941541
+  fisher_masked_0.001: 0.0020335057681490376
+  fisher_masked_0.01: 0.004991520413798809
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/undial_lr1e4_b10_a2_ep5.log
+  fisher_masked_0.0001=0.0009 | fisher_masked_0.001=0.0020 | fisher_masked_0.01=0.0050 (47.6s)
+
+[73/76] undial_lr1e4_b10_a5_ep5
+
+[Eval] Loading undial_lr1e4_b10_a5_ep5...
+[Eval] Computing Fisher (masked) for undial_lr1e4_b10_a5_ep5...
+  fisher_masked_0.0001: 0.0004004216799563471
+  fisher_masked_0.001: 0.0011396571937237283
+  fisher_masked_0.01: 0.0029352749932345518
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/undial_lr1e4_b10_a5_ep5.log
+  fisher_masked_0.0001=0.0004 | fisher_masked_0.001=0.0011 | fisher_masked_0.01=0.0029 (169.9s)
+
+[74/76] undial_lr3e4_b10_a1_ep5
+
+[Eval] Loading undial_lr3e4_b10_a1_ep5...
+[Eval] Computing Fisher (masked) for undial_lr3e4_b10_a1_ep5...
+  fisher_masked_0.0001: 0.0
+  fisher_masked_0.001: 0.0008081792570940831
+  fisher_masked_0.01: 0.0005322241269500629
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/undial_lr3e4_b10_a1_ep5.log
+  fisher_masked_0.0001=0.0000 | fisher_masked_0.001=0.0008 | fisher_masked_0.01=0.0005 (201.2s)
+
+[75/76] undial_lr3e4_b10_a2_ep5
+
+[Eval] Loading undial_lr3e4_b10_a2_ep5...
+[Eval] Computing Fisher (masked) for undial_lr3e4_b10_a2_ep5...
+  fisher_masked_0.0001: 0.0
+  fisher_masked_0.001: 0.0006741042454784711
+  fisher_masked_0.01: 0.0003225767308203446
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/undial_lr3e4_b10_a2_ep5.log
+  fisher_masked_0.0001=0.0000 | fisher_masked_0.001=0.0007 | fisher_masked_0.01=0.0003 (142.3s)
+
+[76/76] undial_lr3e4_b10_a5_ep5
+
+[Eval] Loading undial_lr3e4_b10_a5_ep5...
+[Eval] Computing Fisher (masked) for undial_lr3e4_b10_a5_ep5...
+  fisher_masked_0.0001: 0.00031768882732717037
+  fisher_masked_0.001: 0.000815627868850506
+  fisher_masked_0.01: 0.00045159051305401705
+  Log: runs/meta_eval/representation_baselines/fisher_masked/logs/undial_lr3e4_b10_a5_ep5.log
+  fisher_masked_0.0001=0.0003 | fisher_masked_0.001=0.0008 | fisher_masked_0.01=0.0005 (127.0s)

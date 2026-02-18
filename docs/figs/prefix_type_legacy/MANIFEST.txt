@@ -1,0 +1,25 @@
+# prefix_type_legacy manifest
+Generated: 2026-02-15T22:26:38+09:00
+
+MANIFEST.txt
+NOTION_SUMMARY.md
+prefix_udr_cdf_9x3.png
+prefix_udr_delta_counts.txt
+prefix_udr_delta_hist.png
+prefix_udr_delta_scatter.png
+prefix_udr_rank_stability.txt
+prefix_udr_raw_vs_clip_9x3.png
+prefix_udr_raw_vs_clip_9x3.txt
+prefix_udr_rawcap1_floor-05_vs_clip_9x3.png
+prefix_udr_rawcap1_vs_clip_9x3.png
+prefix_udr_rawcap1_vs_clip_9x3.txt
+prefix_udr_vs_ftcount_9x3.png
+prefix_udr_vs_maxd1_9x3.png
+simnpo_udr_by_entity_type.png
+simnpo_udr_by_ftcount.png
+simnpo_udr_by_token_len.png
+udr_by_question_type.png
+udr_distribution_by_category_fixed.png
+udr_summary_stats.txt
+udr_vs_entity_length.png
+udr_vs_ft_layer_count.png
