@@ -7,6 +7,7 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
 
 ## Section 1: Introduction
 
+{% raw %}
 ```bibtex
 @inproceedings{carlini2021extracting,
   author       = {Nicholas Carlini and
@@ -45,12 +46,51 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
   url          = {https://papers.nips.cc/paper_files/paper/2022/hash/fa0509f4dab6807e2cb465715bf2d249-Abstract-Conference.html},
 }
 % Source: DBLP conf/nips/TirumalaMZA22
+
+@article{bengio2025aisafety,
+  author       = {Yoshua Bengio and
+                  S{\"{o}}ren Mindermann and
+                  Daniel Privitera and
+                  Tamay Besiroglu and
+                  Rishi Bommasani and
+                  Stephen Casper and
+                  Yejin Choi and
+                  others},
+  title        = {International {AI} Safety Report},
+  journal      = {CoRR},
+  volume       = {abs/2501.17805},
+  year         = {2025},
+  url          = {https://arxiv.org/abs/2501.17805},
+}
+% Source: arXiv 2501.17805. 96 authors total; truncated with "and others".
+
+@inproceedings{bourtoule2021machine,
+  author       = {Lucas Bourtoule and
+                  Varun Chandrasekaran and
+                  Christopher A. Choquette{-}Choo and
+                  Hengrui Jia and
+                  Adelin Travers and
+                  Baiwu Zhang and
+                  David Lie and
+                  Nicolas Papernot},
+  title        = {Machine Unlearning},
+  booktitle    = {42nd {IEEE} Symposium on Security and Privacy, {SP} 2021,
+                  San Francisco, CA, USA, 24-27 May 2021},
+  pages        = {141--159},
+  publisher    = {{IEEE}},
+  year         = {2021},
+  url          = {https://doi.org/10.1109/SP40001.2021.00019},
+  doi          = {10.1109/SP40001.2021.00019},
+}
+% Source: IEEE Xplore 9519428
 ```
+{% endraw %}
 
 ---
 
 ## Section 2: Related Work — Unlearning Methods
 
+{% raw %}
 ```bibtex
 @inproceedings{jang2023knowledge,
   author       = {Joel Jang and
@@ -112,6 +152,39 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
   url          = {https://openreview.net/forum?id=B41hNBoWLo},
 }
 % Source: OpenReview B41hNBoWLo (COLM 2024)
+
+@inproceedings{dorna2025openunlearning,
+  author       = {Vineeth Dorna and
+                  Anmol Mekala and
+                  Wenlong Zhao and
+                  Andrew McCallum and
+                  Zachary Chase Lipton and
+                  J. Zico Kolter and
+                  Pratyush Maini},
+  title        = {OpenUnlearning: Accelerating {LLM} Unlearning via Unified Benchmarking
+                  of Methods and Metrics},
+  booktitle    = {Advances in Neural Information Processing Systems 38: Annual Conference
+                  on Neural Information Processing Systems 2025, NeurIPS 2025,
+                  Datasets and Benchmarks Track},
+  year         = {2025},
+  url          = {https://arxiv.org/abs/2506.12618},
+}
+% Source: arXiv 2506.12618. NeurIPS 2025 D&B track. GitHub: locuslab/open-unlearning
+
+@article{lee2025comparator,
+  author       = {Jaeung Lee and
+                  Suhyeon Yu and
+                  Yurim Jang and
+                  Simon S. Woo and
+                  Jaemin Jo},
+  title        = {Unlearning Comparator: A Visual Analytics System for Comparative
+                  Evaluation of Machine Unlearning Methods},
+  journal      = {{IEEE} Transactions on Visualization and Computer Graphics},
+  year         = {2025},
+  note         = {To appear},
+  url          = {https://arxiv.org/abs/2508.12730},
+}
+% Source: arXiv 2508.12730. IEEE TVCG to appear.
 
 @inproceedings{mekala2025alternate,
   author       = {Anmol Reddy Mekala and
@@ -226,11 +299,13 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
 }
 % Source: DBLP journals/corr/abs-2310-02238 (arXiv only, no published version)
 ```
+{% endraw %}
 
 ---
 
 ## Section 2: Related Work — Table 1 (White-box Analysis)
 
+{% raw %}
 ```bibtex
 @inproceedings{hong2024dissecting,
   author       = {Yihuai Hong and
@@ -318,11 +393,13 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
 }
 % Source: DBLP conf/iclr/PatilHB24
 ```
+{% endraw %}
 
 ---
 
 ## Section 2: Related Work — Representation Analysis
 
+{% raw %}
 ```bibtex
 @inproceedings{kornblith2019similarity,
   author       = {Simon Kornblith and
@@ -424,11 +501,13 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
 }
 % Source: DBLP conf/icml/GhandehariounCP24
 ```
+{% endraw %}
 
 ---
 
 ## Section 4: Evaluation — MIA & Privacy Metrics
 
+{% raw %}
 ```bibtex
 @inproceedings{shokri2017membership,
   author       = {Reza Shokri and
@@ -535,11 +614,13 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
 }
 % Source: DBLP conf/iclr/ShiLHMZHLZSZ25. Previous ID bGMKsMflBn was invalid.
 ```
+{% endraw %}
 
 ---
 
 ## Section 5: Discussion & Related Expansions
 
+{% raw %}
 ```bibtex
 @inproceedings{liu2024revisiting,
   author       = {Yujian Liu and
@@ -617,6 +698,7 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
 }
 % Source: DBLP conf/emnlp/WangFZJWRBL25
 ```
+{% endraw %}
 
 ---
 
