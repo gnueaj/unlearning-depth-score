@@ -6,6 +6,7 @@
 \usepackage[table]{xcolor}
 \usepackage{array}
 \usepackage{adjustbox}
+\usepackage{natbib}
 
 \newcommand{\yes}{\textcolor{green!50!black}{\ding{51}}}
 \newcommand{\no}{\textcolor{red!40!black}{\ding{55}}}
@@ -17,13 +18,13 @@
 \begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Work} & \textbf{Score} & \textbf{Causal} & \textbf{Train-Free} & \textbf{Data-Inv} \\
+\textbf{Work} & \textbf{Train-Free} & \textbf{Causal} & \textbf{Data-Inv} & \textbf{Score} \\
 \midrule
-Lynch et al.~(2024) & \no & \no & \no & \pmark \\
+Lynch et al.~(2024) & \no & \no & \yes & \no \\
 Guo et al.~(2025) & \no & \pmark & \no & \no \\
-Hong et al.~(2025) & \no & \pmark & \yes & \no \\
-Patil et al.~(2024) & \no & \no & \yes & \yes \\
-Hong et al.~(2024a) & \yes & \yes & \yes & \no \\
+Hong et al.~(2025) & \yes & \pmark & \no & \no \\
+Patil et al.~(2024) & \yes & \no & \yes & \no \\
+Hong et al.~(2024a) & \yes & \yes & \no & \yes \\
 \midrule
 \textbf{UDS (Ours)} & \yes & \yes & \yes & \yes \\
 \bottomrule
@@ -32,10 +33,10 @@ Hong et al.~(2024a) & \yes & \yes & \yes & \no \\
 
 \vspace{5pt}
 \caption{Comparison of white-box unlearning analysis.
-\textbf{Score}: proposes a metric quantifying retained knowledge.
-\textbf{Causal}: controlled internal intervention (\pmark{} = causal localization but observational assessment).
 \textbf{Train-Free}: no auxiliary training.
-\textbf{Data-Inv}: applicable to new forget sets without dataset-specific adaptation (\pmark{} = general approach but requires retraining probes).
+\textbf{Causal}: evaluates knowledge causally (\pmark{} = causal localization but observational assessment).
+\textbf{Data-Inv}: directly applicable to new forget sets.
+\textbf{Score}: proposes a metric quantifying residual target knowledge.
 }
 \label{tab:related-work}
 \end{table}

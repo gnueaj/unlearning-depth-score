@@ -25,50 +25,33 @@ Use these symbols consistently throughout. Define each at first use.
 | $s^{\text{full}}_t$ | $\log p_{M_{\text{full}}}(y_t \mid x, y_{1:t-1})$ — full model log-prob of entity token $y_t$ (measured at position $y_t{-}1$) | §3.2 |
 | $s^{S}_t$ | Log-prob of $y_t$ after patching layer $l$ with source $M_S$'s hidden states | §3.2 |
 | $\Delta^{S}_l$ | $\frac{1}{T}\sum_t (s^{\text{full}}_t - s^{S}_t)$ — mean log-prob degradation at layer $l$ | §3.2 |
-| $\tau$ | KG layer threshold (default 0.05) | §3.2 |
-| $\text{KG}_i$ | $\{l : \Delta^{S1}_{i,l} > \tau\}$ — layers where retain lacks target knowledge | §3.2 |
+| $\tau$ | Knowledge-encoding layer threshold (default 0.05) | §3.2 |
+| $\text{KG}_i$ | $\{l : \Delta^{S1}_{i,l} > \tau\}$ — knowledge-encoding layers (where retain lacks target knowledge) | §3.2 |
 | $\text{UDS}_i$ | Per-example Unlearning Depth Score | §3.3 |
 
 ---
 
 ## §0. Abstract
 
-**Structure**: [Background] → [Problem] → [Proposal] → [Results] → [Implications] → [Availability]
+**Structure**: [Background] → [Problem] → [Proposal+Method] → [Results] → [Case Studies] → [Practical Impact] → [Availability]
 
-**Content Guide** (each bracket = 1–2 sentences):
+**Final Version**:
 
+```latex
+\begin{abstract}
+Large language model (LLM) unlearning has emerged as a crucial post-hoc mechanism for privacy protection and AI safety.
+However, existing output-only metrics cannot detect target knowledge covertly recoverable from internal representations.
+While recent white-box studies observe such residual knowledge, they often require auxiliary training or dataset-specific adaptations, leaving the field without a generalizable quantitative metric.
+We propose the \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning by measuring target knowledge recoverability through activation patching.
+\textsc{UDS} identifies knowledge-encoding layers using a retain model baseline and measures how much of this encoded knowledge is successfully erased on a 0 (knowledge intact) to 1 (knowledge erased) scale.
+In a meta-evaluation of 20 metrics on 150 unlearned models spanning 8 methods, \textsc{UDS} achieves the highest faithfulness and robustness, outperforming output and representation-level baselines.
+Our case studies further show that methods vary in where and how deeply they erase knowledge, revealing patterns invisible to aggregate metrics.
+In practice, integrating \textsc{UDS} into evaluation frameworks re-ranks methods by penalizing superficial erasure, and streamlines costly robustness testing.
+We release our code and benchmark results.\footnote{Code and data will be made publicly available upon acceptance.}
+\end{abstract}
 ```
-[1] Background: Large language model (LLM) unlearning aims to remove specific
-    knowledge from trained models — for instance, private information,
-    copyrighted content, or hazardous capabilities — while preserving general
-    performance, addressing growing demands for privacy protection, safety,
-    and regulatory compliance.
 
-[2] Problem: Evaluating whether unlearning truly succeeded requires metrics
-    that are both faithful (correctly distinguishing erased vs. retained
-    knowledge) and robust (stable under deployment perturbations such as
-    quantization and relearning attacks). Current evaluation metrics lack
-    systematic verification on these two axes, leaving practitioners without
-    reliable assurance that unlearning is genuine.
-
-[3] Proposal: We propose the Unlearning Depth Score (UDS), an activation-
-    patching-based metric that measures layer-wise knowledge recoverability
-    on a 0 (intact) to 1 (erased) scale by causally testing whether
-    knowledge can be recovered from internal representations.
-
-[4] Results: In a meta-evaluation of 20 metrics on 150 unlearned models
-    spanning 8 methods, UDS ranks first on both faithfulness and robustness,
-    outperforming output-level and alternative representation-level baselines.
-
-[5] Implications: Layer-wise, example-level diagnostics reveal that unlearning
-    methods differ not only in how much knowledge they remove but in where
-    and how deeply they do so — patterns that aggregate metrics cannot capture.
-    Integrating UDS into existing evaluation frameworks re-ranks methods by
-    exposing shallow output-level suppression that leaves internal knowledge
-    intact.
-
-[6] We release our code and benchmark results at {URL}.
-```
+**Anonymity Note**: 제출 시 URL을 anonymous.4open.science 익명 repo 또는 "Code and data will be made publicly available upon acceptance." footnote로 교체. `gnueaj.github.io` URL은 저자 신원 노출.
 
 **Key Numbers for Abstract**: 20 metrics, 150 models, 8 methods, first on both faithfulness and robustness
 
@@ -76,167 +59,121 @@ Use these symbols consistently throughout. Define each at first use.
 
 ## §1. Introduction
 
-### 문단 1 — Motivation → Goal → Methods (~8 lines)
+**Final Version**:
 
-**Content Guide**:
-- **동기**: LLM이 학습 데이터로부터 개인정보, 유해 지식, 저작권 콘텐츠 등을 기억함 → GDPR right to erasure, safety, copyright 등의 이유로 특정 지식 제거 필요
-- **목표**: forget set의 knowledge를 제거하면서 retain set 성능을 유지, 궁극적으로 forget set을 처음부터 학습하지 않은 모델(retain model)과 구별 불가능하게 만드는 것
-- **다양한 메소드**: 이 목표를 달성하기 위해 gradient reversal, preference optimization, representation manipulation 등 다양한 접근법이 제안되어 왔음 (간결하게 흐름만, 상세는 §2.1)
+```latex
+\section{Introduction}
 
-**톤**: "critical"이나 "crucial" 대신 "important", "increasingly relevant" 등 사용. 3–4문장으로 동기 → 목표 → 메소드 자연스럽게 전개.
+Large language models (LLMs) memorize substantial portions of their training data \citep{tirumala2022memorization}, posing risks to privacy and AI safety when such data includes sensitive personal information or hazardous knowledge \citep{carlini2021extracting, bengio2025aisafety}.
+LLM unlearning addresses this by selectively removing target knowledge from a trained model while preserving its general capabilities \citep{jang2023knowledge}.
+The goal is to produce a model indistinguishable from one trained entirely without the target data \citep{bourtoule2021machine}, and a growing body of methods now pursues this objective \citep[e.g.,][]{jang2023knowledge, zhang2024negative, li2024wmdp}.
 
-### 문단 2 — Problem Statement (~10 lines)
+Yet, as unlearning methods proliferate, a fundamental question remains: how do we verify that knowledge has been genuinely removed?
+Recent benchmarking efforts have sought to systematically compare methods and metrics \citep{lee2026comparator}, advocating that a reliable metric should be \emph{faithful} (able to distinguish models with and without target knowledge) and \emph{robust} (maintaining consistent scores under deployment perturbations such as quantization and fine-tuning) \citep{dorna2025openunlearning}.
+Alongside these efforts, several studies have identified residual knowledge inside ostensibly unlearned models through representation-level analyses \citep{hong2024dissecting, lynch2024eight, guo2025mechanistic}, but their methods often require auxiliary training or are tied to specific datasets, leaving no generalizable quantitative score for systematic comparison.
+Moreover, adversaries can restore removed knowledge through lightweight fine-tuning \citep{lo2024relearn} or activation manipulation \citep{lynch2024eight}, underscoring the need for a metric that not only detects residual knowledge but remains stable under such perturbations.
 
-**Content Guide**:
-- **핵심 질문**: 이렇게 다양한 방법론이 나왔지만, 이들이 진정으로 knowledge를 제거했는지 어떻게 검증할 것인가?
-- **Evaluation의 두 축**: 좋은 unlearning metric은 (1) **faithful** — knowledge가 있는 모델과 없는 모델을 정확히 구분하고, (2) **robust** — quantization이나 relearning 같은 deployment perturbation에 안정적이어야 함
-- **현재 한계**: 기존 evaluation metrics에 대해 이 두 축을 체계적으로 검증한 연구가 부족. 또한 representation-level 분석 연구들이 잔존 knowledge를 관찰했으나 (Hong et al., 2024; Liu et al., 2024 등), 범용적인 정량적 score로 발전시키지 못함
-- **Threat model 한 문장**: Adversary가 lightweight fine-tuning이나 activation manipulation으로 knowledge를 복구할 수 있으므로, genuine verification은 "지식이 억제되었는가"가 아닌 **"인과적으로 복구 불가능한가"**를 확인해야 함
+% We propose the \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning by measuring how much target knowledge is recoverable through activation patching.
+We propose the \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning via activation patching.
+\textsc{UDS} operates in two stages: a baselining stage that identifies knowledge-encoding layers by patching hidden states from the retain model (i.e., trained without target data) into the full model (i.e., trained on all data including the target), and a quantification stage that replaces the retain model with the unlearned model to measure how much encoded knowledge persists.
+Where prior white-box analyses detect whether knowledge is present, \textsc{UDS} causally intervenes to test whether it is recoverable, producing a per-example score on a 0 (knowledge intact) to 1 (knowledge erased) scale that reflects erasure depth across knowledge-encoding layers.
+In a meta-evaluation of 20 metrics on 150 unlearned models spanning 8 methods, \textsc{UDS} achieves the highest faithfulness (AUC-ROC 0.971) and robustness (HM 0.933), outperforming both output-level metrics and three additional white-box baselines.
+We further reveal that unlearning methods differ not only in how much knowledge they remove but also in where and how deeply they do so, and propose guidelines for integrating \textsc{UDS} into existing evaluation frameworks to streamline robustness testing.
 
-**주의**: output-only의 한계를 주 포지셔닝으로 삼지 말 것. 핵심은 "체계적 meta-evaluation 부재 + causal recoverability 측정의 필요성".
-
-### 문단 3 — Our Contribution (~8 lines)
-
-**Content Guide**:
-- UDS 제안: two-stage activation patching으로 layer별 knowledge recoverability를 [0,1] score로 정량화
-- **포지셔닝**: 기존 representation 분석이 "knowledge가 남아 있는가"를 관찰(observe)하는 데 그쳤다면, UDS는 "knowledge가 복구 가능한가"를 인과적으로 개입(intervene)하여 측정
-- 20개 metrics 대비 meta-evaluation → faithfulness + robustness 양 축 종합 1위
-- 150 모델 실증 분석으로 method별 unlearning depth 차이와 example-level 패턴 식별
-
-### Contributions (bullets 3개)
-
-```
-We contribute:
-1. The Unlearning Depth Score (UDS), a causal metric that measures
-   per-example, per-layer knowledge recoverability in unlearned LLMs
-   via activation patching.
-2. A comprehensive meta-evaluation framework with symmetric robustness
-   formulas, demonstrating UDS achieves the highest faithfulness and
-   robustness among 20 metrics including 3 additional representation-
-   level baselines.
-3. Empirical analysis of 150 models across 8 unlearning methods,
-   revealing where and how deeply each method erases knowledge and
-   providing guidelines for integrating UDS into existing frameworks.
+In summary, we contribute:
+\begin{itemize}[leftmargin=1.2em,topsep=2pt,itemsep=1pt]
+\item \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning via two-stage activation patching.
+\item A meta-evaluation of 20 metrics on 150 unlearned models over 8 methods, providing systematic evidence that causally grounded metrics most reliably detect residual knowledge.
+\item Case studies revealing that methods differ not only in how much knowledge they remove but also in where and how deeply they do so, alongside guidelines for integrating \textsc{UDS} into existing evaluation frameworks.
+\end{itemize}
 ```
 
-### Figure 1 (p.1 right column)
+**구조**: 3 paragraphs + contributions (3 bullets)
+- **P1** (3 sentences): Memorization risk → Unlearning → Goal + methods
+- **P2** (4 sentences): Verification question → Benchmarking (faithful/robust) → Residual knowledge gap → Adversary recovery threat
+- **P3** (5 sentences): UDS proposal + two stages → Causal vs observational → Results → Case studies + practical guidelines
 
-**Content**: UDS method diagram
-- **예제**: idx=2, Q: "What is the profession of Hsiao Yun-Hwa's father?" → Prefix: "The father of Hsiao Yun-Hwa is a" + Entity: "civil engineer" (2 tokens)
-- **상단 (S1)**: "Baselining — How deeply is the knowledge encoded?" — Retain model → Full model 패칭, layer $l$에서 hidden states 교체
-- **하단 (S2)**: "Quantification — How much knowledge remains recoverable?" — Unlearned model → Full model 패칭
-- **오른쪽**: UDS interpretation bar (0.0 = intact ↔ 1.0 = erased)
-- **Caption**: "Overview of UDS. Stage 1 (Baselining) establishes the per-layer knowledge gap using the retain model. Stage 2 (Quantification) quantifies how much of that gap the unlearned model reproduces, indicating successful erasure."
+**톤 규칙**:
+- "crucial"은 abstract에서만 허용, intro에서는 사용하지 않음
+- "recoverable"/"recoverability"는 UDS 소개 이후(P3)에서만 사용; P2까지는 "residual", "identified", "detected"
+- faithfulness/robustness는 prior work(OpenUnlearning)의 프레이밍으로 제시
+- `\emph{}`는 faithful/robust 정의 시점에서만 사용
+- `\textsc{}`로 UDS 표기; `lee2026comparator`는 §1 P2에서 `dorna2025openunlearning`과 함께 인용
 
-**Design Note**: Use a simple 2-row diagram with colored arrows showing hidden state flow. Avoid overcrowding with formulas — the figure should be intuitive at a glance.
+**"how much / where / how deeply" 해석**:
+- **how much** = aggregate UDS score (0~1), 전체적 erasure 양
+- **where** = 어떤 layer에서 erasure가 일어났는지 (early vs late)
+- **how deeply** = layer stack 전반에 걸친 erasure 깊이 (표면만 vs 깊은 layer까지)
 
 ---
 
 ## §2. Background and Related Work
 
-### §2.1 LLM Unlearning and Evaluation
+**Final Version**:
 
-**첫 문단 — What is LLM Unlearning?** (~5 lines)
+```latex
+\section{Background and Related Work}
 
-> **제목 수정**: "Problem Formulation"은 우리가 문제를 정의하는 것처럼 보임. 실제로는 unlearning이 뭔지 설명하는 문단이므로 제목 없이 자연스럽게 시작하거나, "LLM Unlearning"으로.
+\subsection{LLM Unlearning}
 
-Unlearning 문제를 간결하게 정의:
+Given a trained model, a forget set $D_f$, and a retain set $D_r$, the goal of machine unlearning is to produce a model indistinguishable from one trained only on $D_r$ \citep{bourtoule2021machine}, while preserving performance on $D_r$ and general capabilities \citep{yao2024large}.
 
-```
-Given a pretrained model M_θ, a forget set D_f, and a retain set D_r,
-the goal of machine unlearning is to produce a model M_θ' such that:
-(1) M_θ' behaves as if D_f was never part of training (indistinguishability
-    from a model trained only on D_r), while
-(2) preserving performance on D_r and general capabilities.
-```
+\paragraph{Methods.}
+The simplest approach, gradient ascent \citep{jang2023knowledge}, directly maximizes loss on $D_f$, but unconstrained optimization leads to catastrophic collapse.
+GradDiff \citep{yao2024large, maini2024tofu} mitigates this by jointly minimizing loss on $D_r$, though balancing the opposing gradients remains fragile.
+NPO \citep{zhang2024negative} reframes this tension through preference optimization, treating forget set completions as dispreferred, and SimNPO \citep{fan2025simplicity} simplifies this further by removing the reference model.
+IdkNLL and IdkDPO \citep{maini2024tofu} instead train the model to produce alternative responses (``I don't know''), and AltPO \citep{mekala2025alternate} extends this with in-domain positive feedback on plausible alternatives.
+RMU \citep{li2024wmdp} and UNDIAL \citep{dong2025undial} instead intervene at the representation level: RMU misdirects hidden states toward random targets, while UNDIAL uses self-distillation on adjusted logits.
+Models unlearned with these methods across hyperparameter sweeps form the evaluation pool for our metric comparison in \S\ref{sec:meta-eval}.
 
-**문단 2 — Methods** (~8 lines, storytelling)
+\paragraph{Evaluation.}
+Unlearning is typically evaluated along three axes: \emph{memorization}, whether the model can still reproduce target knowledge; \emph{privacy}, whether an adversary can detect that the model was trained on the forget set, typically via membership inference attacks \citep{shokri2017membership, shi2024detecting}; and \emph{utility}, whether general performance is preserved.
+Benchmarks such as TOFU \citep{maini2024tofu}, MUSE \citep{shi2025muse}, and WMDP \citep{li2024wmdp} addressed these concerns, and OpenUnlearning \citep{dorna2025openunlearning} consolidated them into a unified three-axis pipeline.
+OpenUnlearning also introduced meta-evaluation, assessing metric quality itself along two axes: \emph{faithfulness}, whether the metric can distinguish models with vs.\ without target knowledge, and \emph{robustness}, whether it remains stable under quantization and fine-tuning.
+We build on this framework, replacing the original one-directional robustness criterion, which only penalizes knowledge recovery, with a symmetric formulation that penalizes metric instability in either direction (see \S\ref{subsec:meta-eval-setup}).
 
-메소드를 카테고리로 나열하지 말고, 발전 과정을 스토리텔링으로 서술:
+\subsection{White-box Analysis of LLM Unlearning}
 
-```
-The simplest approach, gradient ascent (GradAscent; Jang et al., ACL 2023),
-directly maximizes loss on D_f to push the model away from memorized
-knowledge. However, unconstrained gradient ascent leads to catastrophic
-collapse — the model degenerates into incoherent outputs. GradDiff (Yao
-et al., 2023; Maini et al., COLM 2024) addresses this by adding a gradient
-descent term on D_r as a counterweight, but the balance between the two
-opposing gradients remains fragile.
+Beyond output-level evaluation, a variety of techniques can probe model internals.
+CKA \citep{kornblith2019similarity} compares representational geometry across layers, Logit Lens \citep{nostalgebraist2020logitlens} decodes intermediate hidden states through the model's prediction head, Fisher Information \citep{kirkpatrick2017overcoming} quantifies parameter sensitivity to specific data, and activation patching \citep{meng2022locating} causally tests knowledge by replacing hidden states between models.
 
-NPO (Zhang et al., COLM 2024) reframes this tension through preference
-optimization, treating forget-set completions as dispreferred relative to
-a reference model, provably slowing the progression toward collapse.
-SimNPO (Fan et al., NeurIPS 2025) further simplifies this by removing the
-reference model in favor of a margin-based objective.
-
-Taking a different tack, IdkNLL and IdkDPO (Maini et al., COLM 2024) train
-the model to produce alternative responses ("I don't know") rather than
-pushing away from correct answers, either via standard likelihood (IdkNLL)
-or preference optimization (IdkDPO). AltPO (Mekala et al., COLING 2025)
-extends this by alternating negative feedback on the original answer with
-in-domain positive feedback on plausible alternatives.
-
-Finally, rather than manipulating output distributions, RMU (Li et al.,
-ICML 2024) and UNDIAL (Dong et al., NAACL 2025) intervene directly at the
-representation level — RMU misdirects hidden states toward random targets
-at designated layers, while UNDIAL uses self-distillation with adjusted
-logits to selectively suppress target knowledge.
+Applying these techniques to unlearning, several studies have shown that ostensibly unlearned models retain target knowledge internally.
+\citet{xu2025unlearning} use CKA and Fisher diagnostics to characterize reversibility of unlearning across layers.
+\citet{lynch2024eight} train probes on hidden states to detect latent knowledge invisible to output metrics.
+\citet{guo2025mechanistic} use causal tracing to localize factual recall circuits, then confirm residual knowledge with trained probes.
+\citet{hong2025intrinsic} project MLP value vectors into vocabulary space to show that parametric knowledge traces persist after unlearning.
+\citet{patil2024can} apply logit lens projections to demonstrate that intermediate layers still decode supposedly deleted information.
+\citet{hong2024dissecting} use parameter restoration to show that fine-tuning-based unlearning modifies MLP coefficient scores in the final layers without altering the underlying value vectors, leaving stored knowledge intact.
+These studies consistently reveal residual knowledge, but they are primarily diagnostic: none provides a standardized, comparable score that generalizes across forget sets (Table~\ref{tab:related-work}).
+UDS addresses this with a training-free, causal, dataset-invariant score for systematic method comparison (\S\ref{sec:uds}).
 ```
 
-**문단 3 — Evaluation** (~8 lines)
+**구조**: 2 subsections
+- **§2.1** (3 parts): Definition (1 sentence) → `\paragraph{Methods.}` (5 sentences, 8 methods) → `\paragraph{Evaluation.}` (4 sentences)
+- **§2.2** (2 paragraphs): Techniques landscape (4 sentences, 3 levels: representation/parameter/causal) → Prior white-box work (7 sentences, Table 1 entries + positioning)
 
-```
-Unlearning is typically evaluated along three axes: memorization — whether
-the model can still reproduce target knowledge (measured by Exact Match,
-Extraction Strength, probability-based metrics, and Truth Ratio; Carlini
-et al., 2021; Maini et al., 2024); privacy — whether statistical tests can
-distinguish forget-set members from non-members (MIA variants: LOSS, ZLib,
-Min-K, Min-K++; Shokri et al., 2017; Duan et al., 2024; Shi et al., 2024);
-and utility — whether general performance is preserved on the retain set.
+**톤 규칙**:
+- §2.2에서 기법 소개는 landscape 서술 (비판 아님)
+- "residual knowledge"는 prior work 서술에 사용 (recoverable은 UDS 이후)
+- Table 1로 positioning을 명확히 하되, 마지막 문장은 간결하게 ("UDS bridges this gap")
+- 엠대시 최소화: 콜론, 쉼표, 괄호로 대체
 
-These metrics were fragmented across individual studies until the Open-
-Unlearning framework (Maini et al., COLM 2024) unified them into a
-standardized evaluation pipeline on the TOFU benchmark (40 fictitious
-authors, forget10 split). Beyond per-model evaluation, Maini et al.
-introduced meta-evaluation — assessing metric quality itself through
-faithfulness (can the metric separate models with vs. without knowledge?)
-and robustness (is the metric stable under quantization and relearning
-attacks?). We build on this meta-evaluation framework in §4.
-```
+**Notation**: $D_f$, $D_r$만 정의 (§3 이후에서도 사용). $M_\theta$, $M_{\theta'}$는 §3에서 $M_{\text{full}}$, $M_{\text{ret}}$, $M_{\text{unl}}$로 별도 도입하므로 여기서 생략.
 
-### §2.2 Representation Analysis for Unlearning Verification
-
-**문단 1 — Representation Analysis Techniques** (~10 lines)
-
-다양한 representation 분석 기법을 가볍게 소개하고, 각각이 어떻게 활용되는지 서술. 비판보다는 landscape 설명:
-
-- **CKA** (Kornblith et al., ICML 2019): representational geometry의 유사성을 측정하여 두 모델이 얼마나 비슷한 표현 공간을 학습했는지 비교. 빠르고 학습 불필요
-- **Logit Lens** (nostalgebraist, 2020): 중간 layer의 hidden states를 모델의 decoder에 직접 통과시켜 각 layer에서 어떤 정보가 해독 가능한지 확인
-- **Fisher Information** (Kirkpatrick et al., PNAS 2017): parameter sensitivity를 통해 특정 데이터에 중요한 파라미터 영역을 추적
-- **Linear Probing** (Patil et al., 2024): hidden states 위에 auxiliary classifier를 학습하여 특정 정보의 존재 여부 판별
-- **SVCCA/CCA** (Raghu et al., 2017): canonical correlation 기반으로 layer 간, 모델 간 representation 비교
-- **Activation patching** (causal tracing): Meng et al. (2022)의 ROME에서 factual knowledge localization에 처음 사용되었으며, Ghandeharioun et al. (2024)의 Patchscopes에서 일반적 framework으로 확장
-
-이 중 UDS는 activation patching을 채택: 모델의 hidden states를 교체하고 결과적 행동 변화를 측정함으로써, knowledge가 특정 layer에서 **인과적으로 복구 가능한지** 직접 테스트. 이는 **audit** (진단) 목적의 활용이며, model steering과는 구분됨.
-
-> **참고**: 왜 linear probing / tuned lens를 baseline으로 포함하지 않았는지는 Appendix B에서 설명: "We include only methods that do not introduce extra trainable components. We therefore exclude linear probing and tuned lens, since both require supervised fitting of auxiliary modules."
-
-**문단 2 — White-box Unlearning Verification** (~6 lines + Table 1)
-
-기존 연구들이 unlearning 후 내부 표현에 지식이 남아있음을 관찰한 사례들을 정리하고, UDS와의 차별점을 Table 1로 명확화.
+**Baseline exclusion note** (Appendix B): "We include only methods that do not introduce extra trainable components. We therefore exclude linear probing and tuned lens, since both require supervised fitting of auxiliary modules."
 
 ### Table 1 — Comparison of White-box Unlearning Analysis (§2.2)
 
-| Work | Score | Causal | Train-Free | Data-Inv |
+| Work | Train-Free | Causal | Data-Inv | Score |
 |------|:---:|:---:|:---:|:---:|
-| Lynch et al. (2024) | No | No | No | Partial† |
+| Lynch et al. (2024) | No | No | Yes | No |
 | Guo et al. (2025) | No | Partial† | No | No |
-| Hong et al. (2025) | No | Partial† | Yes | No |
-| Patil et al. (2024) | No | No | Yes | Yes |
-| Hong et al. (2024a) | Yes | Yes | Yes | No |
+| Hong et al. (2025) | Yes | Partial† | No | No |
+| Patil et al. (2024) | Yes | No | Yes | No |
+| Hong et al. (2024a) | Yes | Yes | No | Yes |
 | **UDS (Ours)** | **Yes** | **Yes** | **Yes** | **Yes** |
 
-> **Caption** (LaTeX, 테이블 아래 배치): "Comparison of white-box unlearning analysis. **Score**: proposes a metric quantifying retained knowledge. **Causal**: controlled internal intervention (△† = causal localization but observational assessment). **Train-Free**: no auxiliary training. **Data-Inv**: applicable to new forget sets without dataset-specific adaptation (△† = general approach but requires retraining probes)."
+> **Caption** (LaTeX, 테이블 아래 배치): "Comparison of white-box unlearning analysis. **Train-Free**: no auxiliary training. **Causal**: controlled internal intervention (△† = causal localization but observational assessment). **Data-Inv**: applicable to new forget sets without dataset-specific adaptation. **Score**: proposes a metric quantifying residual target knowledge."
 
 > **Column definitions** (상세):
 >
@@ -324,6 +261,17 @@ attacks?). We build on this meta-evaluation framework in §4.
 ---
 
 ## §3. The Unlearning Depth Score
+
+### Figure 1 (§3)
+
+**Content**: UDS method diagram
+- **예제**: idx=2, Q: "What is the profession of Hsiao Yun-Hwa's father?" → Prefix: "The father of Hsiao Yun-Hwa is a" + Entity: "civil engineer" (2 tokens)
+- **상단 (S1)**: "Baselining — How deeply is the knowledge encoded?" — Retain model → Full model 패칭, layer $l$에서 hidden states 교체
+- **하단 (S2)**: "Quantification — How much knowledge remains recoverable?" — Unlearned model → Full model 패칭
+- **오른쪽**: UDS interpretation bar (0.0 = intact ↔ 1.0 = erased)
+- **Caption**: "Overview of UDS. Stage 1 (Baselining) establishes the per-layer knowledge gap using the retain model. Stage 2 (Quantification) quantifies how much of that gap the unlearned model reproduces, indicating successful erasure."
+
+**Design Note**: Use a simple 2-row diagram with colored arrows showing hidden state flow. Avoid overcrowding with formulas — the figure should be intuitive at a glance.
 
 **Section intro** (2–3 sentences):
 > "We introduce the Unlearning Depth Score (UDS), a mechanistic metric that measures knowledge recoverability through activation patching. We define the evaluation setup (§3.1), describe the two-stage patching procedure (§3.2), and present the score aggregation (§3.3). We validate each design choice through ablation studies in Appendix D."
@@ -1190,7 +1138,7 @@ Sure, here is the answer: ← injected prefix
 
 1. **§4.1 구조 조정**: symmetric formula는 §4.1 Experimental Setup에 통합. ROUGE quant 하락 예시로 동기부여.
 
-2. **§2.1 제목**: "Preliminaries"보다 "LLM Unlearning and Evaluation" 추천. Background 하위 section이므로 별도 Preliminaries 불필요.
+2. **§2 구조**: §2.1 "LLM Unlearning" (정의 + Methods + Evaluation), §2.2 "Internal Analysis of LLM Unlearning" (white-box 접근들 + Table 1).
 
 3. **§4.2 normalized MIA**: "동기: raw MIA는 retain과의 상대적 차이를 반영 못함" → "raw MIA AUC의 절대값만으로는 retain model 대비 상대적 변화를 반영 못함"으로 구체화.
 

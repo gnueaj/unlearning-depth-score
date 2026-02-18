@@ -112,6 +112,19 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
 }
 % Source: DBLP conf/acl/JangYYCLLS23
 
+@inproceedings{yao2024large,
+  author       = {Yuanshun Yao and
+                  Xiaojun Xu and
+                  Yang Liu},
+  title        = {Large Language Model Unlearning},
+  booktitle    = {Advances in Neural Information Processing Systems 38: Annual Conference
+                  on Neural Information Processing Systems 2024, NeurIPS 2024,
+                  Vancouver, BC, Canada, December 10-15, 2024},
+  year         = {2024},
+  url          = {http://papers.nips.cc/paper_files/paper/2024/hash/be52acf6bccf4a8c0a90fe2f5cfcead3-Abstract-Conference.html},
+}
+% Source: DBLP conf/nips/YaoXL24
+
 @inproceedings{zhang2024negative,
   author       = {Ruiqi Zhang and
                   Licong Lin and
@@ -171,20 +184,23 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
 }
 % Source: arXiv 2506.12618. NeurIPS 2025 D&B track. GitHub: locuslab/open-unlearning
 
-@article{lee2025comparator,
+@article{lee2026comparator,
   author       = {Jaeung Lee and
                   Suhyeon Yu and
                   Yurim Jang and
                   Simon S. Woo and
                   Jaemin Jo},
-  title        = {Unlearning Comparator: A Visual Analytics System for Comparative
+  title        = {Unlearning Comparator: {A} Visual Analytics System for Comparative
                   Evaluation of Machine Unlearning Methods},
   journal      = {{IEEE} Transactions on Visualization and Computer Graphics},
-  year         = {2025},
-  note         = {To appear},
-  url          = {https://arxiv.org/abs/2508.12730},
+  volume       = {32},
+  number       = {3},
+  pages        = {2852--2867},
+  year         = {2026},
+  url          = {https://doi.org/10.1109/TVCG.2026.3658325},
+  doi          = {10.1109/TVCG.2026.3658325},
 }
-% Source: arXiv 2508.12730. IEEE TVCG to appear.
+% Source: IEEE Xplore 11364307. TVCG v32(3), March 2026. IEEE VIS 2025 paper.
 
 @inproceedings{mekala2025alternate,
   author       = {Anmol Reddy Mekala and
@@ -298,6 +314,24 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
   eprint       = {2310.02238},
 }
 % Source: DBLP journals/corr/abs-2310-02238 (arXiv only, no published version)
+
+@article{xu2025unlearning,
+  author       = {Xiaoyu Xu and
+                  Xiang Yue and
+                  Yang Liu and
+                  Qingqing Ye and
+                  Huadi Zheng and
+                  Peizhao Hu and
+                  Minxin Du and
+                  Haibo Hu},
+  title        = {Unlearning Isn't Deletion: Investigating Reversibility of Machine
+                  Unlearning in {LLMs}},
+  journal      = {CoRR},
+  volume       = {abs/2505.16831},
+  year         = {2025},
+  url          = {https://arxiv.org/abs/2505.16831},
+}
+% Source: DBLP journals/corr/abs-2505-16831 (arXiv only)
 ```
 {% endraw %}
 
@@ -737,3 +771,9 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
 | 29 | `lo2024relearn` | Findings ACL 2024 | DBLP | pp. 8306-8323 |
 | 30 | `hou2025decoupling` | Findings ACL 2025 | DBLP | pp. 13978-13999 |
 | 31 | `wang2025reasoning` | EMNLP 2025 | DBLP | pp. 4427-4443 |
+| 32 | `bengio2025aisafety` | arXiv 2025 | arXiv | 96 authors, truncated with "and others" |
+| 33 | `bourtoule2021machine` | IEEE S&P 2021 | DBLP | pp. 141-159 |
+| 34 | `dorna2025openunlearning` | NeurIPS 2025 D&B | arXiv | COLM not on DBLP; arXiv 2506.12618 |
+| 35 | `lee2026comparator` | IEEE TVCG 2026 | IEEE Xplore | v32(3), pp. 2852-2867, DOI:10.1109/TVCG.2026.3658325 |
+| 36 | `yao2024large` | NeurIPS 2024 | DBLP | conf/nips/YaoXL24. arXiv preprint was 2310.10683 (2023) |
+| 37 | `fan2025simplicity` | NeurIPS 2025 | OpenReview | poster. ID=JbvSQm5h1l |

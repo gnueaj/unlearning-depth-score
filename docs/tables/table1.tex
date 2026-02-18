@@ -9,25 +9,23 @@
 \begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{@{}lcccc@{}}
 \toprule
-\textbf{Work} & \textbf{Score} & \textbf{Causal} & \textbf{Train-Free} & \textbf{Data-Inv} \\
+\textbf{Work}              & \textbf{Train-Free} & \textbf{Causal} & \textbf{Data-Inv} & \textbf{Score} \\
 \midrule
-Lynch et al.~(\citeyear{lynch2024eight}) & \no & \no & \no & \pmark \\
-Guo et al.~(\citeyear{guo2025mechanistic}) & \no & \pmark & \no & \no \\
-Hong et al.~(\citeyear{hong2025intrinsic}) & \no & \pmark & \yes & \no \\
-Patil et al.~(\citeyear{patil2024can}) & \no & \no & \yes & \yes \\
-Hong et al.~(\citeyear{hong2024dissecting}) & \yes & \yes & \yes & \no \\
+\citet{lynch2024eight}     & \no  & \no    & \yes & \no  \\
+\citet{guo2025mechanistic} & \no  & \pmark & \no  & \no  \\
+\citet{hong2025intrinsic}  & \yes & \pmark & \no  & \no  \\
+\citet{patil2024can}       & \yes & \no    & \yes & \no  \\
+\citet{hong2024dissecting} & \yes & \yes   & \no  & \yes \\
 \midrule
-\textbf{UDS (Ours)} & \yes & \yes & \yes & \yes \\
+\textbf{UDS (Ours)}        & \yes & \yes   & \yes & \yes \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
-
-\vspace{5pt}
 \caption{Comparison of white-box unlearning analysis.
-\textbf{Score}: proposes a metric quantifying retained knowledge.
-\textbf{Causal}: controlled internal intervention (\pmark{} = causal localization but observational assessment).
 \textbf{Train-Free}: no auxiliary training.
-\textbf{Data-Inv}: applicable to new forget sets without dataset-specific adaptation (\pmark{} = general approach but requires retraining probes).
+\textbf{Causal}: evaluates knowledge causally (\pmark{} = causal localization but observational assessment).
+\textbf{Data-Inv}: directly applicable to new forget sets.
+\textbf{Score}: proposes a metric quantifying residual target knowledge.
 }
 \label{tab:related-work}
 \end{table}

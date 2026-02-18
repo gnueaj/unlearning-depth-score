@@ -58,7 +58,7 @@ Positioning: prior unlearning studies already question output-only evaluation; t
 - **UDS setting**: `tofu_data/forget10_filtered_v7_gt.json` (367 examples)
   - raw `Question/Answer` style, entity span annotations for teacher forcing
   - default: `patch_scope=span`, `em_scope=entity`, `delta_threshold=0.05`
-  - **Metrics**: UDS, CKA, Logit Lens, Fisher Masked (all representation-level metrics)
+  - **Metrics**: UDS, CKA, Logit Lens, Fisher Masked (all white-box metrics)
 - **Open-Unlearning-style**: HF `locuslab/TOFU` `forget10_perturbed` (400 examples)
   - chat template + system prompt (`You are a helpful assistant.`)
   - paraphrase/perturbed answer variants → generation + MIA eval
@@ -78,8 +78,8 @@ Do not mix these two evaluation settings silently.
 Following prior work that highlights limits of output-only evaluation, UDS measures whether knowledge remains recoverable from internal representations using activation patching.
 
 ### Two-Stage Patching
-- **S1**: retain → full (baseline: retain model's knowledge gap)
-- **S2**: unlearned → full (test: unlearned model's knowledge gap)
+- **S1 (Baselining)**: retain → full (baseline: retain model's knowledge gap)
+- **S2 (Quantification)**: unlearned → full (test: unlearned model's knowledge gap)
 
 Each stage patches hidden states from source model into full model at layer `l`, measuring log-probability degradation on entity tokens.
 
@@ -120,7 +120,7 @@ UDS_i = Σ_{l∈KG} [ Δ^S1_l × LER_{i,l} ] / Σ_{l∈KG} Δ^S1_l
 
 ## Representation Baselines
 
-Three representation-level metrics compare UDS against alternative approaches for detecting internal knowledge retention. All three use the retain model as reference and operate on the same 367-example forget set.
+Three white-box baselines compare UDS against alternative approaches for detecting internal knowledge retention. All three use the retain model as reference and operate on the same 367-example forget set.
 
 Script: `scripts/compute_representation_baselines.py`
 Anchor data: `runs/meta_eval/representation_baselines/anchor/anchor_cache.json`
@@ -319,6 +319,22 @@ Q = min(before / after, 1)                                 # Quantization
 - Robustness: **sdpa** attention (s1_cache_sdpa.json 사용, ep5/ep10과 일관성)
 - Retain model's UDS should be exactly 1.0
 - `undial_lr3e4_b10_a5_ep5` UDS bug: metrics_before에서 uds=0으로 기록됨 → 0.8708로 post-hoc 패치 완료
+
+## LaTeX Citation Style (EMNLP / natbib)
+
+| Command | Output | Use Case |
+|---------|--------|----------|
+| `\citet{key}` | Author et al. (2024) | 주어로 사용 (in-text) |
+| `\citep{key}` | (Author et al., 2024) | 괄호 안 인용 |
+| `\citealp{key}` | Author et al., 2024 | 이미 괄호 안에 있을 때 (괄호 없이) |
+| `\citeyearpar{key}` | (2024) | 연도만 괄호로 |
+
+- 테이블 Work 열: `\citet{key}` 사용 (natbib이 "Author et al. (year)" 자동 생성)
+- 본문 문장 끝: `\citep{key}` 사용
+- "knowledge recoverability" / "recoverable"는 UDS 전용 용어. 다른 문맥에서는 "residual knowledge", "identified", "detected" 등 일반 용어 사용
+- UDS / Unlearning Depth Score 언급 시 `\textsc{}` 사용 (e.g., `\textsc{UDS}`, `\textsc{Unlearning Depth Score}`)
+- faithfulness/robustness는 OpenUnlearning 등 prior work의 주장으로 프레이밍 (우리가 처음 주장하는 것처럼 쓰지 않기)
+- LLMs 약어는 첫 사용 시 "Large language models (LLMs)"로 정의, 이후 LLMs 사용
 
 ## Operational Notes
 - **Figure 글씨체는 Roboto** — `scripts/plot_style.py`의 `apply_style()` 사용. `font-roboto` 패키지 필요 (`pip install font-roboto`). LaTeX(`text.usetex`) 비활성화, `mathtext.fontset=dejavusans`.
