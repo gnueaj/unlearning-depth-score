@@ -77,7 +77,7 @@ Alongside these efforts, several studies have identified residual knowledge insi
 Moreover, adversaries can restore removed knowledge through lightweight fine-tuning \citep{lo2024relearn} or activation manipulation \citep{lynch2024eight}, underscoring the need for a metric that not only detects such knowledge but remains stable under such perturbations.
 
 % We propose the \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning by measuring how much target knowledge is recoverable through activation patching.
-We propose the \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning via activation patching.
+To address this, we propose the \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning via activation patching.
 \textsc{UDS} operates in two stages: a baselining stage that identifies knowledge-encoding layers by patching hidden states from the retain model (i.e., trained without target data) into the full model (i.e., trained on all data including the target), and a quantification stage that replaces the retain model with the unlearned model to measure how much encoded knowledge persists.
 Where prior white-box analyses detect whether knowledge is present, \textsc{UDS} causally intervenes to test whether it is recoverable, producing a per-example score on a 0 (knowledge intact) to 1 (knowledge erased) scale that reflects erasure depth across knowledge-encoding layers.
 In a meta-evaluation of 20 metrics on 150 unlearned models spanning 8 methods, \textsc{UDS} achieves the highest faithfulness (AUC-ROC 0.971) and robustness (HM 0.933), outperforming both output-level metrics and three additional white-box baselines.
@@ -314,11 +314,12 @@ To determine how much forget set knowledge is encoded at each layer, for each ex
 where $s^{S1}_{i,t}$ is the log-probability of entity token $y_{i,t}$ after patching layer $l$.
 A large $\Delta^{S1}_{i,l}$ indicates that $M_{\text{full}}$ encodes forget set knowledge for example $i$ at layer $l$ that $M_{\text{ret}}$ lacks; this pattern varies across examples, as different facts are encoded at different depths.
 
-Layers with negligible $\Delta^{S1}_{i,l}$ reflect noise rather than knowledge encoding, so we set a threshold $\tau$ and keep only the \textbf{knowledge-encoding (KE) layers} (see Appendix~\ref{app:threshold} for sensitivity analysis):
+Layers with negligible $\Delta^{S1}_{i,l}$ reflect noise rather than knowledge encoding, so we set a threshold $\tau$ and keep only the \textbf{Knowledge-Encoding (KE) layers} (see Appendix~\ref{app:threshold} for sensitivity analysis):
 \begin{equation}
 \text{KE}_i = \{ l : \Delta^{S1}_{i,l} > \tau \}, \quad \tau = 0.05
 \label{eq:ke}
 \end{equation}
+This also ensures that $\Delta^{S1}_{i,l}$ in the denominator of the Layer Erasure Ratio (Eq.~\ref{eq:ler}) is bounded away from zero.
 Notably, since Stage~1 depends only on $M_{\text{ret}}$ and $M_{\text{full}}$, it need only be computed once when evaluating multiple unlearned models.
 
 \paragraph{Stage 2: Quantification.}
