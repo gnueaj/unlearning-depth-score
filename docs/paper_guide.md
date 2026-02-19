@@ -19,35 +19,38 @@ Use these symbols consistently throughout. Define each at first use.
 | $M_{\text{unl}}$ | Unlearned model (full model after unlearning) | §3.1 |
 | $D_f$ | Forget set (data to be unlearned) | §2.1 |
 | $D_r$ | Retain set (data to be preserved) | §2.1 |
-| $x$ | Input prompt (question + answer prefix) | §3.1 |
-| $y = (y_1, \dots, y_T)$ | Entity span tokens within the ground-truth answer | §3.1 |
+| $i$ | Example index within the forget set | §3.2 |
+| $x_i$ | Input prompt (question + answer prefix) for example $i$ | §3.1 |
+| $y_i = (y_{i,1}, \dots, y_{i,T_i})$ | Entity span tokens within the ground-truth answer ($T_i$ tokens) | §3.1 |
 | $h^l_M[p]$ | Hidden state of model $M$ at layer $l$, position $p$ (position $p$'s output predicts token $p{+}1$) | §3.2 |
-| $s^{\text{full}}_t$ | $\log p_{M_{\text{full}}}(y_t \mid x, y_{1:t-1})$ — full model log-prob of entity token $y_t$ (measured at position $y_t{-}1$) | §3.2 |
-| $s^{S}_t$ | Log-prob of $y_t$ after patching layer $l$ with source $M_S$'s hidden states | §3.2 |
-| $\Delta^{S}_l$ | $\frac{1}{T}\sum_t (s^{\text{full}}_t - s^{S}_t)$ — mean log-prob degradation at layer $l$ | §3.2 |
+| $s^{\text{full}}_{i,t}$ | $\log p_{M_{\text{full}}}(y_{i,t} \mid x_i, y_{i,1:t-1})$ — full model log-prob of entity token $y_{i,t}$ | §3.2 |
+| $s^{S}_{i,t}$ | Log-prob of $y_{i,t}$ after patching layer $l$ with source $M_S$'s hidden states | §3.2 |
+| $\Delta^{S}_{i,l}$ | $\frac{1}{T_i}\sum_t (s^{\text{full}}_{i,t} - s^{S}_{i,t})$ — mean log-prob degradation at layer $l$ for example $i$ | §3.2 |
 | $\tau$ | Knowledge-encoding layer threshold (default 0.05) | §3.2 |
 | $\text{KE}_i$ | $\{l : \Delta^{S1}_{i,l} > \tau\}$ — knowledge-encoding layers (where retain lacks target knowledge) | §3.2 |
 | $\text{UDS}_i$ | Per-example Unlearning Depth Score | §3.3 |
+
+> **Convention**: We omit the example index $i$ when clear from context (e.g., $\Delta^{S1}_l$ for $\Delta^{S1}_{i,l}$).
 
 ---
 
 ## §0. Abstract
 
-**Structure**: [Background] → [Problem] → [Proposal+Method] → [Results] → [Case Studies] → [Practical Impact] → [Availability]
+**Structure**: [Background+Motivation] → [Problem] → [Gap] → [Proposal] → [Mechanism] → [Results] → [Case Studies] → [Guidelines] → [Availability]
 
 **Final Version**:
 
 ```latex
 \begin{abstract}
-Large language model (LLM) unlearning has emerged as a crucial post-hoc mechanism for privacy protection and AI safety.
-However, existing output-only metrics cannot detect target knowledge covertly recoverable from internal representations.
-While recent white-box studies observe such residual knowledge, they often require auxiliary training or dataset-specific adaptations, leaving the field without a generalizable quantitative metric.
-We propose the \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning by measuring target knowledge recoverability through activation patching.
-\textsc{UDS} identifies knowledge-encoding layers using a retain model baseline and measures how much of this encoded knowledge is successfully erased on a 0 (knowledge intact) to 1 (knowledge erased) scale.
-In a meta-evaluation of 20 metrics on 150 unlearned models spanning 8 methods, \textsc{UDS} achieves the highest faithfulness and robustness, outperforming output and white-box baselines.
-Our case studies further show that methods vary in where and how deeply they erase knowledge, revealing patterns invisible to aggregate metrics.
-In practice, integrating \textsc{UDS} into evaluation frameworks re-ranks methods by penalizing superficial erasure, and streamlines costly robustness testing.
-We release our code and benchmark results.\footnote{Code and data will be made publicly available upon acceptance.}
+Large language model (LLM) unlearning has emerged as a crucial post-hoc mechanism for privacy protection and AI safety, yet auditing whether target knowledge is truly removed remains challenging.
+Existing output-only metrics cannot detect this knowledge, still recoverable from internal representations.
+Recent white-box studies reveal such residual knowledge, but they often rely on auxiliary training or dataset-specific adaptations, leaving no generalizable quantitative metric.
+To this end, we propose the \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning via activation patching.
+\textsc{UDS} first identifies layers that encode this knowledge using a retain model baseline, then measures how much of that encoded knowledge is erased in the unlearned model on a 0--1 scale.
+In a meta-evaluation of 20 metrics across 150 unlearned models spanning 8 methods, \textsc{UDS} achieves the highest faithfulness and robustness, outperforming output and white-box baselines.
+Case studies further reveal that white-box metrics can disagree at the layer level and that erasure depth varies across examples.
+We provide guidelines for integrating \textsc{UDS} into existing evaluation frameworks to audit internal erasure and streamline robustness testing.\footnote{Code and data will be made publicly available upon acceptance.}
+% Our code and benchmarks are avalilable.\url{}
 \end{abstract}
 ```
 
@@ -70,21 +73,21 @@ The goal is to produce a model indistinguishable from one trained entirely witho
 
 Yet, as unlearning methods proliferate, a fundamental question remains: how do we verify that knowledge has been genuinely removed?
 Recent benchmarking efforts have sought to systematically compare methods and metrics \citep{lee2026comparator}, advocating that a reliable metric should be \emph{faithful} (able to distinguish models with and without target knowledge) and \emph{robust} (maintaining consistent scores under deployment perturbations such as quantization and fine-tuning) \citep{dorna2025openunlearning}.
-Alongside these efforts, several studies have identified residual knowledge inside ostensibly unlearned models through representation-level analyses \citep{hong2024dissecting, lynch2024eight, guo2025mechanistic}, but their methods often require auxiliary training or are tied to specific datasets, leaving no generalizable quantitative score for systematic comparison.
-Moreover, adversaries can restore removed knowledge through lightweight fine-tuning \citep{lo2024relearn} or activation manipulation \citep{lynch2024eight}, underscoring the need for a metric that not only detects residual knowledge but remains stable under such perturbations.
+Alongside these efforts, several studies have identified residual knowledge inside ostensibly unlearned models through white-box analyses \citep{hong2024dissecting, lynch2024eight, guo2025mechanistic}, but their methods often require auxiliary training or are tied to specific datasets, leaving no generalizable quantitative score for systematic comparison.
+Moreover, adversaries can restore removed knowledge through lightweight fine-tuning \citep{lo2024relearn} or activation manipulation \citep{lynch2024eight}, underscoring the need for a metric that not only detects such knowledge but remains stable under such perturbations.
 
 % We propose the \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning by measuring how much target knowledge is recoverable through activation patching.
 We propose the \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning via activation patching.
 \textsc{UDS} operates in two stages: a baselining stage that identifies knowledge-encoding layers by patching hidden states from the retain model (i.e., trained without target data) into the full model (i.e., trained on all data including the target), and a quantification stage that replaces the retain model with the unlearned model to measure how much encoded knowledge persists.
 Where prior white-box analyses detect whether knowledge is present, \textsc{UDS} causally intervenes to test whether it is recoverable, producing a per-example score on a 0 (knowledge intact) to 1 (knowledge erased) scale that reflects erasure depth across knowledge-encoding layers.
 In a meta-evaluation of 20 metrics on 150 unlearned models spanning 8 methods, \textsc{UDS} achieves the highest faithfulness (AUC-ROC 0.971) and robustness (HM 0.933), outperforming both output-level metrics and three additional white-box baselines.
-We further reveal that unlearning methods differ not only in how much knowledge they remove but also in where and how deeply they do so, and propose guidelines for integrating \textsc{UDS} into existing evaluation frameworks to streamline robustness testing.
+We further show that erasure depth varies across examples and that white-box metrics can disagree at the layer level, and provide guidelines for integrating \textsc{UDS} into existing evaluation frameworks to streamline robustness testing.
 
 In summary, our contributions are:
 \begin{itemize}[leftmargin=1.2em,topsep=2pt,itemsep=1pt]
 \item \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning via two-stage activation patching.
 \item A meta-evaluation of 20 metrics on 150 unlearned models over 8 methods, providing systematic evidence that causally grounded metrics most reliably detect residual knowledge.
-\item Case studies revealing that methods differ not only in how much knowledge they remove but also in where and how deeply they do so, alongside guidelines for integrating \textsc{UDS} into existing evaluation frameworks.
+\item Case studies uncovering layer-level metric disagreements and example-level variation in erasure depth, alongside guidelines for integrating \textsc{UDS} into existing evaluation frameworks.
 \end{itemize}
 ```
 
@@ -100,9 +103,8 @@ In summary, our contributions are:
 - `\emph{}`는 faithful/robust 정의 시점에서만 사용
 - `\textsc{}`로 UDS 표기; `lee2026comparator`는 §1 P2에서 `dorna2025openunlearning`과 함께 인용
 
-**"how much / where / how deeply" 해석**:
+**"how much / how deeply" 해석**:
 - **how much** = aggregate UDS score (0~1), 전체적 erasure 양
-- **where** = 어떤 layer에서 erasure가 일어났는지 (early vs late)
 - **how deeply** = layer stack 전반에 걸친 erasure 깊이 (표면만 vs 깊은 layer까지)
 
 ---
@@ -123,13 +125,13 @@ The simplest approach, gradient ascent \citep{jang2023knowledge}, directly maxim
 GradDiff \citep{yao2024large, maini2024tofu} mitigates this by jointly minimizing loss on $D_r$, though balancing the opposing gradients remains fragile.
 NPO \citep{zhang2024negative} reframes this tension through preference optimization, treating forget set completions as dispreferred, and SimNPO \citep{fan2025simplicity} simplifies this further by removing the reference model.
 IdkNLL and IdkDPO \citep{maini2024tofu} instead train the model to produce alternative responses (``I don't know''), and AltPO \citep{mekala2025alternate} extends this with in-domain positive feedback on plausible alternatives.
-RMU \citep{li2024wmdp} instead intervenes at the representation level, misdirecting hidden states toward random targets, while UNDIAL \citep{dong2025undial} uses self-distillation on adjusted logits to steer output distributions away from target knowledge.
+RMU \citep{li2024wmdp} instead intervenes at the representation level, misdirecting hidden states toward random targets, while UNDIAL \citep{dong2025undial} uses self-distillation on adjusted logits to steer output distributions away from forget set knowledge.
 Models unlearned with these methods across hyperparameter sweeps form the evaluation pool for our metric comparison in \S\ref{sec:meta-eval}.
 
 \paragraph{Evaluation.}
-Unlearning is typically evaluated along three axes: \emph{memorization}, whether the model can still reproduce target knowledge; \emph{privacy}, whether an adversary can detect that the model was trained on the forget set, typically via membership inference attacks \citep{shokri2017membership, shi2024detecting}; and \emph{utility}, whether general performance is preserved.
+Unlearning is typically evaluated along three axes: \emph{memorization}, whether the model can still reproduce forget set knowledge; \emph{privacy}, whether an adversary can detect that the model was trained on the forget set, typically via membership inference attacks \citep{shokri2017membership, shi2024detecting}; and \emph{utility}, whether general performance is preserved.
 Benchmarks such as TOFU \citep{maini2024tofu}, MUSE \citep{shi2025muse}, and WMDP \citep{li2024wmdp} addressed these evaluation concerns, and OpenUnlearning \citep{dorna2025openunlearning} consolidated them into a unified framework.
-OpenUnlearning also introduced meta-evaluation, assessing metric quality itself by two criteria: \emph{faithfulness}, whether the metric can distinguish models with vs.\ without target knowledge, and \emph{robustness}, whether it remains stable under quantization and fine-tuning.
+OpenUnlearning also introduced meta-evaluation, assessing metric quality itself by two criteria: \emph{faithfulness}, whether the metric can distinguish models with vs.\ without forget set knowledge, and \emph{robustness}, whether it remains stable under quantization and fine-tuning.
 We build on this framework, replacing the original one-directional robustness criterion, which only penalizes knowledge recovery.
 Our symmetric formulation penalizes metric instability in either direction (see \S\ref{subsec:meta-eval-setup}).
 
@@ -138,7 +140,7 @@ Our symmetric formulation penalizes metric instability in either direction (see 
 Beyond output-level evaluation, a variety of techniques can probe model internals.
 CKA \citep{kornblith2019similarity} compares representational geometry across layers, Logit Lens \citep{nostalgebraist2020logitlens} decodes intermediate hidden states through the model's prediction head, Fisher Information \citep{kirkpatrick2017overcoming} quantifies parameter sensitivity to specific data, and activation patching \citep{meng2022locating} causally tests knowledge by replacing hidden states between models.
 
-Applying these techniques to unlearning, several studies have shown that ostensibly unlearned models preserve target knowledge internally.
+Applying these techniques to unlearning, several studies have shown that ostensibly unlearned models preserve forget set knowledge internally.
 \citet{xu2025unlearning} use CKA and Fisher diagnostics to characterize reversibility of unlearning across layers.
 \citet{lynch2024eight} train probes on hidden states to detect latent knowledge invisible to output metrics.
 \citet{guo2025mechanistic} use causal tracing to localize factual recall circuits, then confirm residual knowledge with trained probes.
@@ -174,7 +176,7 @@ UDS addresses this with a training-free, causal, dataset-invariant score for sys
 | Hong et al. (2024a) | Yes | Yes | No | Yes |
 | **UDS (Ours)** | **Yes** | **Yes** | **Yes** | **Yes** |
 
-> **Caption** (LaTeX, 테이블 아래 배치): "Comparison of white-box unlearning analysis. **Train-Free**: no auxiliary training. **Causal**: controlled internal intervention (△† = causal localization but observational assessment). **Data-Inv**: applicable to new forget sets without dataset-specific adaptation. **Score**: proposes a metric quantifying residual target knowledge."
+> **Caption** (LaTeX, 테이블 아래 배치): "Comparison of white-box unlearning analysis. **Train-Free**: no auxiliary training. **Causal**: controlled internal intervention (△† = causal localization but observational assessment). **Data-Inv**: applicable to new forget sets without dataset-specific adaptation. **Score**: proposes a metric quantifying residual forget set knowledge."
 
 > **Column definitions** (상세):
 >
@@ -263,106 +265,92 @@ UDS addresses this with a training-free, causal, dataset-invariant score for sys
 
 ## §3. The Unlearning Depth Score
 
-### Figure 1 (§3)
+### Figure 1 — `figs/pipeline.png`
 
-**Content**: UDS method diagram
-- **예제**: idx=2, Q: "What is the profession of Hsiao Yun-Hwa's father?" → Prefix: "The father of Hsiao Yun-Hwa is a" + Entity: "civil engineer" (2 tokens)
-- **상단 (S1)**: "Baselining — How deeply is the knowledge encoded?" — Retain model → Full model 패칭, layer $l$에서 hidden states 교체
-- **하단 (S2)**: "Quantification — How much knowledge remains recoverable?" — Unlearned model → Full model 패칭
-- **오른쪽**: UDS interpretation bar (0.0 = intact ↔ 1.0 = erased)
-- **Caption**: "Overview of UDS. Stage 1 (Baselining) establishes the per-layer knowledge gap using the retain model. Stage 2 (Quantification) quantifies how much of that gap the unlearned model reproduces, indicating successful erasure."
+**Caption (확정)**:
 
-**Design Note**: Use a simple 2-row diagram with colored arrows showing hidden state flow. Avoid overcrowding with formulas — the figure should be intuitive at a glance.
-
-**Section intro** (2–3 sentences):
-> "We introduce the Unlearning Depth Score (UDS), a mechanistic metric that measures knowledge recoverability through activation patching. We define the evaluation setup (§3.1), describe the two-stage patching procedure (§3.2), and present the score aggregation (§3.3). We validate each design choice through ablation studies in Appendix D."
-
-> 용어 정리: Following Ghandeharioun et al. (2024), we refer to the model whose hidden states are injected as the **source model** ($M_S$) and the model that receives the patched states as the **target model** ($M_T$). In UDS, the target is always $M_{\text{full}}$.
-
-### §3.1 Task Formulation and Scope
-
-**문단 1 — Models and Notation** (~4 lines)
-
-```
-- M_full: original model trained on D_r ∪ D_f
-- M_ret:  model trained on D_r only (gold standard for complete unlearning)
-- M_unl:  model after applying an unlearning method to M_full
+```latex
+\caption{Overview of \textsc{UDS} for a single forget set example.
+\textbf{(A)}~Stage~1 patches hidden states from $M_{\text{ret}}$ into $M_{\text{full}}$ at each layer to measure how deeply the forget set knowledge is encoded.
+\textbf{(B)}~Stage~2 repeats this with $M_{\text{unl}}$ as source to quantify how much encoded knowledge remains recoverable.
+\textbf{(C)}~Stage~2 degradation is compared against Stage~1 at each layer to compute erasure ratios, which are weighted and aggregated into a single 0--1 score.}
 ```
 
-**문단 2 — Input Construction and Teacher Forcing** (~8 lines)
+### LaTeX (확정: §3 전체)
 
-Each forget-set example consists of a question $x$ and a ground-truth answer. The answer contains a knowledge-bearing **entity span** $y = (y_1, \dots, y_T)$ preceded by template tokens (the **prefix**). We concatenate the question, prefix, and entity into a single input sequence and feed it to the model in one forward pass (**teacher forcing**): at each position $t$, the model conditions on the ground-truth tokens $y_{<t}$ rather than its own predictions, yielding $\log p(y_t \mid x, y_{<t})$.
+```latex
+\section{The \textsc{Unlearning Depth Score}}\label{sec:uds}
+\input{figs/pipeline}
+In this section, we describe \textsc{UDS}, a metric that quantifies the depth of unlearning by measuring how much forget set knowledge is recoverable through activation patching (Figure~\ref{fig:pipeline}).
+We define the problem setup (\S\ref{subsec:setup}) and describe the patching procedure (\S\ref{subsec:patching}); Appendix~\ref{app:ablation} provides ablations and supplementary analyses supporting our design choices.
 
-**Example**: For the question "What is the profession of Hsiao Yun-Hwa's father?" with answer "The father of Hsiao Yun-Hwa is a **civil engineer**":
+\subsection{Problem Setup}\label{subsec:setup}
+\paragraph{Terminology.}
+We consider three models:
+(i)~$M_{\text{full}}$, trained on the full dataset $D_r \cup D_f$;
+(ii)~$M_{\text{ret}}$, trained only on $D_r$ (the gold standard for unlearning);
+and (iii)~$M_{\text{unl}}$, obtained by applying an unlearning method to $M_{\text{full}}$.
+Following \citet{ghandeharioun2024patchscopes}, we call the model whose hidden states are injected the \emph{source} and the model that receives them the \emph{target}.
 
+\paragraph{Input and Measurement.}
+Each forget set example $i$ consists of an input context $x_i$ and an \textbf{entity span} $y_i = (y_{i,1}, \dots, y_{i,T_i})$.
+We focus on entity spans because common template phrases are predictable regardless of knowledge retention.
+To avoid generation noise and enable stable per-token comparison across models, we use teacher forcing: the full input sequence is fed in a single forward pass.
+The model predicts each entity token $y_{i,t}$ conditioned on the ground-truth prefix $y_{i,<t}$, yielding log-probabilities $s_{i,t} = \log p(y_{i,t} \mid x_i, y_{i,<t})$.
+In autoregressive language models, the hidden state at position $p$ predicts token $p{+}1$; we therefore examine positions $y_{i,1}{-}1$ through $y_{i,T_i}{-}1$.
+
+\subsection{Two-Stage Activation Patching}\label{subsec:patching}
+
+UDS proceeds in two stages: Stage~1 patches $M_{\text{ret}}$'s hidden states into $M_{\text{full}}$ to establish a baseline, and Stage~2 repeats this with $M_{\text{unl}}$ to quantify erasure.
+We first run $M_{\text{full}}$ on each example to obtain reference log-probabilities $s^{\text{full}}_{i,t}$.
+$M_{\text{full}}$ serves as the \emph{target} at each stage because it has learned all forget set knowledge and can decode any knowledge encoded in the patched hidden states.
+
+\paragraph{Stage 1: Baselining.}
+To determine how much forget set knowledge is encoded at each layer, for each example $i$ and layer $l$ we patch the \emph{source} $M_{\text{ret}}$'s residual stream (i.e., full layer output; see Appendix~\ref{app:component} for component-level analysis) into $M_{\text{full}}$ at the positions where entity tokens are predicted and measure the degradation in log-probability:
+\begin{equation}
+\Delta^{S1}_{i,l} = \frac{1}{T_i}\sum_{t=1}^{T_i}\bigl(s^{\text{full}}_{i,t} - s^{S1}_{i,t}\bigr)
+\label{eq:delta-s1}
+\end{equation}
+where $s^{S1}_{i,t}$ is the log-probability of entity token $y_{i,t}$ after patching layer $l$.
+A large $\Delta^{S1}_{i,l}$ indicates that $M_{\text{full}}$ encodes forget set knowledge for example $i$ at layer $l$ that $M_{\text{ret}}$ lacks; this pattern varies across examples, as different facts are encoded at different depths.
+
+Layers with negligible $\Delta^{S1}_{i,l}$ reflect noise rather than knowledge encoding, so we set a threshold $\tau$ and keep only the \textbf{knowledge-encoding (KE) layers} (see Appendix~\ref{app:threshold} for sensitivity analysis):
+\begin{equation}
+\text{KE}_i = \{ l : \Delta^{S1}_{i,l} > \tau \}, \quad \tau = 0.05
+\label{eq:ke}
+\end{equation}
+Notably, since Stage~1 depends only on $M_{\text{ret}}$ and $M_{\text{full}}$, it need only be computed once when evaluating multiple unlearned models.
+
+\paragraph{Stage 2: Quantification.}
+We repeat the same procedure with $M_{\text{unl}}$ as the \emph{source} to quantify how much of this knowledge remains recoverable after unlearning:
+\begin{equation}
+\Delta^{S2}_{i,l} = \frac{1}{T_i}\sum_{t=1}^{T_i}\bigl(s^{\text{full}}_{i,t} - s^{S2}_{i,t}\bigr)
+\label{eq:delta-s2}
+\end{equation}
+If unlearning erased the knowledge for example $i$ at layer $l$, patching $M_{\text{unl}}$ should degrade predictions as much as patching $M_{\text{ret}}$: $\Delta^{S2}_{i,l} \approx \Delta^{S1}_{i,l}$.
+Conversely, if the knowledge remains intact, $M_{\text{full}}$ can still decode it from the patched states, so $\Delta^{S2}_{i,l} \approx 0$.
+
+\paragraph{Score Aggregation.}
+To represent each layer's erasure as a comparable fraction of its baseline, we define the \textbf{Layer Erasure Ratio (LER)}:
+\begin{equation}
+\text{LER}_{i,l} = \text{clip}\!\left(\frac{\Delta^{S2}_{i,l}}{\Delta^{S1}_{i,l}},\; 0,\; 1\right)
+\label{eq:ler}
+\end{equation}
+where clipping to $[0,1]$ reflects that erasure to the retain baseline is the intended level.
+
+The per-example \textsc{UDS} aggregates LER across KE layers, weighted by $\Delta^{S1}_{i,l}$ so that layers where more forget set knowledge is encoded contribute proportionally:
+\begin{equation}
+\textsc{UDS}_i = \frac{\sum_{l \in \text{KE}_i} \Delta^{S1}_{i,l} \cdot \text{LER}_{i,l}}{\sum_{l \in \text{KE}_i} \Delta^{S1}_{i,l}}
+\label{eq:uds}
+\end{equation}
+A score of 1 indicates knowledge erased to the level of $M_{\text{ret}}$, while 0 indicates fully intact knowledge.
+If $\text{KE}_i = \emptyset$, the score is undefined and the example is excluded from aggregation.
+The model-level score averages over the remaining $N$ examples:
+\begin{equation}
+\textsc{UDS} = \frac{1}{N}\sum_{i=1}^{N} \textsc{UDS}_i
+\label{eq:uds-model}
+\end{equation}
 ```
-Input:  [x₁, ..., xₘ,  prefix₁, ..., prefixₖ,    y₁,      y₂      ]
-                        "The" "father" ... "is" "a"  "civil"  "engineer"
-                                                      ↑entity span
-```
-
-In autoregressive LMs, the hidden state at position $p$ produces the logit that predicts token $p{+}1$. Therefore, to measure the model's ability to predict entity tokens $y_1, \dots, y_T$, we examine positions $y_1{-}1$ through $y_T{-}1$ (i.e., from the token just before the entity to the second-to-last entity token).
-
-**왜 entity span인지 정당화** (2 lines): "Full-answer evaluation conflates knowledge measurement with language modeling of common phrases. Restricting to entity spans isolates the knowledge-specific signal."
-
-**왜 teacher forcing인지 정당화** (2 lines): "Free-form generation introduces variance from sampling and prompt sensitivity. Teacher forcing provides a deterministic evaluation conditioned on the ground-truth continuation, enabling precise per-token log-probability measurement."
-
-### §3.2 Two-Stage Activation Patching
-
-**문단 1 — Stage 1: Baselining the Knowledge Gap (Retain → Full)** (~8 lines)
-
-Source = $M_{\text{ret}}$, Target = $M_{\text{full}}$. For each layer $l$, we run both models on the same teacher-forced input. At layer $l$, we replace $M_{\text{full}}$'s hidden states with $M_{\text{ret}}$'s at the **positions that predict the entity tokens** — i.e., positions $y_1{-}1$ through $y_T{-}1$ (since position $p$'s output predicts token $p{+}1$). All other positions, including the question and prefix, remain unchanged. The modified states then propagate through the remaining layers $l{+}1, \dots, L$, and we measure the resulting degradation in log-probability:
-
-$$\Delta^{S1}_l = \frac{1}{T}\sum_{t=1}^{T}(s^{\text{full}}_t - s^{S1}_t)$$
-
-where $s^{S1}_t$ is the log-prob of entity token $y_t$ after patching layer $l$. We patch the residual stream (i.e., the full layer output: attention + MLP + residual connection; see Appendix D.2 for component-level ablation). A large $\Delta^{S1}_l$ indicates that $M_{\text{ret}}$ lacks knowledge that $M_{\text{full}}$ possesses at layer $l$.
-
-Each example differs in how deeply and broadly its knowledge is encoded: some facts are general enough that even the retain model partially reconstructs them, while others are entirely absent from retain. S1 captures this per-example difficulty, ensuring that S2 measures erasure relative to each example's intrinsic recoverability rather than on an absolute scale.
-
-**문단 2 — Knowledge-Gap Layers** (~5 lines)
-
-We define the set of **knowledge-encoding (KE) layers** — layers where the retain model exhibits a significant knowledge gap relative to the full model:
-
-$$\text{KE}_i = \{l : \Delta^{S1}_{i,l} > \tau\}$$
-
-The threshold $\tau = 0.05$ filters out noise from early layers where $\Delta^{S1}$ is negligible; model rankings are robust to this choice (Spearman $\rho \geq 0.999$ across $\tau \in \{0, 0.01, 0.02, 0.03, 0.05, 0.1\}$; see Appendix D.3).
-
-**문단 3 — Stage 2: Quantifying Knowledge Recoverability (Unlearned → Full)** (~4 lines)
-
-Source = $M_{\text{unl}}$, with the same input $(x, y)$ and target $M_{\text{full}}$ as Stage 1 — only the source model changes. Same procedure, yielding $\Delta^{S2}_l$.
-
-직관: "If the unlearned model successfully erased knowledge at layer $l$, patching its hidden states should degrade $M_{\text{full}}$'s output similarly to patching $M_{\text{ret}}$'s states (i.e., $\Delta^{S2}_l \approx \Delta^{S1}_l$). If knowledge remains intact, $\Delta^{S2}_l \approx 0$."
-
-We quantify this as the **layer erasure ratio (LER)**, measuring how much of the S1 knowledge gap the unlearned model reproduces at each KE layer:
-
-$$\text{LER}_{i,l} = \text{clip}\!\left(\frac{\Delta^{S2}_{i,l}}{\Delta^{S1}_{i,l}},\; 0,\; 1\right)$$
-
-LER = 1 indicates complete erasure (the unlearned model's gap matches the retain model's), while LER = 0 indicates intact knowledge (no degradation from patching).
-
-**문단 4 — S1 Caching and Computational Cost** (~5 lines)
-
-S1 is fixed (retain → full) and independent of the unlearning method. We compute it once and cache the per-example, per-layer $\Delta^{S1}$ values and KE layer sets, reusing them across all unlearned models. In our experiments, this caches 367 examples × 16 layers.
-
-Note that S1 does not need to be re-computed for each evaluation. Once cached, evaluating a new unlearned model requires only two forward passes (one to extract hidden states from $M_{\text{unl}}$, one patched pass through $M_{\text{full}}$ per layer). This makes UDS's computational cost comparable to standard teacher-forcing-based metrics.
-
-### §3.3 Score Aggregation
-
-**문단 1 — UDS Formula** (~6 lines)
-
-$$\text{UDS}_i = \frac{\sum_{l \in \text{KE}_i} \Delta^{S1}_{i,l} \cdot \text{LER}_{i,l}}{\sum_{l \in \text{KE}_i} \Delta^{S1}_{i,l}}$$
-
-**각 구성요소 설명**:
-- $\Delta^{S1}_l$-weighted average: layers with larger knowledge gaps (more knowledge encoded) contribute proportionally more to the score
-- $\text{LER}_{i,l}$: per-layer erasure ratio (§3.2), clipped to $[0, 1]$ — prevents negative ratios (when patching improves rather than degrades) and caps at 1.0 (when the unlearned model's gap exceeds the retain model's)
-- **Interpretation**: UDS = 1.0 means the unlearned model's representations are as knowledge-absent as the retain model's at every KE layer. UDS = 0.0 means knowledge is fully intact (identical to the full model)
-
-**문단 2 — Model-level Aggregation** (~3 lines)
-
-$$\text{UDS} = \frac{1}{N}\sum_{i=1}^{N} \text{UDS}_i$$
-
-We average per-example scores across the forget set. Models with no KE layers for a given example (i.e., general knowledge where retain and full show no significant gap) skip that example.
-
-마무리: "Appendix D provides additional ablation studies: generalization across model scales (Llama 1B/3B/8B; D.1), prompt-type robustness of UDS calibration (D.4), entity length effects on measurement precision (D.5), and analysis of layer-selective unlearning methods showing that UDS correctly tracks the intervention location and its forward cascade through subsequent layers (D.6)."
 
 ---
 
