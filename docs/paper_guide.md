@@ -85,8 +85,6 @@ Use these symbols consistently throughout. Define each at first use.
 
 ## §0. Abstract
 
-**Structure**: [Background+Motivation] → [Problem] → [Gap] → [Proposal] → [Mechanism] → [Results] → [Case Studies] → [Guidelines] → [Availability]
-
 **Final Version**:
 
 ```latex
@@ -129,7 +127,7 @@ Moreover, adversaries can restore removed knowledge through lightweight fine-tun
 To address this, we propose the \textsc{Unlearning Depth Score} (\textsc{UDS}), a metric that quantifies the mechanistic depth of unlearning via activation patching.
 \textsc{UDS} operates in two stages: a baselining stage that identifies knowledge-encoding layers by patching hidden states from the retain model (i.e., trained without target data) into the full model (i.e., trained on all data including the target), and a quantification stage that replaces the retain model with the unlearned model to measure how much encoded knowledge persists.
 Where prior white-box analyses detect whether knowledge is present, \textsc{UDS} causally intervenes to test whether it is recoverable, producing a per-example score from 0 (knowledge intact) to 1 (knowledge erased) that reflects erasure depth across layers.
-In a meta-evaluation of 20 metrics on 150 unlearned models spanning 8 methods, \textsc{UDS} achieves the highest faithfulness (AUC-ROC 0.971) and robustness (HM 0.933), outperforming both output-level metrics and three additional white-box baselines.
+In a meta-evaluation of 20 metrics on 150 unlearned models spanning 8 methods, \textsc{UDS} achieves the highest faithfulness (AUC-ROC 0.971) and robustness (HM 0.932), outperforming both output-level metrics and three additional white-box baselines.
 We further show that erasure depth varies across examples and that white-box metrics can disagree at the layer level, and provide guidelines for integrating \textsc{UDS} into existing evaluation frameworks to streamline robustness testing.
 
 In summary, our contributions are:
@@ -139,11 +137,6 @@ In summary, our contributions are:
 \item Case studies uncovering layer-level metric disagreements and example-level variation in erasure depth, alongside guidelines for integrating \textsc{UDS} into existing evaluation frameworks.
 \end{itemize}
 ```
-
-**구조**: 3 paragraphs + contributions (3 bullets)
-- **P1** (3 sentences): Memorization risk → Unlearning → Goal + methods
-- **P2** (4 sentences): Verification question → Benchmarking (faithful/robust) → Residual knowledge gap → Adversary recovery threat
-- **P3** (5 sentences): UDS proposal + two stages → Causal vs observational → Results → Case studies + practical guidelines
 
 **톤 규칙**:
 - "crucial"은 abstract에서만 허용, intro에서는 사용하지 않음
@@ -199,10 +192,6 @@ Applying these techniques to unlearning, several studies have shown that ostensi
 These studies consistently reveal residual knowledge, but they are primarily diagnostic: none provides a standardized, comparable score that generalizes across forget sets (Table~\ref{tab:related-work}).
 UDS addresses this with a training-free, causal, dataset-invariant score for systematic method comparison (\S\ref{sec:uds}).
 ```
-
-**구조**: 2 subsections
-- **§2.1** (3 parts): Definition (1 sentence) → `\paragraph{Methods.}` (5 sentences, 8 methods) → `\paragraph{Evaluation.}` (4 sentences)
-- **§2.2** (2 paragraphs): Techniques landscape (4 sentences, 3 levels: representation/parameter/causal) → Prior white-box work (7 sentences, Table 1 entries + positioning)
 
 **톤 규칙**:
 - §2.2에서 기법 소개는 landscape 서술 (비판 아님)
@@ -406,15 +395,13 @@ The model-level score averages over the remaining $N$ examples:
 
 ## §4. Meta-Evaluation
 
-> **NOTE**: meta-eval 테이블 하나로 통합 — Table 2에 20개 metrics의 Faithfulness AUC, Q, R, HM, Overall을 모두 포함.
-
 **Final Version — §4 Intro**:
 
 ```latex
 \section{Meta-Evaluation}\label{sec:meta-eval}
 
 To validate \textsc{UDS}, we adopt the meta-evaluation framework of \citet{dorna2025openunlearning}, which provides model pools for testing \emph{faithfulness}---whether a metric can distinguish models that possess forget set knowledge from those that do not---and perturbation protocols for testing \emph{robustness}---stability under quantization and relearning.
-\S\ref{subsec:meta-setup} describes the models and dataset, comparison metrics, and the evaluation criteria including our symmetric robustness formulas, and \S\ref{subsec:results} compares all 20 metrics across both axes; full per-metric plots appear in Appendix~\ref{app:full-plots}.
+\S\ref{subsec:meta-setup} describes the models and dataset, comparison metrics, and the evaluation criteria including our symmetric robustness formulas, and \S\ref{subsec:results} analyzes the results.
 ```
 
 **Final Version — §4.1 Setup**:
@@ -453,9 +440,10 @@ These effectively penalize knowledge recovery but not score decreases.
 For instance, quantization can cause ROUGE to decline regardless of knowledge content (Figure~\ref{fig:robustness}, blue box), yet such decline is rewarded by construction.
 We therefore propose symmetric alternatives to penalize changes in both directions (i.e., score increases and decreases):
 \begin{equation}
-Q = 1 - \frac{|m' - m|}{|m| + |m'|}, \qquad R = 1 - \frac{|\Delta_{\text{unl}} - \Delta_{\text{ret}}|}{|\Delta_{\text{unl}}| + |\Delta_{\text{ret}}|}
+Q = 1 - \frac{|m' - m|}{|m| + |m'|},\; R = 1 - \frac{|\Delta_{\text{unl}} - \Delta_{\text{ret}}|}{|\Delta_{\text{unl}}| + |\Delta_{\text{ret}}|}
 \label{eq:qr}
 \end{equation}
+where $m$ denotes the metric value in the knowledge-presence direction; for the normalized MIA scores and the four white-box metrics, where higher values indicate erasure, we apply $m \leftarrow 1{-}m$.
 ```
 
 **Final Version — §4.2 Results**:
@@ -465,172 +453,26 @@ Q = 1 - \frac{|m' - m|}{|m| + |m'|}, \qquad R = 1 - \frac{|\Delta_{\text{unl}} -
 
 \input{tables/table2}
 
-Following \citet{dorna2025openunlearning}, we filter for practically unlearned models before computing robustness, excluding those whose utility drops below 80\% of $M_{\text{full}}$ and those that the metric's optimal threshold still classifies as possessing forget set knowledge.
-Per-metric robustness is the harmonic mean of $Q$ and $R$ averaged across the filtered models, and the overall score combines faithfulness and robustness via harmonic mean.
+Following \citet{dorna2025openunlearning}, we restrict robustness evaluation to models that preserve at least 80\% utility of $M_{\text{full}}$ and are classified as unlearned by the metric's faithfulness threshold.
+Per-metric robustness is the harmonic mean of $Q$ and $R$ averaged across the models, and the overall score combines faithfulness and robustness via harmonic mean; Table~\ref{tab:meta-eval} reports full results for all 20 metrics; per-metric plots appear in Appendix~\ref{app:full-plots}.
 
+\paragraph{Faithfulness.}
 \textsc{UDS} achieves the highest faithfulness (AUC 0.971).
-Among output-based metrics, Truth Ratio (0.947) performs best, as its correct-to-incorrect likelihood ratio directly captures knowledge presence.
-The white-box baselines diverge: CKA (0.648) measures representational geometry, which shifts under fine-tuning regardless of knowledge content; Fisher (0.712) captures gradient-based parameter sensitivity, which tends to reflect optimization regimes more than knowledge content~\citep{basu2021influence}.
-Logit Lens (0.927) reads knowledge via the frozen decoder, achieving strong separation; \textsc{UDS} improves upon this through causal intervention rather than observational readout (Figure~\ref{fig:faithfulness}).
+The second best and top output-based metric is Truth Ratio (0.947), in line with \citet{dorna2025openunlearning}.
+Notably, the white-box baselines diverge.
+CKA (0.648) and Fisher (0.712) achieve poor separation: CKA computes dataset-level representational similarity, but unlearning can reshape geometry without erasing knowledge, so dissimilarity does not reliably indicate erasure; Fisher captures gradient-based parameter sensitivity, which tends to reflect optimization regimes rather than knowledge content~\citep{basu2021influence}.
+Logit Lens (0.927) reads knowledge through the frozen decoder, achieving strong separation; \textsc{UDS} improves upon this through causal intervention rather than observational readout (Figure~\ref{fig:faithfulness}).
 
-\textsc{UDS} ranks first in aggregate robustness ($\operatorname{HM}{=}0.933$), with balanced quantization ($Q{=}0.968$) and relearning ($R{=}0.900$) stability.
-CKA collapses under relearning ($R{=}0.013$) because representational geometry shifts with any fine-tuning, including on the retain model.
-Fisher is sensitive to quantization ($Q{=}0.583$) because weight compression distorts the gradient landscape it relies on.
-Among output-based metrics, ROUGE variants are highly sensitive to relearning ($R{=}0.06$--$0.20$) as relearning rapidly recovers the suppressed generation capability, and Truth Ratio ($R{=}0.234$) degrades sharply despite its strong faithfulness.
+\paragraph{Robustness.}
+\textsc{UDS} ranks first in aggregate robustness ($\operatorname{HM}{=}0.932$), with balanced quantization ($Q{=}0.968$) and relearning ($R{=}0.900$) stability.
+Logit Lens follows ($\operatorname{HM}{=}0.879$), though its fixed-decoder readout is more sensitive to relearning ($R{=}0.812$).
+By contrast, CKA collapses under relearning ($R{=}0.013$) because representational geometry shifts with any fine-tuning.
+Fisher is the most sensitive to quantization ($Q{=}0.583$), below even the MIA variants ($Q{\geq}0.643$, the least quantization-stable among output-based metrics), because weight compression distorts the gradient landscape it relies on.
+Among output-based metrics, ROUGE variants are highly sensitive to relearning ($R{=}0.06$--$0.20$): residual knowledge in the unlearned model enables rapid recovery of generation, far exceeding what the retain model learns from scratch in one epoch.
+Truth Ratio, despite the second-highest faithfulness, degrades sharply under relearning ($R{=}0.234$).
 
-Combining both axes, \textsc{UDS} achieves the highest overall score (0.951), confirming that our interventional approach provides a more reliable assessment of knowledge erasure than structural (CKA, Fisher) or observational (Logit Lens) alternatives.
+Overall, \textsc{UDS} achieves the highest score (0.951) across all 20 metrics including memorization, MIAs, and white-box baselines, confirming that the causal approach provides the most reliable assessment of knowledge erasure.
 ```
-
-> **NOTE**: 정의(Faithfulness, Robustness, Scoring)는 §4.1 Setup에, 분석만 §4.2 Results에 배치.
-
-### §4.2 Comparison Metrics (old draft — merged into §4.1 Setup)
-
-**문단 1 — Open-Unlearning Benchmark Metrics (12개)** (~8 lines)
-
-We compare against the 12 metrics provided by the Open-Unlearning benchmark (Maini et al., 2024):
-- **Memorization** (5): Extraction Strength (ES), Exact Memorization (EM), Probability (Prob), Paraphrase Probability (ParaProb), and Truth Ratio measure whether the model can reproduce or recall forget set knowledge. ES and EM quantify exact text reproduction; Prob and ParaProb measure answer likelihood under standard and paraphrased prompts; Truth Ratio evaluates the relative probability of correct vs. incorrect answers.
-- **Generation** (3): ROUGE, Para-ROUGE, Jailbreak-ROUGE measure ROUGE-L recall of generated text against ground-truth under standard, paraphrased, and adversarial (jailbreak prefix injection) prompts respectively.
-- **MIA** (4): MIA-LOSS, MIA-ZLib, MIA-Min-K, MIA-Min-K++ perform membership inference via loss-based statistics, distinguishing forget-set members from non-members at various thresholds.
-
-See Appendix B for formal definitions of all metrics.
-
-**문단 2 — Our Additions (8 metrics)** (~10 lines)
-
-Open-Unlearning evaluates only output-level metrics, without retain-model calibration or internal representation analysis. We extend the comparison with 8 additional metrics.
-
-First, 4 **normalized MIA** variants ($s_{\text{LOSS}}, s_{\text{ZLib}}, s_{\text{Min-K}}, s_{\text{Min-K++}}$) calibrate raw MIA AUC against the retain model's baseline:
-
-$$s_* = \text{clip}\!\left(1 - \frac{|\text{AUC}_{\text{model}} - \text{AUC}_{\text{ret}}|}{\text{AUC}_{\text{ret}}},\; 0,\; 1\right)$$
-
-Higher $s_*$ = closer to retain = more erasure. Inspired by MUSE PrivLeak rescaling (Shi et al., 2025).
-
-Second, 3 **white-box baselines** measure internal knowledge retention using the retain model as reference, all operating on the same 367-example forget set:
-- **Logit Lens**: projects each layer's hidden states through $M_{\text{full}}$'s frozen decoder to measure per-layer decodable knowledge. Uses the same KE layer weighting as UDS. *Observational*: reads representations without patching.
-- **CKA**: compares representational geometry between unlearned and retain models, weighted by full–retain layer importance. *Observational*.
-- **Fisher Masked**: diagonal Fisher Information on $D_f$, masked to top-$p$% knowledge-relevant parameters per layer ($p \in \{0.01\%, 0.1\%, 1\%\}$). Measures parameter-level knowledge sensitivity.
-
-All three are scored as layer-wise weighted sums for direct comparability with UDS (see Appendix B for detailed formulas). We exclude linear probing and tuned lens as they require training auxiliary modules.
-
-### Table 2 — Meta-Evaluation Results (§4 main table, 20 rows)
-
-> 이 테이블이 논문의 핵심 결과 테이블. Faithfulness + Robustness + Overall을 한 번에 보여줌.
-
-| Category | Metric | Tags | Faith. ↑ | Q ↑ | R ↑ | Rob. ↑ | Overall ↑ |
-|----------|--------|------|------:|------:|------:|------:|------:|
-| **Memorization** | ES | O | 0.891 | 0.970 | 0.770 | 0.859 | 0.875 |
-| | EM | O | 0.817 | 0.984 | 0.605 | 0.750 | 0.781 |
-| | Prob | O | 0.816 | 0.924 | 0.642 | 0.757 | 0.785 |
-| | ParaProb | O | 0.707 | 0.853 | 0.899 | 0.875 | 0.782 |
-| | Truth Ratio | O | 0.947 | 0.996 | 0.234 | 0.379 | 0.537 |
-| **Generation** | ROUGE | O | 0.722 | 0.934 | 0.203 | 0.333 | 0.454 |
-| | Para. ROUGE | O | 0.832 | 0.951 | 0.064 | 0.119 | 0.213 |
-| | Jailbreak ROUGE | O | 0.757 | 0.971 | 0.183 | 0.308 | 0.437 |
-| **MIA** | MIA-LOSS | O | 0.902 | 0.935 | 0.519 | 0.668 | 0.766 |
-| | MIA-ZLib | O | 0.867 | 0.938 | 0.487 | 0.642 | 0.738 |
-| | MIA-Min-K | O | 0.907 | 0.923 | 0.532 | 0.675 | 0.773 |
-| | MIA-Min-K++ | O | 0.816 | 0.883 | 0.431 | 0.579 | 0.678 |
-| | s_LOSS | O,R | 0.891 | 0.719 | 0.664 | 0.690 | 0.778 |
-| | s_ZLib | O,R | 0.870 | 0.704 | 0.745 | 0.724 | 0.790 |
-| | s_Min-K | O,R | 0.891 | 0.710 | 0.697 | 0.704 | 0.787 |
-| | s_Min-K++ | O,R | 0.799 | 0.643 | 0.566 | 0.602 | 0.690 |
-| **Representation** | CKA | R,I | 0.648 | 0.997 | 0.013 | 0.026 | 0.050 |
-| | Fisher Masked (0.1%) | R,I | 0.712 | 0.583 | 0.946 | 0.721 | 0.716 |
-| | Logit Lens | O,R,I | 0.927 | 0.959 | 0.812 | 0.879 | 0.902 |
-| | **UDS (Ours)** | **O,R,I** | **0.971** | **0.968** | **0.900** | **0.933** | **0.951** |
-
-**Caption**: "Meta-evaluation results across 20 metrics. Faith.=Faithfulness (AUC-ROC), Q=Quantization stability, R=Relearning stability, Rob.=HM(Q,R), Overall=HM(Faith., Rob.). Tags: O=Output-based, R=Retain-referenced, I=Internal representation. **Bold** = best in column. UDS achieves the highest Faithfulness, Robustness, and Overall scores."
-
-> **Notes on Table 2**:
-> - Fisher Masked: report only 0.1% variant in main table; 0.01% and 1% in Appendix B (results nearly identical: 0.708, 0.712, 0.698)
-> - Tags column은 공간이 부족하면 colored dots으로 대체 가능
-> - Truth Ratio: 높은 faithfulness (0.947)이지만 relearning에 극도로 취약 (R=0.234) → Overall 낮음
-> - CKA: faithfulness도 낮고 (0.648) robustness도 극도로 낮음 (R=0.013) → Overall 최하위
-
-### §4.3 Results
-<!-- LaTeX: \subsection{Results}\label{subsec:results} -->
-
-#### §4.3.1 Faithfulness
-
-**문단 1 — Main Results** (~5 lines)
-
-UDS achieves AUC-ROC 0.971, the highest among all 20 metrics. Key comparisons:
-- **UDS (0.971)** > Truth Ratio (0.947) > Logit Lens (0.927) > MIA-Min-K (0.907) > MIA-LOSS (0.902)
-- Among white-box metrics: UDS >> Logit Lens >> Fisher Masked (0.712) >> CKA (0.648)
-- Among output-only metrics: Truth Ratio leads (0.947) but suffers from poor robustness (see §4.3.2)
-
-**문단 2 — Why UDS Outperforms Alternatives** (~6 lines)
-
-각 baseline이 왜 UDS보다 낮은지 설명:
-- **CKA (0.648)**: representational geometry 유사성만 측정 → unlearning이 전반적 표현 구조를 바꾸면 반응하지만, 특정 knowledge retention과 무관한 변화(예: 학습 경로 차이에 의한 geometry 변화)도 감지하여 P/N 분리가 부정확
-- **Fisher Masked (0.712)**: layer 1이 전체 weight의 60–84%를 차지하여 사실상 단일 layer에 의존. 또한 mask fraction(0.01%, 0.1%, 1%)에 거의 무관한 결과 → layer-wise granularity 부족
-- **Logit Lens (0.927)**: frozen decoder로 decodable knowledge를 잘 포착하지만 observational이라 **causal recoverability**를 직접 측정 못함. Representation이 변형되었지만 patching하면 복구되는 case를 놓침 (§5.1에서 구체 예시)
-
-**문단 3 — P/N Histogram Analysis** (~3 lines)
-
-Figure 3 참조. UDS는 P-pool (low UDS ≈ 0.49, knowledge intact)과 N-pool (high UDS ≈ 0.85, knowledge absent)이 거의 완벽하게 분리. 반면 output metrics (예: Prob, MIA-LOSS)는 P/N 분포가 상당히 overlap.
-
-### Figure 3 — Faithfulness P/N Histograms (§4.3.1)
-
-**Content**: Representation-level baselines 4개만 (invert 없이, 더블컬럼)
-- CKA (0.648), Fisher Masked 0.1% (0.712), Logit Lens (0.927), UDS (0.971)
-
-**Layout**: 2×2 grid, 더블컬럼 figure. 각 subplot에 P/N distribution + optimal threshold dashed line.
-
-**Caption**: "P/N pool distributions for white-box metrics. P-pool (knowledge present, green) should differ from N-pool (knowledge absent, red). UDS achieves near-perfect separation (AUC 0.971), followed by Logit Lens (0.927). Full histograms for all 20 metrics in Appendix E."
-
-> **Design**: 2×2 grid, shared y-axis per row, dashed vertical lines for optimal threshold. Each subplot title: "Metric (AUC=X.XXX)". Double-column width.
-
-#### §4.3.2 Robustness
-
-**문단 1 — Main Results** (~5 lines)
-
-UDS: Q=0.968, R=0.900, HM=0.933 → 종합 1위
-
-Key ranking (by HM):
-1. **UDS**: 0.933
-2. **Logit Lens**: 0.879
-3. **ParaProb**: 0.875
-4. **ES**: 0.859
-5. **s_ZLib**: 0.724
-6. **Fisher (0.1%)**: 0.721
-
-**문단 2 — Why Output Metrics Struggle** (~5 lines)
-
-- **MIA metrics**: quantization에 취약 (Q = 0.88–0.94). NF4가 loss landscape을 변형하여 loss/zlib/min-k 분포가 체계적으로 변화. 이는 지식 변화가 아닌 양자화 artifact
-- **ROUGE metrics**: relearning에 극도로 취약 (R = 0.06–0.20). 1 epoch relearning으로 generation quality가 크게 변화하지만, 이는 text generation stochasticity와 prompt sensitivity가 relearning에 의해 증폭되는 것
-- **Truth Ratio**: 높은 faithfulness (0.947)에도 불구하고 R=0.234 → HM=0.379. Correct/incorrect probability ratio가 relearning에 매우 민감
-
-**문단 3 — Representation Baselines Analysis** (~5 lines)
-
-- **CKA**: Q=0.997 (quantization에 안정)이지만 R=0.013 → HM=0.026. Relearning 후 representational geometry가 retain model 자체에서도 크게 변함 (retain의 CKA shift ≈ 0.91) → relearning으로 인한 geometry 변화가 knowledge와 무관하게 발생
-- **Fisher**: R=0.946 (relearning에 안정)이지만 Q=0.583 → HM=0.721. NF4 양자화가 gradient landscape을 근본적으로 변형하여 Fisher 값이 체계적으로 하락 (대부분 destruction 방향). 이는 dequantize_model() 후 계산해도 발생
-- **UDS**: 두 attack 모두에서 높은 안정성. Activation patching은 hidden state 수준에서 작동하므로, 양자화에 의한 parameter-level 변형이 hidden state에 미치는 영향이 상대적으로 적고, relearning에 의한 표면적 generation 변화에도 내부 knowledge encoding 패턴은 안정적
-
-**문단 4 — Scatter Plot Reference** (~2 lines)
-
-> "Figure 2 visualizes per-model quantization stability for Truth Ratio (highly stable) and ROUGE (systematically unstable), motivating the symmetric formulas. See Appendix E for all 20 metrics."
-
-**마무리 문단 — Overall Conclusion** (~3 lines)
-
-UDS ranks first on both faithfulness (AUC 0.971) and robustness (HM 0.933), yielding the highest overall score (0.951). This confirms that causal recoverability testing via activation patching provides both the most accurate and most stable signal for unlearning verification. The closest competitor, Logit Lens (Overall 0.902), falls short primarily because its observational decoder readout does not capture knowledge that has been reformatted but remains causally recoverable (§5.1).
-
-### Figure 2 — Robustness Scatter Plots: Symmetric Formula Justification (§4.2)
-
-**Content**: Quantization scatter만, 2개 metrics (싱글컬럼, nofilter)
-- Truth Ratio, ROUGE (2 panels in a row)
-- Symmetric formulas를 정당화하기 위한 figure: Truth Ratio는 quant 후 안정적으로 유지되지만, ROUGE는 0.45 이상 모델들이 체계적으로 하락하는 대조 패턴 시각화
-
-**Layout**: 1×2 grid, 싱글컬럼 width. nofilter (150개 모델 전부).
-
-양방향 gradient: y=x line에서 멀어질수록 빨간색
-
-**Caption**: "Per-model quantization stability for Truth Ratio and ROUGE (no model filtering). Truth Ratio remains tightly clustered along the diagonal (Q=0.996), demonstrating near-perfect stability under NF4 quantization. In contrast, ROUGE scores above 0.45 systematically collapse: NF4 introduces small logit perturbations that flip top-1 tokens at narrow-margin positions in greedy decoding, cascading through subsequent tokens and destroying n-gram overlap — a generation fragility artifact, not knowledge removal. One-directional formulas would rate this collapse as Q=1 (perfectly robust) since values only decrease, masking the instability entirely. Our symmetric formulas correctly penalize this systematic degradation. Full scatter plots in Appendix E."
-
-> **ROUGE quant 분석 결과**:
-> - **Mechanism**: Autoregressive error amplification cascade. NF4 introduces small logit perturbations → greedy decoding flips top-1 token at narrow-margin positions → all subsequent tokens condition on divergent prefix → n-gram overlap (ROUGE) collapses. This is a generation fragility artifact, not knowledge removal.
-> - **ROUGE ceiling collapse**: Models with ROUGE > 0.45 show systematic drops after NF4 quant. The collapse is one-sided (values only decrease).
-> - **Truth Ratio contrast**: Truth Ratio is extremely stable (Q=0.996, Canberra 0.021) because its ratio normalization cancels symmetric perturbations. Teacher-forcing-based Prob is also stable (mean 1.9% drop) because it avoids the autoregressive loop.
-> - **One-directional blind spot**: Since ROUGE almost always drops (not increases), one-directional Q = min(before/after, 1) would rate these as Q ≈ 1 (perfect robustness), completely masking the instability. Symmetric Q correctly penalizes the systematic degradation.
 
 ---
 
@@ -673,7 +515,9 @@ We illustrate this with an IdkDPO model and a single forget-set example (Table 4
 | | $\Delta^{S2}$ | Not KE ($\Delta^{S1} < \tau$) | 0.004 | −0.059 | 0.039 | 0.088 | 0.299 | 0.436 | |
 | | $\text{clip}(\frac{\Delta^{S2}}{\Delta^{S1}}, 0, 1)$ | Not KE ($\Delta^{S1} < \tau$) | Not KE ($\Delta^{S1} < \tau$) | **0.000** | 0.113 | 0.105 | 0.230 | 0.254 | **0.209** |
 
-> Layer-wise comparison of Logit Lens vs. UDS on a single example from an IdkDPO-unlearned model where the two methods disagree. Question: *Did Aysha Al-Hashim ever venture into other genres apart from Love Inspired?* GT Entity: *historical fiction*. Logit Lens reports strong erasure (0.801), but UDS reveals that most knowledge remains causally recoverable (0.209). The disagreement concentrates in L5–L13: at most layers the frozen decoder fails to read out the entity ($\Delta^{S2}/\Delta^{S1} \geq 1$), but the same hidden states still recover it in the full model ($\Delta^{S2}/\Delta^{S1} < 0.25$), revealing recoverable knowledge that UDS captures and Logit Lens misses.
+> LaTeX: `docs/tables/table4.tex` (세로 레이아웃, `\input{tables/table4}`로 사용)
+
+> Layer-wise comparison on an IdkDPO example where Logit Lens judges the knowledge as erased (0.801) but UDS does not (0.209), where observational decoding misses knowledge that causal intervention identifies as recoverable.
 
 **Key observations**:
 - **L5–L9 (mid-layer divergence)**: Logit Lens classifies L5–L9 as KE layers with clip ≥ 0.667, while UDS either does not flag them as KE (L5, $\Delta^{S1}=0.012$) or shows near-zero erasure (L7 clip=0.000, L9 clip=0.113). The frozen decoder loses access to the entity at these layers, but activation patching confirms the knowledge is still causally active — representational distortion mimics erasure in the observational readout.

@@ -1,0 +1,32 @@
+% Requires: \usepackage{booktabs, array}
+
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}c rrr rrr@{}}
+\toprule
+& \multicolumn{3}{c}{\textbf{Logit Lens}} & \multicolumn{3}{c}{\textbf{UDS (Ours)}} \\
+\cmidrule(lr){2-4} \cmidrule(l){5-7}
+\textbf{Layer} & $\Delta^{S1}$ & $\Delta^{S2}$ & \textbf{LER}
+               & $\Delta^{S1}$ & $\Delta^{S2}$ & \textbf{LER} \\
+\midrule
+\textbf{0--4} & \multicolumn{3}{c}{\textit{not KE}} & \multicolumn{3}{c}{\textit{not KE}} \\
+\textbf{5}   & 0.375 & 0.250 & \textbf{0.667} & \multicolumn{3}{c}{\textit{not KE}} \\
+\textbf{7}   & 0.312 & 0.812 & \textbf{1.000} & 0.053 & $-$0.059 & \textbf{0.000} \\
+\textbf{9}   & 1.375 & 1.375 & \textbf{1.000} & 0.346 & 0.039 & \textbf{0.113} \\
+\textbf{11}  & 1.250 & 2.062 & \textbf{1.000} & 0.838 & 0.088 & \textbf{0.105} \\
+\textbf{13}  & 0.926 & 2.465 & \textbf{1.000} & 1.299 & 0.299 & \textbf{0.230} \\
+\textbf{15}  & 1.713 & 0.436 & \textbf{0.254} & 1.713 & 0.436 & \textbf{0.254} \\
+\midrule
+\multicolumn{1}{@{}l}{\textbf{Score}}
+    & & & \textbf{0.801} & & & \textbf{0.209} \\
+\bottomrule
+\end{tabular}
+\caption{Layer-wise comparison on an IdkDPO example
+where Logit Lens judges the knowledge as erased (0.801)
+but \textsc{UDS} does not (0.209),
+where observational decoding misses knowledge
+that causal intervention identifies as recoverable.}
+\label{tab:case-ll-uds}
+\end{table}
