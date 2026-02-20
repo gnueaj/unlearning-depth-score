@@ -1,0 +1,58 @@
+% Requires: \usepackage{booktabs, xcolor, pifont, array}
+% Preamble commands:
+% \newcommand{\best}[1]{\textbf{#1}}
+% \newcommand{\second}[1]{\underline{#1}}
+% \newcommand{\worst}[1]{\textbf{\textcolor{red!70!black}{#1}}}
+% \newcommand{\secworst}[1]{\textcolor{red!70!black}{\underline{#1}}}
+% \newcommand{\cmark}{\ding{51}}
+
+\begin{table*}[t]
+\centering
+\small
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabular}{@{}ll ccc w{r}{3.6em}w{r}{3.6em}w{r}{3.6em}w{r}{3.6em}w{r}{3.6em}@{}}
+\toprule
+ & & \multicolumn{3}{c}{\textbf{Scope}} & & & \multicolumn{3}{c}{\textbf{Robustness}} \\
+\cmidrule(lr){3-5} \cmidrule(l){8-10}
+\textbf{Group} & \textbf{Metric}
+  & \textbf{O} & \textbf{R} & \textbf{I}
+  & \textbf{Overall\,$\uparrow$} & \textbf{Faith.\,$\uparrow$}
+  & \textbf{Agg.\,$\uparrow$} & \textbf{Quant.\,$\uparrow$} & \textbf{Relearn\,$\uparrow$} \\
+\midrule
+\textbf{Memorization}
+  & Extraction Strength & \cmark & & & 0.875 & 0.891 & 0.859 & 0.970 & 0.770 \\
+  & Exact Memorization  & \cmark & & & 0.782 & 0.817 & 0.750 & 0.984 & 0.605 \\
+  & Probability         & \cmark & & & 0.786 & 0.816 & 0.757 & 0.924 & 0.642 \\
+  & Paraphrased Probability & \cmark & & & 0.782 & \secworst{0.707} & 0.875 & 0.853 & 0.899 \\
+  & Truth Ratio         & \cmark & & & 0.542 & \second{0.947} & 0.379 & \second{0.996} & 0.234 \\
+\cmidrule(l){2-10}
+\textit{\quad Generation}
+  & ROUGE               & \cmark & & & 0.456 & 0.722 & 0.333 & 0.934 & 0.203 \\
+  & Paraphrased ROUGE    & \cmark & & & \secworst{0.209} & 0.832 & \secworst{0.119} & 0.951 & \secworst{0.064} \\
+  & Jailbreak ROUGE     & \cmark & & & 0.438 & 0.757 & 0.308 & 0.971 & 0.183 \\
+\midrule
+\textbf{Privacy}
+  & MIA-LOSS            & \cmark & & & 0.767 & 0.902 & 0.668 & 0.935 & 0.519 \\
+  & MIA-ZLib            & \cmark & & & 0.737 & 0.867 & 0.641 & 0.938 & 0.487 \\
+  & MIA-Min-K           & \cmark & & & 0.774 & 0.907 & 0.675 & 0.923 & 0.532 \\
+  & MIA-Min-K++         & \cmark & & & 0.677 & 0.816 & 0.579 & 0.883 & 0.431 \\
+\cmidrule(l){2-10}
+\textit{\quad Normalized}
+  & $s_{\text{LOSS}}$     & \cmark & \cmark & & 0.778 & 0.891 & 0.690 & 0.719 & 0.663 \\
+  & $s_{\text{ZLib}}$     & \cmark & \cmark & & 0.790 & 0.870 & 0.724 & 0.704 & 0.745 \\
+  & $s_{\text{Min-K}}$    & \cmark & \cmark & & 0.786 & 0.891 & 0.704 & 0.710 & 0.697 \\
+  & $s_{\text{Min-K++}}$  & \cmark & \cmark & & 0.686 & 0.799 & 0.602 & \secworst{0.643} & 0.566 \\
+\cmidrule(l){2-10}
+\textit{\quad White-box}
+  & CKA                   & & \cmark & \cmark & \worst{0.051} & \worst{0.648} & \worst{0.026} & \best{0.997} & \worst{0.013} \\
+  & Fisher (Masked 0.1\%) & & \cmark & \cmark & 0.716 & 0.712 & 0.721 & \worst{0.583} & \best{0.946} \\
+  & Logit Lens            & \cmark & \cmark & \cmark & \second{0.902} & 0.927 & \second{0.879} & 0.959 & 0.812 \\
+  & \textbf{\textsc{UDS} (Ours)} & \cmark & \cmark & \cmark & \best{0.951} & \best{0.971} & \best{0.932} & 0.968 & \second{0.900} \\
+\bottomrule
+\end{tabular}
+\caption{Meta-evaluation of 20 unlearning metrics, with \best{best}, \second{second}, \worst{worst}, and \secworst{second-worst} marked in each column.
+Scope tags indicate whether a metric is output-based (\textbf{O}), retain-referenced (\textbf{R}), or internal (\textbf{I}).
+Each metric is scored on faithfulness (AUC-ROC) and robustness (harmonic mean of quantization and relearning); Overall combines both via harmonic mean.
+\textsc{UDS} ranks first in Overall, Faithfulness, and Aggregate Robustness.}
+\label{tab:meta-eval}
+\end{table*}

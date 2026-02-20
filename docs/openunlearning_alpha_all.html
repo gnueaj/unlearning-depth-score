@@ -244,7 +244,7 @@ button.toggle-btn:hover { text-decoration: underline; }
         <code>MIA-Min-K++</code> <a href="#ref8" style="color:#0366d6;">[8]</a> &mdash; standardized Min-K. <span class="sub-formula">$z_t = (\log p_t - \mu_t) / \sigma_t$, then Min-K on $z_t$</span><br>
         <em style="color:#888;">Normalized (4, denoted $s_*$)</em> &mdash; MUSE PrivLeak-style rescaling using retain as anchor <a href="#ref10" style="color:#0366d6;">[10]</a>:<br>
         <span class="sub-formula">$\text{normalized}_* = |\text{AUC}_{\text{model}} - \text{AUC}_{\text{retain}}|\, /\, \text{AUC}_{\text{retain}}$</span><br>
-        <span class="sub-formula">$s_* = \text{clip}(1 - \text{normalized}_*,\; 0,\; 1)$ &ensp;(inverted; 1.0 = erased, 0.0 = large deviation from retain)</span><br>
+        <span class="sub-formula">$s_* = 1 - \min(\text{normalized}_*,\; 1)$ &ensp;(inverted; 1.0 = erased, 0.0 = large deviation from retain)</span><br>
         <code>s<sub>LOSS</sub></code> &middot; <code>s<sub>ZLib</sub></code> &middot; <code>s<sub>Min-K</sub></code> &middot; <code>s<sub>Min-K++</sub></code>
       </div>
 
@@ -277,8 +277,8 @@ button.toggle-btn:hover { text-decoration: underline; }
       </div>
       <div style="margin-top:8px;">
         <code>Robustness</code> = HM(Q, R) &mdash; <em>symmetric (bidirectional)</em><br>
-        <span class="sub-formula"><code>Quantization (Q)</code> $= 1 - \text{clip}\!\left(\dfrac{|m_{\text{after}} - m_{\text{before}}|}{|m_{\text{before}}| + |m_{\text{after}}|},\; 0,\; 1\right)$ &mdash; penalizes both recovery and destruction after 4-bit NF4 quantization</span><br>
-        <span class="sub-formula"><code>Relearning (R)</code> $= 1 - \text{clip}\!\left(\dfrac{|\Delta_{\text{unl}} - \Delta_{\text{ret}}|}{|\Delta_{\text{unl}}| + |\Delta_{\text{ret}}|},\; 0,\; 1\right)$, &ensp; $\Delta = m_{\text{after}} - m_{\text{before}}$ &mdash; penalizes both over- and under-recovery relative to retain</span><br>
+        <span class="sub-formula"><code>Quantization (Q)</code> $= 1 - \dfrac{|m_{\text{after}} - m_{\text{before}}|}{|m_{\text{before}}| + |m_{\text{after}}|}$ &mdash; penalizes both recovery and destruction after 4-bit NF4 quantization</span><br>
+        <span class="sub-formula"><code>Relearning (R)</code> $= 1 - \dfrac{|\Delta_{\text{unl}} - \Delta_{\text{ret}}|}{|\Delta_{\text{unl}}| + |\Delta_{\text{ret}}|}$, &ensp; $\Delta = m_{\text{after}} - m_{\text{before}}$ &mdash; penalizes both over- and under-recovery relative to retain</span><br>
         <span class="sub-formula">Direction: standard metrics use raw values (higher = more knowledge); UDS and $s_*$ are inverted ($m = 1 - \text{value}$) so that higher $m$ = more knowledge before Q/R computation.</span><br>
         <span class="sub-formula">Filtering: utility $\geq 0.8$ + per-metric faithfulness-threshold (150 models $\to$ per-metric filtered subset).</span>
       </div>
@@ -369,7 +369,7 @@ button.toggle-btn:hover { text-decoration: underline; }
       <div style="margin-top:10px;">
         <strong>Privacy:</strong><br>
         <code>MIA</code> $= \text{HM}(s_{\text{LOSS}},\; s_{\text{ZLib}},\; s_{\text{Min-K}},\; s_{\text{Min-K++}})$<br>
-        <span class="sub-formula">$s_* = \text{clip}(1 - |\text{AUC} - \text{AUC}_{\text{ret}}|\, /\, \text{AUC}_{\text{ret}},\; 0,\; 1)$</span><br>
+        <span class="sub-formula">$s_* = 1 - \min(|\text{AUC} - \text{AUC}_{\text{ret}}|\, /\, \text{AUC}_{\text{ret}},\; 1)$</span><br>
         <code>Privacy</code> = HM(MIA, <span class="uds-highlight">UDS</span>)
       </div>
       <div style="margin-top:10px;">

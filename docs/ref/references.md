@@ -117,7 +117,7 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
                   Xiaojun Xu and
                   Yang Liu},
   title        = {Large Language Model Unlearning},
-  booktitle    = {Advances in Neural Information Processing Systems 38: Annual Conference
+  booktitle    = {Advances in Neural Information Processing Systems 37: Annual Conference
                   on Neural Information Processing Systems 2024, NeurIPS 2024,
                   Vancouver, BC, Canada, December 10-15, 2024},
   year         = {2024},
@@ -409,6 +409,7 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
   volume       = {267},
   publisher    = {{PMLR}},
   year         = {2025},
+  pages        = {20964--20992},
   url          = {https://proceedings.mlr.press/v267/guo25k.html},
 }
 % Source: DBLP conf/icml/GuoSSED25
@@ -539,7 +540,43 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
 
 ---
 
-## Section 4: Evaluation — MIA & Privacy Metrics
+## Section 4: Meta-Evaluation
+
+{% raw %}
+```bibtex
+@article{grattafiori2024llama,
+  author       = {Aaron Grattafiori and
+                  Abhimanyu Dubey and
+                  Abhinav Jauhri and
+                  others},
+  title        = {The Llama 3 Herd of Models},
+  journal      = {CoRR},
+  volume       = {abs/2407.21783},
+  year         = {2024},
+  url          = {https://arxiv.org/abs/2407.21783},
+  eprinttype   = {arXiv},
+  eprint       = {2407.21783},
+}
+% Source: arXiv 2407.21783. Meta Llama 3 family (8B/70B/405B); also used for Llama-3.2-1B-Instruct citation.
+
+@inproceedings{basu2021influence,
+  author       = {Samyadeep Basu and
+                  Phillip Pope and
+                  Soheil Feizi},
+  title        = {Influence Functions in Deep Learning Are Fragile},
+  booktitle    = {9th International Conference on Learning Representations, {ICLR} 2021,
+                  Virtual Event, Austria, May 3-7, 2021},
+  publisher    = {OpenReview.net},
+  year         = {2021},
+  url          = {https://openreview.net/forum?id=xHKVVHGDOEk},
+}
+% Source: DBLP conf/iclr/BasuPF21. Gradient/Hessian-based importance fragile under optimization settings.
+```
+{% endraw %}
+
+---
+
+## Section 4 (cont.): MIA & Privacy Metrics
 
 {% raw %}
 ```bibtex
@@ -777,3 +814,4 @@ Sources: DBLP, OpenReview, Semantic Scholar. Verified 2026-02-17.
 | 35 | `lee2026comparator` | IEEE TVCG 2026 | IEEE Xplore | v32(3), pp. 2852-2867, DOI:10.1109/TVCG.2026.3658325 |
 | 36 | `yao2024large` | NeurIPS 2024 | DBLP | conf/nips/YaoXL24. arXiv preprint was 2310.10683 (2023) |
 | 37 | `fan2025simplicity` | NeurIPS 2025 | OpenReview | poster. ID=JbvSQm5h1l |
+| 38 | `basu2021influence` | ICLR 2021 | DBLP | conf/iclr/BasuPF21. Gradient-based importance fragility |
