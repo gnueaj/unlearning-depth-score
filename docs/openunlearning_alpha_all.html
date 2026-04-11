@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UDS: Unlearning Depth Score - Benchmark Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  margin: 0; padding: 20px 24px;
+  font-size: 15px; color: #1a1a1a;
+  background: #f8f9fa;
+  line-height: 1.5;
+}
+h1 { font-size: 1.8rem; font-weight: 700; margin: 0 0 8px 0; color: #111; }
+h2 { font-size: 1.3rem; font-weight: 600; margin: 24px 0 12px 0; color: #222; border-bottom: 2px solid #e0e0e0; padding-bottom: 6px; }
+h3 { font-size: 1.1rem; font-weight: 600; margin: 16px 0 8px 0; color: #333; }
+
+.container { max-width: 1400px; margin: 0 auto; }
+.card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.formula-box {
+  background: #f6f8fa;
+  border-left: 3px solid #0366d6;
+  padding: 12px 16px;
+  font-size: 14px;
+  margin: 12px 0;
+  border-radius: 0 6px 6px 0;
+}
+.formula-box code { background: #e8ecf0; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+.formula-box .sub-formula { margin-left: 20px; color: #555; font-size: 13px; line-height: 2.0; }
+.katex { font-size: 1.05em !important; }
+.higher-better { color: #2e7d32; font-weight: 600; }
+.uds-highlight { background: #fff8e1; padding: 2px 6px; border-radius: 3px; font-weight: 600; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; margin: 12px 0; }
+table.styled {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+  background: #fff;
+}
+table.styled th, table.styled td {
+  border: 1px solid #e0e0e0;
+  padding: 8px 12px;
+  text-align: left;
+}
+table.styled th {
+  background: #f6f8fa;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+table.styled th:hover { background: #eef1f4; }
+table.styled th.sort-asc::after { content: " ▲"; font-size: 10px; }
+table.styled th.sort-desc::after { content: " ▼"; font-size: 10px; }
+table.styled tbody tr:hover { background: #f8f9fa; }
+table.styled td { font-variant-numeric: tabular-nums; }
+table.styled td.num { text-align: right; }
+table.styled th.num { text-align: right; }
+
+/* Meta-eval specific */
+#meta_eval td:first-child, #meta_eval th:first-child { min-width: 160px; }
+#meta_eval th.num, #meta_eval td.num { min-width: 100px; }
+.tag { display:inline-block; font-size:9px; font-weight:600; padding:1px 5px; border-radius:8px; margin-left:3px; vertical-align:middle; color:#fff; letter-spacing:0.3px; }
+.tag-O { background:#4285f4; }
+.tag-R { background:#ea8600; }
+.tag-I { background:#34a853; }
+.rank-top1 {
+  font-weight: 700;
+}
+.rank-top2 {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1.5px;
+}
+.rank-bot1 {
+  color: #c62828;
+  font-weight: 700;
+}
+.rank-bot2 {
+  color: #c62828;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1.5px;
+}
+
+/* Fisher variant toggle */
+.fisher-toggle { cursor: pointer; user-select: none; }
+.fisher-toggle::after { content: '\25B6'; display: inline-block; width: 1.2em; margin-left: 0.4em; font-size: 0.7em; vertical-align: middle; transition: transform 0.15s; }
+.fisher-toggle.open::after { transform: rotate(90deg); }
+.fisher-variant { display: none; }
+.fisher-variant td { color: #666; font-size: 0.92em; }
+.fisher-variant td:first-child { padding-left: 1.8em; }
+
+/* Method table specific */
+#method_table .ref-row { background: #f5f5f5 !important; }
+#method_table .ref-row:hover { background: #eeeeee !important; }
+#method_table th:nth-child(n+2):nth-child(-n+5), #method_table td:nth-child(n+2):nth-child(-n+5) { min-width: 95px; }
+#method_table th:nth-child(8), #method_table td:nth-child(8) { text-align: center; width: 40px; }
+.expand-cell { padding: 4px !important; }
+.toggle-btn { font-size: 12px; padding: 2px 8px; min-width: 28px; }
+.details-row { display: none; background: #fafafa !important; }
+.details-row td { padding: 12px 16px; }
+.details-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.detail-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 12px;
+}
+.detail-card h4 {
+  margin: 0 0 10px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 6px;
+}
+.detail-item { display: flex; justify-content: space-between; padding: 2px 0; }
+.detail-item .label { color: #666; }
+.detail-item .value { font-weight: 500; font-variant-numeric: tabular-nums; }
+.detail-item.summary { border-top: 1px solid #eee; margin-top: 6px; padding-top: 6px; }
+.detail-sub { margin-top: 8px; font-size: 12px; color: #666; }
+
+/* Controls */
+.controls {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.control-row { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
+.control-row:last-child { margin-bottom: 0; }
+.control-label { min-width: 90px; font-weight: 600; color: #333; padding-top: 4px; }
+.control-content { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.method-grid { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.checkbox-label {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 13px; cursor: pointer;
+}
+.checkbox-label input { margin: 0; }
+.checkbox-label .count { color: #888; font-size: 12px; }
+select, button.btn {
+  padding: 6px 12px;
+  font-size: 13px;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+}
+select:focus, button.btn:focus { outline: 2px solid #0366d6; outline-offset: 1px; }
+button.btn { background: #f6f8fa; }
+button.btn:hover { background: #eef1f4; }
+button.toggle-btn {
+  background: none;
+  border: none;
+  color: #0366d6;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+}
+button.toggle-btn:hover { text-decoration: underline; }
+
+/* Hints */
+.hint { color: #666; font-size: 12px; margin-bottom: 8px; }
+
+/* Loading */
+.loading { text-align: center; padding: 40px; color: #666; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>UDS: Unlearning Depth Score</h1>
+  <p style="color:#666; margin-top:0;">Benchmark results on TOFU dataset (forget10) using Llama-3.2-1B-Instruct and Open-Unlearning framework</p>
+
+  <!-- UDS Introduction -->
+  <div class="card" style="border-left:4px solid #ffc107; background:#fffef5;">
+    <h3 style="margin-top:0; color:#b8860b;">UDS: Unlearning Depth Score</h3>
+    <p style="margin:0 0 10px 0;">
+      The <strong>Unlearning Depth Score (UDS)</strong> is a mechanistic metric that quantifies the <em>depth of unlearning</em> by measuring how much target knowledge is recoverable through activation patching.
+    </p>
+    <p style="margin:0 0 10px 0;">
+      <strong>Method:</strong> Patch hidden states from the unlearned model into a full (knowledge-present) model layer by layer. If knowledge is truly erased, patching should not help recovery.
+    </p>
+    <div class="formula-box" style="margin-bottom:0;">
+      <code>UDS</code> = weighted average of per-layer erasure ratios (higher = deeper unlearning).<br>
+      <span class="sub-formula">Ranges from 0 (knowledge fully recoverable, no unlearning) to 1 (knowledge completely erased, as if never learned).</span>
+    </div>
+  </div>
+
+  <!-- Meta-evaluation Section -->
+  <h2>Meta-evaluation</h2>
+  <div class="card">
+    <p style="margin:0 0 12px 0;">
+      This section evaluates <strong>20 metrics</strong> to measure <strong>how reliable each unlearning metric is</strong>, using the Open-Unlearning benchmark framework.
+    </p>
+    <p style="margin:0 0 12px 0;">
+      <strong>Faithfulness</strong>: How well each metric separates knowledge-present (P, 30 models) vs knowledge-absent (N, 30 models), measured by AUC-ROC.<br>
+      <strong>Robustness</strong>: Stability of each metric under post-hoc perturbations (4-bit quantization, 1-epoch relearning).
+    </p>
+
+    <div class="formula-box" style="margin:0 0 14px 0;">
+      <div><strong>Metric Categories:</strong></div>
+
+      <div style="margin-top:10px;">
+        <strong>Memorization</strong> (5) &mdash; Does the model still retain memorized target knowledge?<br>
+        <code>ES</code> <a href="#ref1" style="color:#0366d6;">[1]</a> (Extraction Strength) &mdash; fraction of answer extractable via greedy decoding. <span class="sub-formula">$1 - k/T$, $k$ = earliest match position</span><br>
+        <code>EM</code> <a href="#ref2" style="color:#0366d6;">[2]</a> (Exact Memorization) &mdash; token-level position match ratio. <span class="sub-formula">$\sum \mathbb{1}(\text{pred}_t = \text{label}_t)\, /\, T$</span><br>
+        <code>Prob</code> &mdash; geometric mean of per-token probabilities. <span class="sub-formula">$\exp\!\bigl(-(1/T)\sum \text{CE}_t\bigr)$</span><br>
+        <code>ParaProb</code> &mdash; geometric mean of Prob across paraphrased answer variants.<br>
+        <code>Truth Ratio</code> &mdash; normalized correct vs. incorrect probability. <span class="sub-formula">$p_c / (p_c + p_w)$, &ensp; $p = \exp(-\text{avg loss})$</span>
+      </div>
+
+      <div style="margin-top:10px;">
+        <strong>Generation</strong> (3) &mdash; Can the model reproduce target knowledge in free-form text?<br>
+        ROUGE-L recall between model generation and ground-truth answer under different prompting strategies.<br>
+        <code>ROUGE</code> &mdash; standard prompt.<br>
+        <code>Para. ROUGE</code> &mdash; paraphrased prompt.<br>
+        <code>Jailbreak ROUGE</code> &mdash; adversarial prompt (prefixed with &ldquo;Sure, here is the answer:&rdquo;).
+      </div>
+
+      <div style="margin-top:10px;">
+        <strong>MIA</strong> (8) &mdash; Membership Inference Attack. Per-sample member/non-member classification <a href="#ref6" style="color:#0366d6;">[6]</a>.<br>
+        <em style="color:#888;">Raw (4)</em> &mdash; AUC-based:<br>
+        <code>MIA-LOSS</code> <a href="#ref9" style="color:#0366d6;">[9]</a> &mdash; average cross-entropy. <span class="sub-formula">$\frac{1}{T}\sum_t \mathcal{L}_t$</span><br>
+        <code>MIA-ZLib</code> <a href="#ref1" style="color:#0366d6;">[1]</a> &mdash; loss normalized by compression length. <span class="sub-formula">$\ell\, /\, |\texttt{zlib}(x)|$, &ensp; $\ell = \frac{1}{T}\sum_t \mathcal{L}_t$</span><br>
+        <code>MIA-Min-K</code> <a href="#ref7" style="color:#0366d6;">[7]</a> &mdash; mean of bottom-$k$% log-probs. <span class="sub-formula">$-\frac{1}{\lceil kT\rceil}\sum_{t \in \mathcal{B}_k} \log p_t,\;\; k{=}0.4$</span><br>
+        <code>MIA-Min-K++</code> <a href="#ref8" style="color:#0366d6;">[8]</a> &mdash; standardized Min-K. <span class="sub-formula">$z_t = (\log p_t - \mu_t) / \sigma_t$, then Min-K on $z_t$</span><br>
+        <em style="color:#888;">Normalized (4, denoted $s_*$)</em> &mdash; MUSE PrivLeak-style rescaling using retain as anchor <a href="#ref10" style="color:#0366d6;">[10]</a>:<br>
+        <span class="sub-formula">$\text{normalized}_* = |\text{AUC}_{\text{model}} - \text{AUC}_{\text{retain}}|\, /\, \text{AUC}_{\text{retain}}$</span><br>
+        <span class="sub-formula">$s_* = 1 - \min(\text{normalized}_*,\; 1)$ &ensp;(inverted; 1.0 = erased, 0.0 = large deviation from retain)</span><br>
+        <code>s<sub>LOSS</sub></code> &middot; <code>s<sub>ZLib</sub></code> &middot; <code>s<sub>Min-K</sub></code> &middot; <code>s<sub>Min-K++</sub></code>
+      </div>
+
+      <div style="margin-top:10px;">
+        <strong>Representation</strong> (4) &mdash; Measure knowledge erasure at the representation level. All use the retain model as reference.<br>
+        <code>CKA</code> <a href="#ref3" style="color:#0366d6;">[3]</a> &mdash; representational similarity via kernel alignment, normalized against the full&ndash;retain anchor per layer.<br>
+        <span class="sub-formula">$\text{erasure}_l=\text{clip}\!\left(\dfrac{\text{CKA}(H_{\text{unl}},H_{\text{ret}})_l-\text{CKA}(H_{\text{full}},H_{\text{ret}})_l}{1-\text{CKA}(H_{\text{full}},H_{\text{ret}})_l+\epsilon},\,0,\,1\right),\;\;w_l=1-\text{CKA}(H_{\text{full}},H_{\text{ret}})_l,\;\;\text{score}=\dfrac{\sum_l w_l\cdot \text{erasure}_l}{\sum_l w_l}$ &ensp;</span><br>
+        <code>Logit Lens</code> <a href="#ref4" style="color:#0366d6;">[4]</a> &mdash; decodes each layer&rsquo;s hidden states through the full model&rsquo;s frozen decoder (LayerNorm + lm_head) to measure decodable knowledge per layer.<br>
+        <span class="sub-formula">$k_{m,l} = \text{logprob}(\text{entity}\mid H^l_m \to \text{decoder}_{\text{full}})$, &ensp; $d_{m,l} = k_{\text{full},l} - k_{m,l}$</span><br>
+        <code>Fisher Masked</code> <a href="#ref5" style="color:#0366d6;">[5]</a> &mdash; diagonal Fisher Information with top-$p$% parameter masking. Focuses on parameters where retain has higher sensitivity than full on the forget set. $p$ &isin; {0.01%, 0.1%, 1%}.<br>
+        <span class="sub-formula">$a_i = \max(F_{\text{ret},i} - F_{\text{full},i},\; 0)$, &ensp; $M_l$ = top $p$% of $a_i$, &ensp; $\text{erasure}_l = 1 - \text{clip}(\text{excess}_{\text{unl}} / \text{excess}_{\text{full}},\; 0,\; 1)$</span><br>
+        <code>UDS (Ours)</code> &mdash; Measures whether knowledge remains recoverable via activation patching.<br>
+        <span class="sub-formula"><em>Notation:</em> $x$ = input prompt, $y = (y_1,\dots,y_T)$ = entity span tokens, $M_{\text{full}}$ = full model, $M_S$ = source model ($S1$=retain, $S2$=unlearned).</span><br>
+        <span class="sub-formula">$s^{\text{full}}_t = \log p_{M_{\text{full}}}(y_t \mid x, y_{1:t{-}1})$ &ensp;(full model log-prob of entity token $y_t$)</span><br>
+        <span class="sub-formula">$s^{S}_t = \log p^{\text{patch}(M_S)}_{M_{\text{full}}}(y_t \mid x, y_{1:t{-}1})$ &ensp;(log-prob after patching layer $l$ with source activations)</span><br>
+        <span class="sub-formula">$\Delta^{S}_{l} = \frac{1}{T}\sum_{t} (s^{\text{full}}_t - s^{S}_t)$ &ensp;(mean log-prob degradation at layer $l$; larger = source lacks more knowledge)</span><br>
+        <span class="sub-formula">$\text{FT}_i = \{l : \Delta^{S1}_{i,l} > \tau\}$ &ensp;($\tau{=}0.05$, filters noise: layers where retain genuinely lacks target knowledge)</span><br>
+        <span class="sub-formula">$\text{UDS}_i = \dfrac{\sum_{l\in\text{FT}} \Delta^{S1}_{i,l} \cdot \text{clip}(\Delta^{S2}_{i,l} / \Delta^{S1}_{i,l},\; 0,\; 1)}{\sum_{l\in\text{FT}} \Delta^{S1}_{i,l}}$ &ensp;($\Delta^{S1}$-weighted average of per-layer erasure ratios)</span><br>
+        <span class="sub-formula">$\text{UDS} = \frac{1}{N}\sum_i \text{UDS}_i$</span>
+      </div>
+    </div>
+
+    <p id="meta_eval_summary" style="margin:0 0 12px 0; padding:8px 12px; background:#fffde7; border-radius:4px;">
+      <strong>Meta-evaluation summary:</strong> loading...
+    </p>
+    <div class="formula-box">
+      <div><strong>Formulas:</strong></div>
+      <div style="margin-top:6px;">
+        <code>Faithfulness</code> = AUC-ROC over P/N pools (30 knowledge-present vs 30 knowledge-absent models)
+      </div>
+      <div style="margin-top:8px;">
+        <code>Robustness</code> = HM(Q, R) &mdash; <em>symmetric (bidirectional)</em><br>
+        <span class="sub-formula"><code>Quantization (Q)</code> $= 1 - \dfrac{|m_{\text{after}} - m_{\text{before}}|}{|m_{\text{before}}| + |m_{\text{after}}|}$ &mdash; penalizes both recovery and destruction after 4-bit NF4 quantization</span><br>
+        <span class="sub-formula"><code>Relearning (R)</code> $= 1 - \dfrac{|\Delta_{\text{unl}} - \Delta_{\text{ret}}|}{|\Delta_{\text{unl}}| + |\Delta_{\text{ret}}|}$, &ensp; $\Delta = m_{\text{after}} - m_{\text{before}}$ &mdash; penalizes both over- and under-recovery relative to retain</span><br>
+        <span class="sub-formula">Direction: standard metrics use raw values (higher = more knowledge); UDS and $s_*$ are inverted ($m = 1 - \text{value}$) so that higher $m$ = more knowledge before Q/R computation.</span><br>
+        <span class="sub-formula">Filtering: utility $\geq 0.8$ + per-metric faithfulness-threshold (150 models $\to$ per-metric filtered subset).</span>
+      </div>
+      <div style="margin-top:8px;">
+        <code>Overall</code> = HM(Faithfulness, Robustness)
+      </div>
+      <div style="margin-top:8px; font-size:13px; color:#555;">
+        All metrics are oriented so that <span class="higher-better">↑ higher = better</span>. Metrics where higher raw value indicates more knowledge (e.g., Prob, ROUGE) are inverted before evaluation; UDS and $s_*$ are already in the correct direction.
+      </div>
+    </div>
+  </div>
+
+  <div class="hint">Per column: <span class="rank-top1">best</span>, <span class="rank-top2">second-best</span>, <span class="rank-bot1">worst</span>, <span class="rank-bot2">second-worst</span>. &ensp; <span class="tag tag-O">Output</span> = model output based &ensp; <span class="tag tag-R">Retain</span> = retain-referenced &ensp; <span class="tag tag-I">Internal</span> = internal representation.</div>
+  <div class="table-wrap">
+    <table class="styled" id="meta_eval">
+      <thead>
+        <tr>
+          <th rowspan="2">Metric</th>
+          <th rowspan="2" class="sortable num" data-col="overall">Overall ↑</th>
+          <th rowspan="2" class="sortable num" data-col="faith">Faithfulness ↑</th>
+          <th colspan="3" style="text-align:center;">Robustness</th>
+        </tr>
+        <tr>
+          <th class="sortable num" data-col="rob">Aggregate ↑</th>
+          <th class="sortable num" data-col="quant">Quantization ↑</th>
+          <th class="sortable num" data-col="relearn">Relearning ↑</th>
+        </tr>
+      </thead>
+      <tbody id="meta_eval_body">
+        <tr><td colspan="6" class="loading">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <details style="margin-top:16px;">
+    <summary style="cursor:pointer;font-weight:600;font-size:14px;color:#444;">Faithfulness: P/N Pool Histograms</summary>
+    <div style="margin-top:10px;text-align:center;">
+      <img src="figs/faithfulness_histograms.png" alt="Faithfulness histograms" style="max-width:780px;width:100%;height:auto;">
+    </div>
+  </details>
+  <details style="margin-top:10px;">
+    <summary style="cursor:pointer;font-weight:600;font-size:14px;color:#444;">Robustness: Quantization Scatter Plots</summary>
+    <div style="margin-top:10px;display:flex;gap:12px;align-items:flex-start;justify-content:center;flex-wrap:wrap;">
+      <div style="text-align:center;flex:1;min-width:340px;">
+        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;">Utility + Faithfulness Filter</div>
+        <img src="figs/quant_robustness.png" alt="Quantization robustness scatter (usable)" style="max-width:100%;height:auto;">
+      </div>
+      <div style="text-align:center;flex:1;min-width:340px;">
+        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;">Utility Filter Only</div>
+        <img src="figs/quant_robustness_utility_only.png" alt="Quantization robustness scatter (utility only)" style="max-width:100%;height:auto;">
+      </div>
+    </div>
+  </details>
+  <details style="margin-top:10px;">
+    <summary style="cursor:pointer;font-weight:600;font-size:14px;color:#444;">Robustness: Relearning Scatter Plots</summary>
+    <div style="margin-top:10px;display:flex;gap:12px;align-items:flex-start;justify-content:center;flex-wrap:wrap;">
+      <div style="text-align:center;flex:1;min-width:340px;">
+        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;">Utility + Faithfulness Filter</div>
+        <img src="figs/relearn_robustness.png" alt="Relearning robustness scatter (usable)" style="max-width:100%;height:auto;">
+      </div>
+      <div style="text-align:center;flex:1;min-width:340px;">
+        <div style="font-size:12px;font-weight:600;color:#555;margin-bottom:4px;">Utility Filter Only</div>
+        <img src="figs/relearn_robustness_utility_only.png" alt="Relearning robustness scatter (utility only)" style="max-width:100%;height:auto;">
+      </div>
+    </div>
+  </details>
+
+  <!-- Method-level Section -->
+  <h2>Method-level Results</h2>
+  <div class="card">
+    <p style="margin:0 0 12px 0;">
+      This section evaluates <strong><span id="model_total_count">152</span> models</strong> (8 methods &times; varying hyperparameters &times; 2 epochs + full + retain) across three axes.
+      All unlearned model checkpoints are from the <a href="https://github.com/locuslab/open-unlearning" target="_blank" style="color:#0366d6;">Open-Unlearning</a> framework.
+    </p>
+    <p style="margin:0 0 12px 0;">
+      <strong>Memorization</strong>: How much target knowledge was forgotten. <span class="higher-better">(↑ higher = more forgotten)</span><br>
+      <strong>Privacy</strong>: How well sensitive information from the forget set is protected from being extracted (assessed via MIAs and UDS). <span class="higher-better">(↑ higher = better protected)</span><br>
+      <strong>Utility</strong>: How well the model retains general capabilities on non-target knowledge. <span class="higher-better">(↑ higher = better retention)</span><br>
+      <strong>Overall</strong>: Harmonic mean of all three axes. <span class="higher-better">(↑ higher = better)</span>
+    </p>
+    <div class="formula-box">
+      <div><strong>Formulas:</strong></div>
+      <div style="margin-top:8px;">
+        <strong>Memorization:</strong><br>
+        <code>Mem.</code> $= \text{HM}(1{-}\text{ES},\; 1{-}\text{EM},\; 1{-}\text{ParaProb},\; 1{-}\text{TruthRatio})$<br>
+        <span class="sub-formula">ES=Extraction Strength, EM=Exact Memorization, ParaProb=Paraphrase Probability, TruthRatio=Truth Ratio</span>
+      </div>
+      <div style="margin-top:10px;">
+        <strong>Privacy:</strong><br>
+        <code>MIA</code> $= \text{HM}(s_{\text{LOSS}},\; s_{\text{ZLib}},\; s_{\text{Min-K}},\; s_{\text{Min-K++}})$<br>
+        <span class="sub-formula">$s_* = 1 - \min(|\text{AUC} - \text{AUC}_{\text{ret}}|\, /\, \text{AUC}_{\text{ret}},\; 1)$</span><br>
+        <code>Privacy</code> = HM(MIA, <span class="uds-highlight">UDS</span>)
+      </div>
+      <div style="margin-top:10px;">
+        <strong>Utility:</strong><br>
+        <code>ModelUtility (MU)</code> = HM(retain_Prob, retain_ROUGE, retain_TruthRatio, ra_Prob, ra_ROUGE, ra_TruthRatio, wf_Prob, wf_ROUGE, wf_TruthRatio)<br>
+        <span class="sub-formula">retain=Retain set, ra=Real Authors, wf=World Facts</span><br>
+        <code>Fluency</code> = generation fluency score<br>
+        <code>Utility</code> = HM(MU, Fluency), then normalized: $\text{Utility}_{\text{rel}} = \text{Utility}\, /\, \text{Utility}_{\text{full(epoch)}}$
+      </div>
+      <div style="margin-top:10px;">
+        <strong>Overall:</strong><br>
+        <code>Overall</code> $= \text{HM}(\text{Mem.},\; \text{Privacy},\; \text{Utility}_{\text{rel}})$
+      </div>
+    </div>
+
+    <p style="margin:12px 0; padding:8px 12px; background:#fffde7; border-radius:4px;">
+      <span class="uds-highlight">UDS</span> is incorporated into the Privacy axis as <code>Privacy = HM(MIA, UDS)</code>, capturing both statistical (MIA) and mechanistic (UDS) aspects.
+    </p>
+
+    <div class="formula-box" style="margin-top:12px;">
+      <div><strong>Methods and Hyperparameter Sweep</strong></div>
+      <div style="margin-top:8px; overflow-x:auto;">
+        <table style="border-collapse:collapse; font-size:13px; width:100%;">
+          <thead>
+            <tr style="background:#edf1f5; border-bottom:2px solid #d0d7de;">
+              <th style="padding:6px 12px; text-align:left;">Method</th>
+              <th style="padding:6px 12px; text-align:left;">Learning Rate</th>
+              <th style="padding:6px 12px; text-align:left;">Swept Hyperparameters</th>
+              <th style="padding:6px 12px; text-align:left;">Fixed</th>
+              <th style="padding:6px 12px; text-align:center;">Epochs</th>
+              <th style="padding:6px 12px; text-align:center;">Models</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid #e8e8e8;">
+              <td style="padding:5px 12px;">GradDiff <a href="#ref12" style="color:#0366d6;">[12]</a>, IdkNLL <a href="#ref12" style="color:#0366d6;">[12]</a>, IdkDPO <a href="#ref12" style="color:#0366d6;">[12]</a>, NPO <a href="#ref13" style="color:#0366d6;">[13]</a>, AltPO <a href="#ref14" style="color:#0366d6;">[14]</a></td>
+              <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
+              <td style="padding:5px 12px;">$\alpha$ &isin; {1, 2, 5}</td>
+              <td style="padding:5px 12px;">&beta; = 0.1</td>
+              <td style="padding:5px 12px; text-align:center;">{5, 10}</td>
+              <td style="padding:5px 12px; text-align:center;">5 &times; 3 &times; 3 &times; 2 = 90</td>
+            </tr>
+            <tr style="border-bottom:1px solid #e8e8e8;">
+              <td style="padding:5px 12px;">SimNPO <a href="#ref15" style="color:#0366d6;">[15]</a></td>
+              <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
+              <td style="padding:5px 12px;">$\beta$ &isin; {3.5, 4.5}, $\gamma$ &isin; {0.125, 0.25}</td>
+              <td style="padding:5px 12px;">&delta; = 1, &alpha; = 1</td>
+              <td style="padding:5px 12px; text-align:center;">{5, 10}</td>
+              <td style="padding:5px 12px; text-align:center;">1 &times; 3 &times; 4 &times; 2 = 24</td>
+            </tr>
+            <tr style="border-bottom:1px solid #e8e8e8;">
+              <td style="padding:5px 12px;">RMU <a href="#ref16" style="color:#0366d6;">[16]</a></td>
+              <td style="padding:5px 12px;">{1e-5, 2e-5, 5e-5}</td>
+              <td style="padding:5px 12px;">layer &isin; {5, 10, 15}</td>
+              <td style="padding:5px 12px;">steering coeff = 10</td>
+              <td style="padding:5px 12px; text-align:center;">{5, 10}</td>
+              <td style="padding:5px 12px; text-align:center;">1 &times; 3 &times; 3 &times; 2 = 18</td>
+            </tr>
+            <tr>
+              <td style="padding:5px 12px;">UNDIAL <a href="#ref17" style="color:#0366d6;">[17]</a></td>
+              <td style="padding:5px 12px;">{1e-5, 1e-4, 3e-4}</td>
+              <td style="padding:5px 12px;">$\alpha$ &isin; {1, 2, 5}</td>
+              <td style="padding:5px 12px;">&beta; = 10</td>
+              <td style="padding:5px 12px; text-align:center;">{5, 10}</td>
+              <td style="padding:5px 12px; text-align:center;">1 &times; 3 &times; 3 &times; 2 = 18</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="border-top:2px solid #d0d7de; background:#edf1f5;">
+              <td colspan="5" style="padding:5px 12px; font-weight:600;">Total: 150 unlearned + full + retain</td>
+              <td style="padding:5px 12px; text-align:center; font-weight:600;">152</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="control-row">
+      <span class="control-label">View</span>
+      <div class="control-content">
+        <select id="viewMode">
+          <option value="all">All models</option>
+          <option value="best">Top-1 per method</option>
+        </select>
+        <select id="rankMetric" style="margin-left:8px; display:none;">
+          <option value="overall_no_uds">by Overall (w/o UDS)</option>
+          <option value="overall">by Overall (w/ UDS)</option>
+          <option value="mem">by Memorization</option>
+          <option value="privacy">by Privacy</option>
+          <option value="utility_rel">by Utility</option>
+          <option value="uds">by UDS</option>
+          <option value="logit_lens">by Logit Lens</option>
+        </select>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">Epoch</span>
+      <div class="control-content">
+        <label class="checkbox-label"><input type="checkbox" class="epoch-filter" value="ep5" checked> 5</label>
+        <label class="checkbox-label"><input type="checkbox" class="epoch-filter" value="ep10" checked> 10</label>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">Methods</span>
+      <div class="control-content" style="flex-direction:column; align-items:flex-start; gap:8px;">
+        <div class="method-grid" id="method_filters"></div>
+        <div>
+          <button class="btn" id="checkAll">Check All</button>
+          <button class="btn" id="uncheckAll">Uncheck All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hint" id="model_count">Total: loading...</div>
+  <div class="table-wrap">
+    <table class="styled" id="method_table">
+      <thead>
+        <tr>
+          <th class="sortable" data-col="model">Model</th>
+          <th class="sortable num" data-col="overall_no_uds" title="HM(Mem, MIA, Utility) — without UDS">Overall<sub>w/o UDS</sub> ↑</th>
+          <th class="sortable num" data-col="overall" title="HM(Mem, Privacy, Utility) where Privacy=HM(MIA,UDS)">Overall<sub>w/ UDS</sub> ↑</th>
+          <th class="sortable num" data-col="mem" style="white-space:nowrap;">Mem. ↑</th>
+          <th class="sortable num" data-col="privacy">Privacy ↑</th>
+          <th class="sortable num" data-col="utility_rel">Utility ↑</th>
+          <th class="sortable num" data-col="logit_lens" style="color:#888;width:80px;min-width:80px;" title="Logit Lens erasure score (representation-level)">LL ↑</th>
+          <th class="sortable num" data-col="uds" style="color:#888;width:80px;min-width:80px;" title="Already included in Privacy axis">UDS ↑</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="method_body">
+        <tr><td colspan="9" class="loading">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// Data storage
+let metaData = null;
+let methodData = null;
+let currentSort = { col: null, asc: true };
+let metaSort = { col: null, asc: true };
+
+// Method name display mapping
+const methodDisplayNames = {
+  'graddiff': 'GradDiff',
+  'idknll': 'IdkNLL',
+  'idkdpo': 'IdkDPO',
+  'npo': 'NPO',
+  'altpo': 'AltPO',
+  'undial': 'UNDIAL',
+  'simnpo': 'SimNPO',
+  'rmu': 'RMU'
+};
+
+function displayMethod(m) {
+  return methodDisplayNames[m.toLowerCase()] || m;
+}
+
+// Utility functions
+function fmt(v) {
+  if (v === null || v === undefined || (typeof v === 'number' && isNaN(v))) return 'N/A';
+  return v.toFixed(3);
+}
+
+function top2(values) {
+  const nums = [...new Set(values.filter(v => v !== null && !isNaN(v)))].sort((a,b) => b-a);
+  return [nums[0] || null, nums[1] || null];
+}
+function bot2(values) {
+  const nums = [...new Set(values.filter(v => v !== null && !isNaN(v)))].sort((a,b) => a-b);
+  return [nums[0] || null, nums[1] || null];
+}
+
+function styleRank(v, best, second, worst, secWorst) {
+  if (v === null || v === undefined || isNaN(v)) return 'N/A';
+  const s = fmt(v);
+  if (best !== null && Math.abs(v - best) < 1e-9) return `<span class="rank-top1">${s}</span>`;
+  if (second !== null && Math.abs(v - second) < 1e-9) return `<span class="rank-top2">${s}</span>`;
+  if (worst !== null && Math.abs(v - worst) < 1e-9) return `<span class="rank-bot1">${s}</span>`;
+  if (secWorst !== null && Math.abs(v - secWorst) < 1e-9) return `<span class="rank-bot2">${s}</span>`;
+  return s;
+}
+
+// Load meta-eval data
+async function loadMetaEval() {
+  try {
+    const resp = await fetch('data/meta_eval.json');
+    metaData = await resp.json();
+    renderMetaEval();
+    setupMetaSorting();
+  } catch (e) {
+    document.getElementById('meta_eval_body').innerHTML = '<tr><td colspan="6">Error loading data</td></tr>';
+  }
+}
+
+function setupMetaSorting() {
+  document.querySelectorAll('#meta_eval th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (metaSort.col === col) {
+        if (metaSort.asc) {
+          // Third click: reset to default (no sort)
+          metaSort.col = null;
+          metaSort.asc = true;
+        } else {
+          metaSort.asc = true;
+        }
+      } else {
+        metaSort.col = col;
+        metaSort.asc = false; // Default descending (higher is better)
+      }
+      document.querySelectorAll('#meta_eval th.sortable').forEach(h => {
+        h.classList.remove('sort-asc', 'sort-desc');
+      });
+      if (metaSort.col) th.classList.add(metaSort.asc ? 'sort-asc' : 'sort-desc');
+      renderMetaEval();
+    });
+  });
+}
+
+function renderMetaEval() {
+  const body = document.getElementById('meta_eval_body');
+  const metrics = metaData.metrics;
+  const faith = metaData.faithfulness;
+  const robust = metaData.robustness || {};
+
+  // Fisher variant keys (hidden by default, excluded from ranking)
+  const fisherVariants = new Set(['fisher_masked_0.0001', 'fisher_masked_0.01']);
+
+  // Collect values for ranking
+  const overalls = [], faiths = [], robs = [], quants = [], relearns = [];
+  const rows = metrics.map(m => {
+    const f = faith[m.key]?.auc_roc || null;
+    const r = robust[m.key]?.agg ?? null;
+    const q = robust[m.key]?.quantization ?? null;
+    const rl = robust[m.key]?.relearning ?? null;
+    const o = (f !== null && r !== null) ? 2 / (1/f + 1/r) : null;
+    if (!fisherVariants.has(m.key)) {
+      overalls.push(o); faiths.push(f); robs.push(r); quants.push(q); relearns.push(rl);
+    }
+    return { ...m, faith: f, rob: r, quant: q, relearn: rl, overall: o };
+  });
+
+  const [bestO, secO] = top2(overalls);
+  const [bestF, secF] = top2(faiths);
+  const [bestR, secR] = top2(robs);
+  const [bestQ, secQ] = top2(quants);
+  const [bestL, secL] = top2(relearns);
+  const [worstO, secWO] = bot2(overalls);
+  const [worstF, secWF] = bot2(faiths);
+  const [worstR, secWR] = bot2(robs);
+  const [worstQ, secWQ] = bot2(quants);
+  const [worstL, secWL] = bot2(relearns);
+
+  // Sort if needed (keep Fisher variants attached to Fisher main)
+  if (metaSort.col) {
+    const main = rows.filter(r => !fisherVariants.has(r.key));
+    const fvars = rows.filter(r => fisherVariants.has(r.key));
+    main.sort((a, b) => {
+      let av = a[metaSort.col], bv = b[metaSort.col];
+      if (av === null || isNaN(av)) av = -Infinity;
+      if (bv === null || isNaN(bv)) bv = -Infinity;
+      return metaSort.asc ? av - bv : bv - av;
+    });
+    // Re-insert Fisher variants right after Fisher main
+    rows.length = 0;
+    main.forEach(r => {
+      rows.push(r);
+      if (r.key === 'fisher_masked_0.001') rows.push(...fvars);
+    });
+  }
+
+  let html = '';
+  rows.forEach((r, i) => {
+    const isUds = r.key === 'uds';
+    const isFisherMain = r.key === 'fisher_masked_0.001';
+    const isFisherVar = fisherVariants.has(r.key);
+    const isFisher = isFisherMain || isFisherVar;
+    let label = r.label.replace(/^s_(.+)$/, 's<sub>$1</sub>');
+    if (isUds) label = `<strong>${label}</strong>`;
+    if (isFisherMain) label = `<span class="fisher-toggle" onclick="this.classList.toggle('open');document.querySelectorAll('.fisher-variant').forEach(r=>r.style.display=this.classList.contains('open')?'table-row':'none')">${label}</span>`;
+    const tagNames = {O: 'Output', R: 'Retain', I: 'Internal'};
+    const tagHtml = (r.tags || []).map(t => `<span class="tag tag-${t}">${tagNames[t]}</span>`).join('');
+    const trClass = isFisherVar ? ' class="fisher-variant"' : '';
+
+    html += `<tr${trClass}>
+      <td>${label} ${tagHtml}</td>
+      <td class="num">${isFisherVar ? fmt(r.overall) : styleRank(r.overall, bestO, secO, worstO, secWO)}</td>
+      <td class="num">${isFisherVar ? fmt(r.faith) : styleRank(r.faith, bestF, secF, worstF, secWF)}</td>
+      <td class="num">${isFisherVar ? fmt(r.rob) : styleRank(r.rob, bestR, secR, worstR, secWR)}</td>
+      <td class="num">${isFisherVar ? fmt(r.quant) : styleRank(r.quant, bestQ, secQ, worstQ, secWQ)}</td>
+      <td class="num">${isFisherVar ? fmt(r.relearn) : styleRank(r.relearn, bestL, secL, worstL, secWL)}</td>
+    </tr>`;
+  });
+  body.innerHTML = html;
+
+  // Dynamic summary (avoid stale hardcoded claims)
+  const overallPairs = rows
+    .filter(r => r.overall !== null && !isNaN(r.overall))
+    .sort((a, b) => b.overall - a.overall);
+  const summaryEl = document.getElementById('meta_eval_summary');
+  if (overallPairs.length > 0) {
+    const fmtLabel = s => s.replace(/^s_(.+)$/, 's<sub>$1</sub>');
+    const top = overallPairs[0];
+
+    // Best per axis
+    const faithSorted = [...overallPairs].sort((a, b) => (b.faith || 0) - (a.faith || 0));
+    const robSorted = [...overallPairs].sort((a, b) => (b.rob || 0) - (a.rob || 0));
+    const topWinsBoth = top.key === faithSorted[0].key && top.key === robSorted[0].key;
+
+    // Pattern analysis: Q vs R
+    const validQ = rows.filter(r => r.quant !== null && !isNaN(r.quant));
+    const validR = rows.filter(r => r.relearn !== null && !isNaN(r.relearn));
+    const avgQ = validQ.reduce((s, r) => s + r.quant, 0) / validQ.length;
+    const avgR = validR.reduce((s, r) => s + r.relearn, 0) / validR.length;
+    const lowR = validR.filter(r => r.relearn < 0.5).length;
+
+    // Faithfulness-robustness disconnect: high faith but low robustness
+    const highFaithLowRob = overallPairs.filter(r => r.faith >= 0.9 && r.rob < 0.5);
+
+    let msg = `<strong>Meta-evaluation summary:</strong><br>`;
+
+    // 1) Winner
+    msg += `<span class="uds-highlight">${fmtLabel(top.label)}</span> achieves the highest Overall score (<strong>${fmt(top.overall)}</strong>)`;
+    if (topWinsBoth) {
+      msg += `, ranking <strong>#1 in both Faithfulness (${fmt(top.faith)}) and Robustness (${fmt(top.rob)})</strong>.`;
+    } else {
+      msg += ` &mdash; Faithfulness ${fmt(top.faith)}, Robustness ${fmt(top.rob)}.`;
+    }
+
+    // 2) Key pattern
+    msg += `<br>Relearning robustness is the main bottleneck: avg Q=${avgQ.toFixed(2)} vs. avg R=${avgR.toFixed(2)} (<strong>${lowR}/${validR.length}</strong> metrics have R&lt;0.5).`;
+
+    // 3) Trade-off example
+    if (highFaithLowRob.length > 0) {
+      const ex = highFaithLowRob[0];
+      msg += `<br>e.g., ${fmtLabel(ex.label)} has high faithfulness (${fmt(ex.faith)}) but R=${fmt(ex.relearn)} &mdash; easily reversed by 1-epoch fine-tuning.`;
+    }
+
+    // 4) Top metric advantage
+    if (top.quant !== null && top.relearn !== null) {
+      msg += `<br>${fmtLabel(top.label)} is uniquely stable under both attacks (Q=${fmt(top.quant)}, R=${fmt(top.relearn)}): internal recoverability is a more reliable signal than output-level metrics.`;
+    }
+    summaryEl.innerHTML = msg;
+  } else {
+    summaryEl.innerHTML = "<strong>Meta-evaluation summary:</strong> Overall values are not available yet.";
+  }
+}
+
+// Load method-level data
+async function loadMethodData() {
+  try {
+    const resp = await fetch('data/method_results.json');
+    methodData = await resp.json();
+    // Precompute overall_no_uds = HM(mem, privacy_mia, utility_rel)
+    methodData.models.forEach(m => {
+      m.overall_no_uds = (m.mem && m.privacy_mia && m.utility_rel && m.mem > 0 && m.privacy_mia > 0 && m.utility_rel > 0)
+        ? 3 / (1/m.mem + 1/m.privacy_mia + 1/m.utility_rel) : null;
+    });
+    renderMethodFilters();
+    updateEpochCounts();
+    renderMethodTable();
+    setupMethodListeners();
+    setupTableSorting();
+  } catch (e) {
+    document.getElementById('method_body').innerHTML = '<tr><td colspan="9">Error loading data</td></tr>';
+  }
+}
+
+function renderMethodFilters() {
+  const grid = document.getElementById('method_filters');
+  const counts = methodData.method_counts;
+  const methods = Object.keys(counts).sort();
+
+  grid.innerHTML = methods.map(m => `
+    <label class="checkbox-label">
+      <input type="checkbox" class="method-filter" value="${m}" checked>
+      ${displayMethod(m)} <span class="count">(${counts[m]})</span>
+    </label>
+  `).join('');
+}
+
+function updateEpochCounts() {
+  // Count models per epoch (excluding reference models)
+  const epochCounts = {};
+  methodData.models.forEach(m => {
+    if (!m.is_reference && m.epoch) {
+      epochCounts[m.epoch] = (epochCounts[m.epoch] || 0) + 1;
+    }
+  });
+  // Update epoch filter labels
+  document.querySelectorAll('.epoch-filter').forEach(cb => {
+    const ep = cb.value;
+    const count = epochCounts[ep] || 0;
+    const label = cb.parentElement;
+    const epNum = ep.replace('ep', '');
+    label.innerHTML = `<input type="checkbox" class="epoch-filter" value="${ep}" checked> ${epNum} <span class="count">(${count})</span>`;
+  });
+}
+
+function getFilteredModels() {
+  const view = document.getElementById('viewMode').value;
+  const rankBy = document.getElementById('rankMetric').value;
+  const epochs = new Set([...document.querySelectorAll('.epoch-filter:checked')].map(e => e.value));
+  const methods = new Set([...document.querySelectorAll('.method-filter:checked')].map(e => e.value));
+
+  // Filter models
+  let models = methodData.models.filter(m => {
+    if (m.is_reference) return true;
+    return epochs.has(m.epoch) && methods.has(m.method);
+  });
+
+  // If top-1 per method view
+  if (view === 'best') {
+    const refs = models.filter(m => m.is_reference);
+    const nonRefs = models.filter(m => !m.is_reference);
+    const bestByMethod = {};
+    nonRefs.forEach(m => {
+      const key = m.method;
+      const val = m[rankBy];
+      if (val === null || isNaN(val)) return;
+      if (!bestByMethod[key] || val > bestByMethod[key][rankBy]) {
+        bestByMethod[key] = m;
+      }
+    });
+    models = [...refs, ...Object.values(bestByMethod)];
+  }
+
+  return models;
+}
+
+function sortModels(models) {
+  const methodOrder = ['graddiff', 'idknll', 'idkdpo', 'npo', 'altpo', 'undial', 'simnpo', 'rmu'];
+
+  // If custom sort is active, use it
+  if (currentSort.col) {
+    return models.slice().sort((a, b) => {
+      // Reference rows always stay at top
+      if (a.is_reference && !b.is_reference) return -1;
+      if (!a.is_reference && b.is_reference) return 1;
+      if (a.is_reference && b.is_reference) {
+        return a.model === 'full' ? -1 : 1;
+      }
+
+      const col = currentSort.col;
+      let av = col === 'model' ? a.model : a[col];
+      let bv = col === 'model' ? b.model : b[col];
+
+      if (col === 'model') {
+        return currentSort.asc ? av.localeCompare(bv) : bv.localeCompare(av);
+      }
+
+      // Handle null/NaN
+      if (av === null || isNaN(av)) av = -Infinity;
+      if (bv === null || isNaN(bv)) bv = -Infinity;
+
+      return currentSort.asc ? av - bv : bv - av;
+    });
+  }
+
+  // Default sort
+  return models.slice().sort((a, b) => {
+    if (a.model === 'full') return -1;
+    if (b.model === 'full') return 1;
+    if (a.model === 'retain') return -1;
+    if (b.model === 'retain') return 1;
+    const ma = methodOrder.indexOf(a.method), mb = methodOrder.indexOf(b.method);
+    if (ma !== mb) return (ma === -1 ? 999 : ma) - (mb === -1 ? 999 : mb);
+    if (a.epoch !== b.epoch) return a.epoch.localeCompare(b.epoch);
+    return a.model.localeCompare(b.model);
+  });
+}
+
+function renderMethodTable() {
+  const body = document.getElementById('method_body');
+  const view = document.getElementById('viewMode').value;
+
+  let models = getFilteredModels();
+  models = sortModels(models);
+
+  let html = '';
+  models.forEach((m, idx) => {
+    const rowClass = m.is_reference ? 'main-row ref-row' : 'main-row';
+    const rid = `row_${idx}`;
+
+    html += `<tr class="${rowClass}" data-rid="${rid}">
+      <td>${m.model}</td>
+      <td class="num">${fmt(m.overall_no_uds)}</td>
+      <td class="num">${fmt(m.overall)}</td>
+      <td class="num">${fmt(m.mem)}</td>
+      <td class="num">${fmt(m.privacy)}</td>
+      <td class="num">${fmt(m.utility_rel)}</td>
+      <td class="num" style="color:#888;">${fmt(m.logit_lens)}</td>
+      <td class="num" style="color:#888;">${fmt(m.uds)}</td>
+      <td class="expand-cell"><button class="toggle-btn" data-target="${rid}">▼</button></td>
+    </tr>`;
+
+    // Details row - show all content directly
+    html += `<tr id="${rid}" class="details-row">
+      <td colspan="9">
+        <div class="details-grid">
+          <div class="detail-card">
+            <h4>Memorization</h4>
+            <div class="detail-item"><span class="label">1-ES</span><span class="value">${fmt(m.one_minus_es)}</span></div>
+            <div class="detail-item"><span class="label">1-EM</span><span class="value">${fmt(m.one_minus_em)}</span></div>
+            <div class="detail-item"><span class="label">1-ParaProb</span><span class="value">${fmt(m.one_minus_paraprob)}</span></div>
+            <div class="detail-item"><span class="label">1-TruthRatio</span><span class="value">${fmt(m.one_minus_truth)}</span></div>
+            <div class="detail-item summary">
+              <span class="label"><strong>Mem.</strong></span><span class="value"><strong>${fmt(m.mem)}</strong></span>
+            </div>
+          </div>
+          <div class="detail-card">
+            <h4>Privacy</h4>
+            <div class="detail-item"><span class="label">s<sub>LOSS</sub></span><span class="value">${fmt(m.s_loss)}</span></div>
+            <div class="detail-item"><span class="label">s<sub>ZLib</sub></span><span class="value">${fmt(m.s_zlib)}</span></div>
+            <div class="detail-item"><span class="label">s<sub>Min-K</sub></span><span class="value">${fmt(m.s_mink)}</span></div>
+            <div class="detail-item"><span class="label">s<sub>Min-K++</sub></span><span class="value">${fmt(m.s_minkpp)}</span></div>
+            <div class="detail-item summary">
+              <span class="label">MIA</span><span class="value">${fmt(m.privacy_mia)}</span>
+            </div>
+            <div class="detail-item"><span class="label">UDS</span><span class="value">${fmt(m.uds)}</span></div>
+            <div class="detail-item summary">
+              <span class="label"><strong>Privacy = HM(MIA, UDS)</strong></span><span class="value"><strong>${fmt(m.privacy)}</strong></span>
+            </div>
+          </div>
+          <div class="detail-card">
+            <h4>Utility</h4>
+            <div class="detail-item"><span class="label">ModelUtility (MU)</span><span class="value">${fmt(m.model_utility)}</span></div>
+            <div class="detail-item"><span class="label">Fluency</span><span class="value">${fmt(m.fluency)}</span></div>
+            <div class="detail-item"><span class="label">Utility = HM(MU, Fluency)</span><span class="value">${fmt(m.utility)}</span></div>
+            <div class="detail-sub">
+              <div><strong>MU components:</strong></div>
+              <div>retain: Prob=${fmt(m.retain_q_prob)}, ROUGE=${fmt(m.retain_q_rouge)}, TruthRatio=${fmt(m.retain_truth_ratio)}</div>
+              <div>ra: Prob=${fmt(m.ra_q_prob)}, ROUGE=${fmt(m.ra_q_rouge)}, TruthRatio=${fmt(m.ra_truth_ratio)}</div>
+              <div>wf: Prob=${fmt(m.wf_q_prob)}, ROUGE=${fmt(m.wf_q_rouge)}, TruthRatio=${fmt(m.wf_truth_ratio)}</div>
+            </div>
+            <div class="detail-item summary">
+              <span class="label"><strong>Utility<sub>rel</sub></strong></span><span class="value"><strong>${fmt(m.utility_rel)}</strong></span>
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  body.innerHTML = html;
+
+  // Update count
+  const nonRefCount = models.filter(m => !m.is_reference).length;
+  const totalLoaded = methodData.models.length;
+  document.getElementById('model_count').textContent =
+    `Showing: ${nonRefCount} models` + (view === 'best' ? ' (top-1 per method)' : '') + ` + full + retain (loaded total: ${totalLoaded})`;
+
+  // Update total count in description
+  document.getElementById('model_total_count').textContent = totalLoaded;
+
+  // Re-attach toggle listeners
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      const isHidden = target.style.display !== 'table-row';
+      target.style.display = isHidden ? 'table-row' : 'none';
+      btn.textContent = isHidden ? '▲' : '▼';
+    });
+  });
+}
+
+function setupTableSorting() {
+  document.querySelectorAll('#method_table th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+
+      // Toggle sort direction
+      if (currentSort.col === col) {
+        currentSort.asc = !currentSort.asc;
+      } else {
+        currentSort.col = col;
+        currentSort.asc = false; // Default descending for numeric (higher is better)
+        if (col === 'model') currentSort.asc = true; // Ascending for model name
+      }
+
+      // Update header styles
+      document.querySelectorAll('#method_table th.sortable').forEach(h => {
+        h.classList.remove('sort-asc', 'sort-desc');
+      });
+      th.classList.add(currentSort.asc ? 'sort-asc' : 'sort-desc');
+
+      renderMethodTable();
+    });
+  });
+}
+
+function setupMethodListeners() {
+  document.getElementById('viewMode').addEventListener('change', () => {
+    currentSort = { col: null, asc: true }; // Reset sort on view change
+    document.querySelectorAll('#method_table th.sortable').forEach(h => {
+      h.classList.remove('sort-asc', 'sort-desc');
+    });
+    // Show/hide rankMetric based on view mode
+    const viewMode = document.getElementById('viewMode').value;
+    document.getElementById('rankMetric').style.display = viewMode === 'best' ? 'inline-block' : 'none';
+    renderMethodTable();
+  });
+  document.getElementById('rankMetric').addEventListener('change', renderMethodTable);
+  document.querySelectorAll('.epoch-filter').forEach(cb => {
+    cb.addEventListener('change', renderMethodTable);
+  });
+
+  // Method filter delegation
+  document.getElementById('method_filters').addEventListener('change', renderMethodTable);
+
+  document.getElementById('checkAll').addEventListener('click', () => {
+    document.querySelectorAll('.method-filter').forEach(cb => cb.checked = true);
+    renderMethodTable();
+  });
+
+  document.getElementById('uncheckAll').addEventListener('click', () => {
+    document.querySelectorAll('.method-filter').forEach(cb => cb.checked = false);
+    renderMethodTable();
+  });
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  loadMetaEval();
+  loadMethodData();
+});
+</script>
+
+<div style="margin-top:40px; padding-top:16px; border-top:1px solid #e0e0e0;">
+  <h3 style="margin:0 0 8px 0; font-size:14px; color:#666;">References</h3>
+  <ol id="ref-list" style="font-size:13px; color:#555; margin:0; padding-left:20px; line-height:1.8;">
+    <li id="ref1">Nicholas Carlini et al., <a href="https://www.usenix.org/conference/usenixsecurity21/presentation/carlini-extracting" target="_blank" style="color:#0366d6;">&ldquo;Extracting Training Data from Large Language Models&rdquo;</a>, USENIX Security 2021.</li>
+    <li id="ref2">Kushal Tirumala et al., <a href="https://proceedings.neurips.cc/paper_files/paper/2022/hash/fa0509f4dab6807e2cb465715bf2d249-Abstract-Conference.html" target="_blank" style="color:#0366d6;">&ldquo;Memorization Without Overfitting: Analyzing the Training Dynamics of Large Language Models&rdquo;</a>, NeurIPS 2022.</li>
+    <li id="ref3">Simon Kornblith et al., <a href="https://proceedings.mlr.press/v97/kornblith19a.html" target="_blank" style="color:#0366d6;">&ldquo;Similarity of Neural Network Representations Revisited&rdquo;</a>, ICML 2019.</li>
+    <li id="ref4">nostalgebraist, <a href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens" target="_blank" style="color:#0366d6;">&ldquo;Interpreting GPT: the Logit Lens&rdquo;</a>, LessWrong 2020.</li>
+    <li id="ref5">James Kirkpatrick et al., <a href="https://www.pnas.org/doi/10.1073/pnas.1611835114" target="_blank" style="color:#0366d6;">&ldquo;Overcoming Catastrophic Forgetting in Neural Networks&rdquo;</a>, PNAS 2017.</li>
+    <li id="ref6">Michael Duan et al., <a href="https://openreview.net/forum?id=av0D19pSkU" target="_blank" style="color:#0366d6;">&ldquo;Do Membership Inference Attacks Work on Large Language Models?&rdquo;</a>, COLM 2024.</li>
+    <li id="ref7">Weijia Shi et al., <a href="https://openreview.net/forum?id=zWqr3MQuNs" target="_blank" style="color:#0366d6;">&ldquo;Detecting Pretraining Data from Large Language Models&rdquo;</a>, ICLR 2024.</li>
+    <li id="ref8">Jingyang Zhang et al., <a href="https://openreview.net/forum?id=ZGkfoufDaU" target="_blank" style="color:#0366d6;">&ldquo;Min-K%++: Improved Baseline for Detecting Pre-Training Data from Large Language Models&rdquo;</a>, ICLR 2025 (Spotlight).</li>
+    <li id="ref9">Samuel Yeom et al., <a href="https://ieeexplore.ieee.org/document/8429311" target="_blank" style="color:#0366d6;">&ldquo;Privacy Risk in Machine Learning: Analyzing the Connection to Overfitting&rdquo;</a>, IEEE CSF 2018.</li>
+    <li id="ref10">Weijia Shi et al., <a href="https://openreview.net/forum?id=TArmA033BU" target="_blank" style="color:#0366d6;">&ldquo;MUSE: Machine Unlearning Six-Way Evaluation for Language Models&rdquo;</a>, ICLR 2025.</li>
+    <li id="ref11">Reza Shokri et al., <a href="https://doi.org/10.1109/SP.2017.41" target="_blank" style="color:#0366d6;">&ldquo;Membership Inference Attacks Against Machine Learning Models&rdquo;</a>, IEEE S&amp;P 2017.</li>
+    <li id="ref12">Pratyush Maini et al., <a href="https://openreview.net/forum?id=B41hNBoWLo" target="_blank" style="color:#0366d6;">&ldquo;TOFU: A Task of Fictitious Unlearning for LLMs&rdquo;</a>, COLM 2024.</li>
+    <li id="ref13">Ruiqi Zhang et al., <a href="https://openreview.net/forum?id=MXLBXjQkmb" target="_blank" style="color:#0366d6;">&ldquo;Negative Preference Optimization: From Catastrophic Collapse to Effective Unlearning&rdquo;</a>, COLM 2024.</li>
+    <li id="ref14">Anmol Mekala et al., <a href="https://aclanthology.org/2025.coling-main.252/" target="_blank" style="color:#0366d6;">&ldquo;Alternate Preference Optimization for Unlearning Factual Knowledge in Large Language Models&rdquo;</a>, COLING 2025.</li>
+    <li id="ref15">Chongyu Fan et al., <a href="https://openreview.net/forum?id=JbvSQm5h1l" target="_blank" style="color:#0366d6;">&ldquo;Simplicity Prevails: Rethinking Negative Preference Optimization for LLM Unlearning&rdquo;</a>, NeurIPS 2025.</li>
+    <li id="ref16">Nathaniel Li et al., <a href="https://proceedings.mlr.press/v235/li24bc.html" target="_blank" style="color:#0366d6;">&ldquo;The WMDP Benchmark: Measuring and Reducing Malicious Use With Unlearning&rdquo;</a>, ICML 2024.</li>
+    <li id="ref17">Yijiang River Dong et al., <a href="https://aclanthology.org/2025.naacl-long.444/" target="_blank" style="color:#0366d6;">&ldquo;UNDIAL: Self-Distillation with Adjusted Logits for Robust Unlearning in Large Language Models&rdquo;</a>, NAACL 2025.</li>
+  </ol>
+</div>
+</body>
+</html>

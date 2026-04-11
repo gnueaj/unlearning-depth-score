@@ -1,0 +1,262 @@
+{
+  "metrics": [
+    { "key": "es",       "label": "Extraction Strength", "category": "memorization",    "tags": ["O"] },
+    { "key": "em",       "label": "Exact Memorization",  "category": "memorization",    "tags": ["O"] },
+    { "key": "prob",     "label": "Probability",         "category": "memorization",    "tags": ["O"] },
+    { "key": "paraprob", "label": "Para. Probability",   "category": "memorization",    "tags": ["O"] },
+    { "key": "truth_ratio", "label": "Truth Ratio",      "category": "memorization",    "tags": ["O"] },
+    { "key": "rouge",    "label": "ROUGE",               "category": "generation",      "tags": ["O"] },
+    { "key": "para_rouge", "label": "Para. ROUGE",       "category": "generation",      "tags": ["O"] },
+    { "key": "jailbreak_rouge", "label": "Jailbreak ROUGE", "category": "generation",   "tags": ["O"] },
+    { "key": "mia_loss", "label": "MIA-LOSS",            "category": "mia",             "tags": ["O"] },
+    { "key": "mia_zlib", "label": "MIA-ZLib",            "category": "mia",             "tags": ["O"] },
+    { "key": "mia_min_k", "label": "MIA-Min-K",          "category": "mia",             "tags": ["O"] },
+    { "key": "mia_min_kpp", "label": "MIA-Min-K++",      "category": "mia",             "tags": ["O"] },
+    { "key": "s_mia_loss", "label": "s_LOSS",            "category": "mia",             "tags": ["O", "R"] },
+    { "key": "s_mia_zlib", "label": "s_ZLib",            "category": "mia",             "tags": ["O", "R"] },
+    { "key": "s_mia_min_k", "label": "s_Min-K",          "category": "mia",             "tags": ["O", "R"] },
+    { "key": "s_mia_min_kpp", "label": "s_Min-K++",      "category": "mia",             "tags": ["O", "R"] },
+    { "key": "cka",      "label": "CKA",                 "category": "representation",  "tags": ["R", "I"] },
+    { "key": "fisher_masked_0.001",  "label": "Fisher Masked (0.1%)",  "category": "representation", "tags": ["R", "I"] },
+    { "key": "fisher_masked_0.0001", "label": "Fisher Masked (0.01%)", "category": "representation", "tags": ["R", "I"] },
+    { "key": "fisher_masked_0.01",   "label": "Fisher Masked (1%)",    "category": "representation", "tags": ["R", "I"] },
+    { "key": "logit_lens", "label": "Logit Lens",        "category": "representation",  "tags": ["O", "R", "I"] },
+    { "key": "uds",      "label": "UDS (Ours)",          "category": "representation",  "tags": ["O", "R", "I"] }
+  ],
+  "faithfulness": {
+    "em": {
+      "auc_roc": 0.817,
+      "p_mean": 0.742,
+      "n_mean": 0.62
+    },
+    "es": {
+      "auc_roc": 0.891,
+      "p_mean": 0.287,
+      "n_mean": 0.067
+    },
+    "prob": {
+      "auc_roc": 0.816,
+      "p_mean": 0.393,
+      "n_mean": 0.142
+    },
+    "paraprob": {
+      "auc_roc": 0.707,
+      "p_mean": 0.081,
+      "n_mean": 0.055
+    },
+    "truth_ratio": {
+      "auc_roc": 0.947,
+      "p_mean": 0.65,
+      "n_mean": 0.568
+    },
+    "rouge": {
+      "auc_roc": 0.722,
+      "p_mean": 0.548,
+      "n_mean": 0.431
+    },
+    "para_rouge": {
+      "auc_roc": 0.832,
+      "p_mean": 0.339,
+      "n_mean": 0.286
+    },
+    "jailbreak_rouge": {
+      "auc_roc": 0.757,
+      "p_mean": 0.49,
+      "n_mean": 0.397
+    },
+    "mia_loss": {
+      "auc_roc": 0.902,
+      "p_mean": 0.714,
+      "n_mean": 0.448
+    },
+    "mia_zlib": {
+      "auc_roc": 0.867,
+      "p_mean": 0.658,
+      "n_mean": 0.374
+    },
+    "mia_min_k": {
+      "auc_roc": 0.907,
+      "p_mean": 0.716,
+      "n_mean": 0.442
+    },
+    "mia_min_kpp": {
+      "auc_roc": 0.816,
+      "p_mean": 0.685,
+      "n_mean": 0.502
+    },
+    "uds": {
+      "auc_roc": 0.971,
+      "p_mean": 0.486,
+      "n_mean": 0.852
+    },
+    "s_mia_loss": {
+      "auc_roc": 0.891,
+      "p_mean": 0.299,
+      "n_mean": 0.81
+    },
+    "s_mia_min_k": {
+      "auc_roc": 0.891,
+      "p_mean": 0.281,
+      "n_mean": 0.81
+    },
+    "s_mia_min_kpp": {
+      "auc_roc": 0.799,
+      "p_mean": 0.558,
+      "n_mean": 0.866
+    },
+    "s_mia_zlib": {
+      "auc_roc": 0.87,
+      "p_mean": 0.21,
+      "n_mean": 0.741
+    },
+    "cka": {
+      "auc_roc": 0.648,
+      "p_mean": 0.037,
+      "n_mean": 0.109
+    },
+    "logit_lens": {
+      "auc_roc": 0.927,
+      "p_mean": 0.475,
+      "n_mean": 0.794
+    },
+    "fisher_masked_0.0001": {
+      "auc_roc": 0.708,
+      "p_mean": 0.516,
+      "n_mean": 0.756
+    },
+    "fisher_masked_0.001": {
+      "auc_roc": 0.712,
+      "p_mean": 0.513,
+      "n_mean": 0.753
+    },
+    "fisher_masked_0.01": {
+      "auc_roc": 0.698,
+      "p_mean": 0.511,
+      "n_mean": 0.753
+    }
+  },
+  "robustness": {
+    "em": {
+      "relearning": 0.6051,
+      "quantization": 0.9843,
+      "agg": 0.7495
+    },
+    "es": {
+      "relearning": 0.7703,
+      "quantization": 0.97,
+      "agg": 0.8587
+    },
+    "prob": {
+      "relearning": 0.6417,
+      "quantization": 0.9238,
+      "agg": 0.7573
+    },
+    "paraprob": {
+      "relearning": 0.8988,
+      "quantization": 0.8529,
+      "agg": 0.8752
+    },
+    "truth_ratio": {
+      "relearning": 0.2343,
+      "quantization": 0.996,
+      "agg": 0.3794
+    },
+    "rouge": {
+      "relearning": 0.2025,
+      "quantization": 0.9342,
+      "agg": 0.3329
+    },
+    "para_rouge": {
+      "relearning": 0.0637,
+      "quantization": 0.9507,
+      "agg": 0.1194
+    },
+    "jailbreak_rouge": {
+      "relearning": 0.1831,
+      "quantization": 0.9713,
+      "agg": 0.3081
+    },
+    "mia_loss": {
+      "relearning": 0.5192,
+      "quantization": 0.9348,
+      "agg": 0.6676
+    },
+    "mia_zlib": {
+      "relearning": 0.4874,
+      "quantization": 0.9382,
+      "agg": 0.6415
+    },
+    "mia_min_k": {
+      "relearning": 0.5322,
+      "quantization": 0.9231,
+      "agg": 0.6752
+    },
+    "mia_min_kpp": {
+      "relearning": 0.4308,
+      "quantization": 0.8826,
+      "agg": 0.579
+    },
+    "uds": {
+      "relearning": 0.8997,
+      "quantization": 0.9677,
+      "agg": 0.9325
+    },
+    "s_mia_loss": {
+      "relearning": 0.6635,
+      "quantization": 0.7194,
+      "agg": 0.6903
+    },
+    "s_mia_min_k": {
+      "relearning": 0.6974,
+      "quantization": 0.7104,
+      "agg": 0.7038
+    },
+    "s_mia_min_kpp": {
+      "relearning": 0.5655,
+      "quantization": 0.6427,
+      "agg": 0.6016
+    },
+    "s_mia_zlib": {
+      "relearning": 0.745,
+      "quantization": 0.7036,
+      "agg": 0.7237
+    },
+    "logit_lens": {
+      "relearning": 0.8116,
+      "quantization": 0.9587,
+      "agg": 0.8791
+    },
+    "cka": {
+      "relearning": 0.0134,
+      "quantization": 0.9968,
+      "agg": 0.0264
+    },
+    "fisher_masked_0.0001": {
+      "relearning": 0.945,
+      "quantization": 0.5732,
+      "agg": 0.7136
+    },
+    "fisher_masked_0.001": {
+      "relearning": 0.946,
+      "quantization": 0.5825,
+      "agg": 0.721
+    },
+    "fisher_masked_0.01": {
+      "relearning": 0.9399,
+      "quantization": 0.5819,
+      "agg": 0.7188
+    }
+  },
+  "formulas": {
+    "faithfulness": "AUC-ROC over P (30 with knowledge) vs N (30 without) pool",
+    "robustness": "HM(R, Q) \u2014 symmetric (bidirectional)",
+    "relearning": "R = 1 - clip(|\u0394unl - \u0394ret| / (|\u0394unl| + |\u0394ret| + eps), 0, 1) after 1-epoch relearning",
+    "quantization": "Q = 1 - clip(|m_after - m_before| / (|m_before| + |m_after| + eps), 0, 1) after 4-bit NF4 quantization",
+    "overall": "HM(Faithfulness, Robustness); N/A if Robustness is N/A"
+  },
+  "notes": {
+    "robustness_policy": "Symmetric (bidirectional) robustness: penalizes both knowledge recovery AND destruction after perturbation; utility+faithfulness filtered models; raw metric values for standard metrics; 1-UDS and 1-s_mia for inverted metrics; 13 metrics + 4 normalized MIA + logit_lens",
+    "robustness_source": "runs/meta_eval/robustness/{quant,relearn}/plots/sym/*_sym_results.json",
+    "representation_baselines": "CKA, Logit Lens (fixed decoder), Fisher Masked (0.01%/0.1%/1%); CKA relearn robustness very low (R=0.013, retain_shift=0.91); Fisher Masked quant computed via dequantization (Q~0.58)"
+  }
+}

@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+
+# Environments
+.env
+.venv
+env/
+venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+
+# Model weights (should not be committed)
+*.bin
+*.safetensors
+*.pt
+*.ckpt
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Runs (generated at runtime)
+runs/
