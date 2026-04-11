@@ -45,7 +45,7 @@ python compute_uds.py \
   --batch_size 32
 ```
 
-This downloads the required models from HuggingFace (`open-unlearning/` collection), runs two-stage activation patching on 367 forget set examples, and outputs per-example UDS scores to `runs/`.
+This downloads the required models from HuggingFace (`open-unlearning/` collection), runs two-stage activation patching on TOFU forget10 examples, and outputs per-example UDS scores to `runs/`.
 
 You can also pass a HuggingFace model ID or local path directly:
 
