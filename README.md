@@ -143,6 +143,7 @@ An interactive dashboard with full benchmark results across 150 unlearned models
 
 ## 🔗 Related Sources
 
+- [TOFU](https://github.com/locuslab/tofu) - Task of Fictitious Unlearning benchmark
 - [Open Unlearning](https://github.com/locuslab/open-unlearning) - Open-source framework for LLM unlearning methods and evaluation
 - [Machine Unlearning Comparator](https://github.com/gnueaj/Machine-Unlearning-Comparator) - Visual analytics system for comparative evaluation of machine unlearning methods
 
