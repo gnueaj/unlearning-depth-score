@@ -9,10 +9,6 @@ UDS quantifies the mechanistic depth of unlearning via two-stage activation patc
 
 In our meta-evaluation across 20 metrics on 150 unlearned models spanning 8 methods, UDS achieves the highest faithfulness (AUC 0.971) and robustness (HM 0.932).
 
-<p align="center">
-  <img src="docs/figs/pipeline.png" alt="UDS Pipeline" width="100%">
-</p>
-
 ## 🔧 Setup
 
 ```bash
@@ -58,7 +54,11 @@ Results are saved to `runs/<model_name>/`:
 
 Stage 1 (retain vs. full) is constant across unlearned models and is automatically cached. After the first run, subsequent models skip S1 computation entirely. Use `--no_s1_cache` to disable.
 
-## 📐 How UDS Works
+## 📐 How UDS works
+
+<p align="center">
+  <img src="docs/figs/pipeline.png" alt="UDS Pipeline" width="100%">
+</p>
 
 UDS measures whether forget set knowledge remains **recoverable** from internal representations through activation patching.
 
@@ -141,15 +141,12 @@ python scripts/s1_component_patching.py --gpu 0
 
 An interactive dashboard with full benchmark results across 150 unlearned models and 20 metrics is available at the [benchmark page](https://gnueaj.github.io/unlearning-depth-score).
 
+## 🔗 Related Sources
+
+- [Open Unlearning](https://github.com/locuslab/open-unlearning) - Open-source framework for LLM unlearning methods and evaluation
+- [Unlearning Comparator](https://github.com/voidism/Unlearning-Comparator) - Interactive tool for comparing unlearning methods
+
 ## Citation
 
-```bibtex
-@article{uds2026,
-  title={Measuring the Depth of LLM Unlearning via Activation Patching},
-  year={2026}
-}
-```
+TBD
 
-## License
-
-This project is released under the MIT License.
