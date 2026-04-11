@@ -9,7 +9,7 @@ UDS quantifies the mechanistic depth of unlearning via two-stage activation patc
 
 In our meta-evaluation across 20 metrics on 150 unlearned models spanning 8 methods, UDS achieves the highest faithfulness (AUC 0.971) and robustness (HM 0.932).
 
-## 📐 How UDS works
+## 🔍 How UDS works
 
 <p align="center">
   <img src="docs/figs/pipeline.png" alt="UDS Pipeline" width="100%">
