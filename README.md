@@ -144,7 +144,7 @@ An interactive dashboard with full benchmark results across 150 unlearned models
 ## 🔗 Related Sources
 
 - [Open Unlearning](https://github.com/locuslab/open-unlearning) - Open-source framework for LLM unlearning methods and evaluation
-- [Unlearning Comparator](https://github.com/voidism/Unlearning-Comparator) - Interactive tool for comparing unlearning methods
+- [Machine Unlearning Comparator](https://github.com/gnueaj/Machine-Unlearning-Comparator) - Visual analytics system for comparative evaluation of machine unlearning methods
 
 ## Citation
 
