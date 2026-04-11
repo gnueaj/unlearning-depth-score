@@ -9,6 +9,23 @@ UDS quantifies the mechanistic depth of unlearning via two-stage activation patc
 
 In our meta-evaluation across 20 metrics on 150 unlearned models spanning 8 methods, UDS achieves the highest faithfulness (AUC 0.971) and robustness (HM 0.932).
 
+## 📐 How UDS works
+
+<p align="center">
+  <img src="docs/figs/pipeline.png" alt="UDS Pipeline" width="100%">
+</p>
+
+UDS measures whether forget set knowledge remains **recoverable** from internal representations through activation patching.
+
+**Stage 1 (Baselining)** patches hidden states from the retain model into the full model. Large log-probability degradation on entity tokens indicates the layer encodes forget set knowledge. Layers exceeding a threshold (tau = 0.05) are identified as Knowledge-Encoding (KE) layers.
+
+**Stage 2 (Quantification)** repeats patching with the unlearned model as source. If knowledge was erased, patching should degrade predictions as much as the retain model did in S1. The Layer Erasure Ratio (LER) measures this per layer, and UDS aggregates LER across KE layers weighted by S1 importance.
+
+| UDS | Interpretation |
+|-----|----------------|
+| 1.0 | Knowledge erased to the level of the retain model |
+| 0.0 | Knowledge fully intact (recoverable via patching) |
+
 ## 🔧 Setup
 
 ```bash
@@ -53,23 +70,6 @@ Results are saved to `runs/<model_name>/`:
 ### S1 Caching
 
 Stage 1 (retain vs. full) is constant across unlearned models and is automatically cached. After the first run, subsequent models skip S1 computation entirely. Use `--no_s1_cache` to disable.
-
-## 📐 How UDS works
-
-<p align="center">
-  <img src="docs/figs/pipeline.png" alt="UDS Pipeline" width="100%">
-</p>
-
-UDS measures whether forget set knowledge remains **recoverable** from internal representations through activation patching.
-
-**Stage 1 (Baselining)** patches hidden states from the retain model into the full model. Large log-probability degradation on entity tokens indicates the layer encodes forget set knowledge. Layers exceeding a threshold (tau = 0.05) are identified as Knowledge-Encoding (KE) layers.
-
-**Stage 2 (Quantification)** repeats patching with the unlearned model as source. If knowledge was erased, patching should degrade predictions as much as the retain model did in S1. The Layer Erasure Ratio (LER) measures this per layer, and UDS aggregates LER across KE layers weighted by S1 importance.
-
-| UDS | Interpretation |
-|-----|----------------|
-| 1.0 | Knowledge erased to the level of the retain model |
-| 0.0 | Knowledge fully intact (recoverable via patching) |
 
 ### Implementation
 
@@ -149,4 +149,3 @@ An interactive dashboard with full benchmark results across 150 unlearned models
 ## Citation
 
 TBD
-
