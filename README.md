@@ -1,4 +1,4 @@
-# Unlearning Depth Score (UDS)
+# Unlearning Depth Score
 
 [![Paper](https://img.shields.io/badge/Paper-arxiv-b31b1b)](https://arxiv.org/abs/XXXX.XXXXX)
 [![Benchmark](https://img.shields.io/badge/Benchmark-Results-blue)](https://gnueaj.github.io/unlearning-depth-score)
