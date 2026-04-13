@@ -22,7 +22,7 @@ h1 { font-size: 1.8rem; font-weight: 700; margin: 0 0 8px 0; color: #111; }
 h2 { font-size: 1.3rem; font-weight: 600; margin: 24px 0 12px 0; color: #222; border-bottom: 2px solid #e0e0e0; padding-bottom: 6px; }
 h3 { font-size: 1.1rem; font-weight: 600; margin: 16px 0 8px 0; color: #333; }
 
-.container { max-width: 1400px; margin: 0 auto; }
+.container { max-width: 1160px; margin: 0 auto; }
 .card {
   background: #fff;
   border: 1px solid #e0e0e0;
@@ -186,39 +186,60 @@ button.toggle-btn:hover { text-decoration: underline; }
 </head>
 <body>
 <div class="container">
-  <h1>UDS: Unlearning Depth Score</h1>
-  <p style="color:#666; margin-top:0;">Benchmark results on TOFU dataset (forget10) using Llama-3.2-1B-Instruct and Open-Unlearning framework</p>
+  <h1>Unlearning Depth Score</h1>
+  <p style="color:#666; margin-top:0;">Benchmark results on TOFU <a href="#ref12" style="color:#0366d6;">[12]</a> dataset (forget10) using Llama-3.2-1B-Instruct and Open-Unlearning <a href="#ref18" style="color:#0366d6;">[18]</a> framework</p>
 
   <!-- UDS Introduction -->
-  <div class="card" style="border-left:4px solid #ffc107; background:#fffef5;">
-    <h3 style="margin-top:0; color:#b8860b;">UDS: Unlearning Depth Score</h3>
+  <h2>Method</h2>
+  <div class="card">
     <p style="margin:0 0 10px 0;">
-      The <strong>Unlearning Depth Score (UDS)</strong> is a mechanistic metric that quantifies the <em>depth of unlearning</em> by measuring how much target knowledge is recoverable through activation patching.
+      The <strong>Unlearning Depth Score (UDS)</strong> is a mechanistic metric that quantifies the <em>depth of unlearning</em> by measuring how much target knowledge is recoverable through two-stage activation patching.
     </p>
-    <p style="margin:0 0 10px 0;">
-      <strong>Method:</strong> Patch hidden states from the unlearned model into a full (knowledge-present) model layer by layer. If knowledge is truly erased, patching should not help recovery.
+    <p style="margin:0; text-align:center;">
+      <img src="figs/pipeline.png" alt="UDS Pipeline" style="max-width:98%;height:auto;">
     </p>
-    <div class="formula-box" style="margin-bottom:0;">
-      <code>UDS</code> = weighted average of per-layer erasure ratios (higher = deeper unlearning).<br>
-      <span class="sub-formula">Ranges from 0 (knowledge fully recoverable, no unlearning) to 1 (knowledge completely erased, as if never learned).</span>
-    </div>
   </div>
 
   <!-- Meta-evaluation Section -->
   <h2>Meta-evaluation</h2>
   <div class="card">
     <p style="margin:0 0 12px 0;">
-      This section evaluates <strong>20 metrics</strong> to measure <strong>how reliable each unlearning metric is</strong>, using the Open-Unlearning benchmark framework.
+      We evaluate <strong>20 metrics</strong> to measure <strong>how reliable each unlearning metric is</strong>, using the Open-Unlearning benchmark framework.
     </p>
     <p style="margin:0 0 12px 0;">
       <strong>Faithfulness</strong>: How well each metric separates knowledge-present (P, 30 models) vs knowledge-absent (N, 30 models), measured by AUC-ROC.<br>
       <strong>Robustness</strong>: Stability of each metric under post-hoc perturbations (4-bit quantization, 1-epoch relearning).
     </p>
 
-    <div class="formula-box" style="margin:0 0 14px 0;">
-      <div><strong>Metric Categories:</strong></div>
+    <div id="meta_eval_summary" style="margin:0 0 12px 0; padding:10px 14px; background:#fffef5; border-left:4px solid #ffc107; border-radius:0 6px 6px 0;">
+      <strong>Summary:</strong> loading...
+    </div>
 
-      <div style="margin-top:10px;">
+    <details style="margin:0 0 14px 0;">
+      <summary style="cursor:pointer;font-weight:600;font-size:14px;color:#444;">Formulas</summary>
+      <div class="formula-box" style="margin-top:10px;">
+      <div style="margin-top:0;">
+        <code>Faithfulness</code> = AUC-ROC over P/N pools (30 knowledge-present vs 30 knowledge-absent models)
+      </div>
+      <div style="margin-top:8px;">
+        <code>Robustness</code> = HM(Q, R) &mdash; <em>symmetric (bidirectional)</em><br>
+        <span class="sub-formula"><code>Quantization (Q)</code> $= 1 - \dfrac{|m_{\text{after}} - m_{\text{before}}|}{|m_{\text{before}}| + |m_{\text{after}}|}$ &mdash; penalizes both recovery and destruction after 4-bit NF4 quantization</span><br>
+        <span class="sub-formula"><code>Relearning (R)</code> $= 1 - \dfrac{|\Delta_{\text{unl}} - \Delta_{\text{ret}}|}{|\Delta_{\text{unl}}| + |\Delta_{\text{ret}}|}$, &ensp; $\Delta = m_{\text{after}} - m_{\text{before}}$ &mdash; penalizes both over- and under-recovery relative to retain</span><br>
+        <span class="sub-formula">Direction: standard metrics use raw values (higher = more knowledge); UDS and $s_*$ are inverted ($m = 1 - \text{value}$) so that higher $m$ = more knowledge before Q/R computation.</span><br>
+        <span class="sub-formula">Filtering: utility $\geq 0.8$ + per-metric faithfulness-threshold (150 models $\to$ per-metric filtered subset).</span>
+      </div>
+      <div style="margin-top:8px;">
+        <code>Overall</code> = HM(Faithfulness, Robustness)
+      </div>
+      <div style="margin-top:8px; font-size:13px; color:#555;">
+        All metrics are oriented so that <span class="higher-better">↑ higher = better</span>. Metrics where higher raw value indicates more knowledge (e.g., Prob, ROUGE) are inverted before evaluation; UDS and $s_*$ are already in the correct direction.
+      </div>
+      </div>
+    </details>
+    <details>
+      <summary style="cursor:pointer;font-weight:600;font-size:14px;color:#444;">Metric Categories</summary>
+      <div class="formula-box" style="margin-top:10px;">
+      <div style="margin-top:0;">
         <strong>Memorization</strong> (5) &mdash; Does the model still retain memorized target knowledge?<br>
         <code>ES</code> <a href="#ref1" style="color:#0366d6;">[1]</a> (Extraction Strength) &mdash; fraction of answer extractable via greedy decoding. <span class="sub-formula">$1 - k/T$, $k$ = earliest match position</span><br>
         <code>EM</code> <a href="#ref2" style="color:#0366d6;">[2]</a> (Exact Memorization) &mdash; token-level position match ratio. <span class="sub-formula">$\sum \mathbb{1}(\text{pred}_t = \text{label}_t)\, /\, T$</span><br>
@@ -265,30 +286,8 @@ button.toggle-btn:hover { text-decoration: underline; }
         <span class="sub-formula">$\text{UDS}_i = \dfrac{\sum_{l\in\text{FT}} \Delta^{S1}_{i,l} \cdot \text{clip}(\Delta^{S2}_{i,l} / \Delta^{S1}_{i,l},\; 0,\; 1)}{\sum_{l\in\text{FT}} \Delta^{S1}_{i,l}}$ &ensp;($\Delta^{S1}$-weighted average of per-layer erasure ratios)</span><br>
         <span class="sub-formula">$\text{UDS} = \frac{1}{N}\sum_i \text{UDS}_i$</span>
       </div>
-    </div>
-
-    <p id="meta_eval_summary" style="margin:0 0 12px 0; padding:8px 12px; background:#fffde7; border-radius:4px;">
-      <strong>Meta-evaluation summary:</strong> loading...
-    </p>
-    <div class="formula-box">
-      <div><strong>Formulas:</strong></div>
-      <div style="margin-top:6px;">
-        <code>Faithfulness</code> = AUC-ROC over P/N pools (30 knowledge-present vs 30 knowledge-absent models)
       </div>
-      <div style="margin-top:8px;">
-        <code>Robustness</code> = HM(Q, R) &mdash; <em>symmetric (bidirectional)</em><br>
-        <span class="sub-formula"><code>Quantization (Q)</code> $= 1 - \dfrac{|m_{\text{after}} - m_{\text{before}}|}{|m_{\text{before}}| + |m_{\text{after}}|}$ &mdash; penalizes both recovery and destruction after 4-bit NF4 quantization</span><br>
-        <span class="sub-formula"><code>Relearning (R)</code> $= 1 - \dfrac{|\Delta_{\text{unl}} - \Delta_{\text{ret}}|}{|\Delta_{\text{unl}}| + |\Delta_{\text{ret}}|}$, &ensp; $\Delta = m_{\text{after}} - m_{\text{before}}$ &mdash; penalizes both over- and under-recovery relative to retain</span><br>
-        <span class="sub-formula">Direction: standard metrics use raw values (higher = more knowledge); UDS and $s_*$ are inverted ($m = 1 - \text{value}$) so that higher $m$ = more knowledge before Q/R computation.</span><br>
-        <span class="sub-formula">Filtering: utility $\geq 0.8$ + per-metric faithfulness-threshold (150 models $\to$ per-metric filtered subset).</span>
-      </div>
-      <div style="margin-top:8px;">
-        <code>Overall</code> = HM(Faithfulness, Robustness)
-      </div>
-      <div style="margin-top:8px; font-size:13px; color:#555;">
-        All metrics are oriented so that <span class="higher-better">↑ higher = better</span>. Metrics where higher raw value indicates more knowledge (e.g., Prob, ROUGE) are inverted before evaluation; UDS and $s_*$ are already in the correct direction.
-      </div>
-    </div>
+    </details>
   </div>
 
   <div class="hint">Per column: <span class="rank-top1">best</span>, <span class="rank-top2">second-best</span>, <span class="rank-bot1">worst</span>, <span class="rank-bot2">second-worst</span>. &ensp; <span class="tag tag-O">Output</span> = model output based &ensp; <span class="tag tag-R">Retain</span> = retain-referenced &ensp; <span class="tag tag-I">Internal</span> = internal representation.</div>
@@ -350,7 +349,7 @@ button.toggle-btn:hover { text-decoration: underline; }
   <h2>Method-level Results</h2>
   <div class="card">
     <p style="margin:0 0 12px 0;">
-      This section evaluates <strong><span id="model_total_count">152</span> models</strong> (8 methods &times; varying hyperparameters &times; 2 epochs + full + retain) across three axes.
+      We evaluate <strong><span id="model_total_count">152</span> models</strong> (8 methods &times; varying hyperparameters &times; 2 epochs + full + retain) across three axes.
       All unlearned model checkpoints are from the <a href="https://github.com/locuslab/open-unlearning" target="_blank" style="color:#0366d6;">Open-Unlearning</a> framework.
     </p>
     <p style="margin:0 0 12px 0;">
@@ -359,9 +358,14 @@ button.toggle-btn:hover { text-decoration: underline; }
       <strong>Utility</strong>: How well the model retains general capabilities on non-target knowledge. <span class="higher-better">(↑ higher = better retention)</span><br>
       <strong>Overall</strong>: Harmonic mean of all three axes. <span class="higher-better">(↑ higher = better)</span>
     </p>
-    <div class="formula-box">
-      <div><strong>Formulas:</strong></div>
-      <div style="margin-top:8px;">
+    <div style="margin:0 0 12px 0; padding:10px 14px; background:#fffef5; border-left:4px solid #ffc107; border-radius:0 6px 6px 0;">
+      <span class="uds-highlight">UDS</span> is incorporated into the Privacy axis as <code>Privacy = HM(MIA, UDS)</code>, capturing both statistical (MIA) and mechanistic (UDS) aspects.
+    </div>
+
+    <details>
+      <summary style="cursor:pointer;font-weight:600;font-size:14px;color:#444;">Formulas</summary>
+      <div class="formula-box" style="margin-top:10px;">
+      <div style="margin-top:0;">
         <strong>Memorization:</strong><br>
         <code>Mem.</code> $= \text{HM}(1{-}\text{ES},\; 1{-}\text{EM},\; 1{-}\text{ParaProb},\; 1{-}\text{TruthRatio})$<br>
         <span class="sub-formula">ES=Extraction Strength, EM=Exact Memorization, ParaProb=Paraphrase Probability, TruthRatio=Truth Ratio</span>
@@ -383,15 +387,11 @@ button.toggle-btn:hover { text-decoration: underline; }
         <strong>Overall:</strong><br>
         <code>Overall</code> $= \text{HM}(\text{Mem.},\; \text{Privacy},\; \text{Utility}_{\text{rel}})$
       </div>
-    </div>
-
-    <p style="margin:12px 0; padding:8px 12px; background:#fffde7; border-radius:4px;">
-      <span class="uds-highlight">UDS</span> is incorporated into the Privacy axis as <code>Privacy = HM(MIA, UDS)</code>, capturing both statistical (MIA) and mechanistic (UDS) aspects.
-    </p>
-
-    <div class="formula-box" style="margin-top:12px;">
-      <div><strong>Methods and Hyperparameter Sweep</strong></div>
-      <div style="margin-top:8px; overflow-x:auto;">
+      </div>
+    </details>
+    <details style="margin-top:12px;">
+      <summary style="cursor:pointer;font-weight:600;font-size:14px;color:#444;">Hyperparameter Sweep</summary>
+      <div style="margin-top:10px; overflow-x:auto;">
         <table style="border-collapse:collapse; font-size:13px; width:100%;">
           <thead>
             <tr style="background:#edf1f5; border-bottom:2px solid #d0d7de;">
@@ -445,7 +445,7 @@ button.toggle-btn:hover { text-decoration: underline; }
           </tfoot>
         </table>
       </div>
-    </div>
+    </details>
   </div>
 
   <!-- Controls -->
@@ -695,7 +695,7 @@ function renderMetaEval() {
     // Faithfulness-robustness disconnect: high faith but low robustness
     const highFaithLowRob = overallPairs.filter(r => r.faith >= 0.9 && r.rob < 0.5);
 
-    let msg = `<strong>Meta-evaluation summary:</strong><br>`;
+    let msg = `<strong>Summary:</strong><br>`;
 
     // 1) Winner
     msg += `<span class="uds-highlight">${fmtLabel(top.label)}</span> achieves the highest Overall score (<strong>${fmt(top.overall)}</strong>)`;
@@ -720,7 +720,7 @@ function renderMetaEval() {
     }
     summaryEl.innerHTML = msg;
   } else {
-    summaryEl.innerHTML = "<strong>Meta-evaluation summary:</strong> Overall values are not available yet.";
+    summaryEl.innerHTML = "<strong>Summary:</strong> Overall values are not available yet.";
   }
 }
 
@@ -1006,25 +1006,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <div style="margin-top:40px; padding-top:16px; border-top:1px solid #e0e0e0;">
   <h3 style="margin:0 0 8px 0; font-size:14px; color:#666;">References</h3>
-  <ol id="ref-list" style="font-size:13px; color:#555; margin:0; padding-left:20px; line-height:1.8;">
-    <li id="ref1">Nicholas Carlini et al., <a href="https://www.usenix.org/conference/usenixsecurity21/presentation/carlini-extracting" target="_blank" style="color:#0366d6;">&ldquo;Extracting Training Data from Large Language Models&rdquo;</a>, USENIX Security 2021.</li>
-    <li id="ref2">Kushal Tirumala et al., <a href="https://proceedings.neurips.cc/paper_files/paper/2022/hash/fa0509f4dab6807e2cb465715bf2d249-Abstract-Conference.html" target="_blank" style="color:#0366d6;">&ldquo;Memorization Without Overfitting: Analyzing the Training Dynamics of Large Language Models&rdquo;</a>, NeurIPS 2022.</li>
-    <li id="ref3">Simon Kornblith et al., <a href="https://proceedings.mlr.press/v97/kornblith19a.html" target="_blank" style="color:#0366d6;">&ldquo;Similarity of Neural Network Representations Revisited&rdquo;</a>, ICML 2019.</li>
-    <li id="ref4">nostalgebraist, <a href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens" target="_blank" style="color:#0366d6;">&ldquo;Interpreting GPT: the Logit Lens&rdquo;</a>, LessWrong 2020.</li>
-    <li id="ref5">James Kirkpatrick et al., <a href="https://www.pnas.org/doi/10.1073/pnas.1611835114" target="_blank" style="color:#0366d6;">&ldquo;Overcoming Catastrophic Forgetting in Neural Networks&rdquo;</a>, PNAS 2017.</li>
-    <li id="ref6">Michael Duan et al., <a href="https://openreview.net/forum?id=av0D19pSkU" target="_blank" style="color:#0366d6;">&ldquo;Do Membership Inference Attacks Work on Large Language Models?&rdquo;</a>, COLM 2024.</li>
-    <li id="ref7">Weijia Shi et al., <a href="https://openreview.net/forum?id=zWqr3MQuNs" target="_blank" style="color:#0366d6;">&ldquo;Detecting Pretraining Data from Large Language Models&rdquo;</a>, ICLR 2024.</li>
-    <li id="ref8">Jingyang Zhang et al., <a href="https://openreview.net/forum?id=ZGkfoufDaU" target="_blank" style="color:#0366d6;">&ldquo;Min-K%++: Improved Baseline for Detecting Pre-Training Data from Large Language Models&rdquo;</a>, ICLR 2025 (Spotlight).</li>
-    <li id="ref9">Samuel Yeom et al., <a href="https://ieeexplore.ieee.org/document/8429311" target="_blank" style="color:#0366d6;">&ldquo;Privacy Risk in Machine Learning: Analyzing the Connection to Overfitting&rdquo;</a>, IEEE CSF 2018.</li>
-    <li id="ref10">Weijia Shi et al., <a href="https://openreview.net/forum?id=TArmA033BU" target="_blank" style="color:#0366d6;">&ldquo;MUSE: Machine Unlearning Six-Way Evaluation for Language Models&rdquo;</a>, ICLR 2025.</li>
-    <li id="ref11">Reza Shokri et al., <a href="https://doi.org/10.1109/SP.2017.41" target="_blank" style="color:#0366d6;">&ldquo;Membership Inference Attacks Against Machine Learning Models&rdquo;</a>, IEEE S&amp;P 2017.</li>
-    <li id="ref12">Pratyush Maini et al., <a href="https://openreview.net/forum?id=B41hNBoWLo" target="_blank" style="color:#0366d6;">&ldquo;TOFU: A Task of Fictitious Unlearning for LLMs&rdquo;</a>, COLM 2024.</li>
-    <li id="ref13">Ruiqi Zhang et al., <a href="https://openreview.net/forum?id=MXLBXjQkmb" target="_blank" style="color:#0366d6;">&ldquo;Negative Preference Optimization: From Catastrophic Collapse to Effective Unlearning&rdquo;</a>, COLM 2024.</li>
-    <li id="ref14">Anmol Mekala et al., <a href="https://aclanthology.org/2025.coling-main.252/" target="_blank" style="color:#0366d6;">&ldquo;Alternate Preference Optimization for Unlearning Factual Knowledge in Large Language Models&rdquo;</a>, COLING 2025.</li>
-    <li id="ref15">Chongyu Fan et al., <a href="https://openreview.net/forum?id=JbvSQm5h1l" target="_blank" style="color:#0366d6;">&ldquo;Simplicity Prevails: Rethinking Negative Preference Optimization for LLM Unlearning&rdquo;</a>, NeurIPS 2025.</li>
-    <li id="ref16">Nathaniel Li et al., <a href="https://proceedings.mlr.press/v235/li24bc.html" target="_blank" style="color:#0366d6;">&ldquo;The WMDP Benchmark: Measuring and Reducing Malicious Use With Unlearning&rdquo;</a>, ICML 2024.</li>
-    <li id="ref17">Yijiang River Dong et al., <a href="https://aclanthology.org/2025.naacl-long.444/" target="_blank" style="color:#0366d6;">&ldquo;UNDIAL: Self-Distillation with Adjusted Logits for Robust Unlearning in Large Language Models&rdquo;</a>, NAACL 2025.</li>
-  </ol>
+  <div id="ref-list" style="font-size:13px; color:#555; margin:0; line-height:1.8;">
+    <div id="ref1">[1] Nicholas Carlini et al., <a href="https://www.usenix.org/conference/usenixsecurity21/presentation/carlini-extracting" target="_blank" style="color:#0366d6;">&ldquo;Extracting Training Data from Large Language Models&rdquo;</a>, USENIX Security 2021</div>
+    <div id="ref2">[2] Kushal Tirumala et al., <a href="https://proceedings.neurips.cc/paper_files/paper/2022/hash/fa0509f4dab6807e2cb465715bf2d249-Abstract-Conference.html" target="_blank" style="color:#0366d6;">&ldquo;Memorization Without Overfitting: Analyzing the Training Dynamics of Large Language Models&rdquo;</a>, NeurIPS 2022</div>
+    <div id="ref3">[3] Simon Kornblith et al., <a href="https://proceedings.mlr.press/v97/kornblith19a.html" target="_blank" style="color:#0366d6;">&ldquo;Similarity of Neural Network Representations Revisited&rdquo;</a>, ICML 2019</div>
+    <div id="ref4">[4] nostalgebraist, <a href="https://www.lesswrong.com/posts/AcKRB8wDpdaN6v6ru/interpreting-gpt-the-logit-lens" target="_blank" style="color:#0366d6;">&ldquo;Interpreting GPT: the Logit Lens&rdquo;</a>, LessWrong 2020</div>
+    <div id="ref5">[5] James Kirkpatrick et al., <a href="https://www.pnas.org/doi/10.1073/pnas.1611835114" target="_blank" style="color:#0366d6;">&ldquo;Overcoming Catastrophic Forgetting in Neural Networks&rdquo;</a>, PNAS 2017</div>
+    <div id="ref6">[6] Michael Duan et al., <a href="https://openreview.net/forum?id=av0D19pSkU" target="_blank" style="color:#0366d6;">&ldquo;Do Membership Inference Attacks Work on Large Language Models?&rdquo;</a>, COLM 2024</div>
+    <div id="ref7">[7] Weijia Shi et al., <a href="https://openreview.net/forum?id=zWqr3MQuNs" target="_blank" style="color:#0366d6;">&ldquo;Detecting Pretraining Data from Large Language Models&rdquo;</a>, ICLR 2024</div>
+    <div id="ref8">[8] Jingyang Zhang et al., <a href="https://openreview.net/forum?id=ZGkfoufDaU" target="_blank" style="color:#0366d6;">&ldquo;Min-K%++: Improved Baseline for Detecting Pre-Training Data from Large Language Models&rdquo;</a>, ICLR 2025 (Spotlight)</div>
+    <div id="ref9">[9] Samuel Yeom et al., <a href="https://ieeexplore.ieee.org/document/8429311" target="_blank" style="color:#0366d6;">&ldquo;Privacy Risk in Machine Learning: Analyzing the Connection to Overfitting&rdquo;</a>, IEEE CSF 2018</div>
+    <div id="ref10">[10] Weijia Shi et al., <a href="https://openreview.net/forum?id=TArmA033BU" target="_blank" style="color:#0366d6;">&ldquo;MUSE: Machine Unlearning Six-Way Evaluation for Language Models&rdquo;</a>, ICLR 2025</div>
+    <div id="ref11">[11] Reza Shokri et al., <a href="https://doi.org/10.1109/SP.2017.41" target="_blank" style="color:#0366d6;">&ldquo;Membership Inference Attacks Against Machine Learning Models&rdquo;</a>, IEEE S&amp;P 2017</div>
+    <div id="ref12">[12] Pratyush Maini et al., <a href="https://openreview.net/forum?id=B41hNBoWLo" target="_blank" style="color:#0366d6;">&ldquo;TOFU: A Task of Fictitious Unlearning for LLMs&rdquo;</a>, COLM 2024</div>
+    <div id="ref13">[13] Ruiqi Zhang et al., <a href="https://openreview.net/forum?id=MXLBXjQkmb" target="_blank" style="color:#0366d6;">&ldquo;Negative Preference Optimization: From Catastrophic Collapse to Effective Unlearning&rdquo;</a>, COLM 2024</div>
+    <div id="ref14">[14] Anmol Mekala et al., <a href="https://aclanthology.org/2025.coling-main.252/" target="_blank" style="color:#0366d6;">&ldquo;Alternate Preference Optimization for Unlearning Factual Knowledge in Large Language Models&rdquo;</a>, COLING 2025</div>
+    <div id="ref15">[15] Chongyu Fan et al., <a href="https://openreview.net/forum?id=JbvSQm5h1l" target="_blank" style="color:#0366d6;">&ldquo;Simplicity Prevails: Rethinking Negative Preference Optimization for LLM Unlearning&rdquo;</a>, NeurIPS 2025</div>
+    <div id="ref16">[16] Nathaniel Li et al., <a href="https://proceedings.mlr.press/v235/li24bc.html" target="_blank" style="color:#0366d6;">&ldquo;The WMDP Benchmark: Measuring and Reducing Malicious Use With Unlearning&rdquo;</a>, ICML 2024</div>
+    <div id="ref17">[17] Yijiang River Dong et al., <a href="https://aclanthology.org/2025.naacl-long.444/" target="_blank" style="color:#0366d6;">&ldquo;UNDIAL: Self-Distillation with Adjusted Logits for Robust Unlearning in Large Language Models&rdquo;</a>, NAACL 2025</div>
+    <div id="ref18">[18] Vinoth Pandian Sermuga Pandian et al., <a href="https://github.com/locuslab/open-unlearning" target="_blank" style="color:#0366d6;">&ldquo;Open Unlearning: A Unified Framework for Machine Unlearning&rdquo;</a>, 2025</div>
+  </div>
 </div>
 </body>
 </html>
