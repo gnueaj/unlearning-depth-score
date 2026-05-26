@@ -1,6 +1,6 @@
 # Unlearning Depth Score
 
-[![Paper](https://img.shields.io/badge/Paper-arxiv-b31b1b)](https://arxiv.org/abs/XXXX.XXXXX)
+[![Paper](https://img.shields.io/badge/Paper-arxiv-b31b1b)](https://arxiv.org/abs/2605.24614)
 [![Benchmark](https://img.shields.io/badge/Benchmark-Results-blue)](https://gnueaj.github.io/unlearning-depth-score)
 
 Official implementation of **"Measuring the Depth of LLM Unlearning via Activation Patching"**.
