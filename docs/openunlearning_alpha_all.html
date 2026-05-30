@@ -486,12 +486,13 @@ html[data-theme="dark"] { color-scheme: dark; }
 [data-theme="dark"] .method-section > h2 { background: #1a1b1e; }
 
 /* Pipeline */
-[data-theme="dark"] .pipeline-figure,
 [data-theme="dark"] .step-content { background: #25262b; border-color: #3a3b40; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+[data-theme="dark"] .pipeline-figure { background: #25262b; border-color: #3a3b40; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 [data-theme="dark"] .step-content::before { background: #3a4555; }
 [data-theme="dark"] .step-content h4 { color: #e0e0e0; }
 [data-theme="dark"] .step-content p { color: #b0b0b0; }
 [data-theme="dark"] .pipeline-figure svg { filter: invert(0.88) hue-rotate(180deg); }
+[data-theme="dark"] #pipeline-svg > g > rect:first-child { opacity: 0; }
 
 /* KaTeX */
 [data-theme="dark"] .katex { color: #d4d4d8 !important; }
@@ -1490,7 +1491,7 @@ function setupMethodListeners() {
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 'stage1-connections', 'stage1-result',
        'stage2-header', 'stage2-rows', 'stage2-connections', 'stage2-result',
-       'Rectangle 1917', 'stage3-header', 'score-first', 'score-second', 'score-arrow'],
+       'Rectangle 1917', 'stage3-header', 'score-first', 'score-second'],
       // 9: All
       groupIds.slice()
     ];
