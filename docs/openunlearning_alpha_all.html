@@ -3,24 +3,81 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>UDS: Unlearning Depth Score - Benchmark Results</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Measuring the Depth of LLM Unlearning via Activation Patching</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
   onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+<script>(function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme:dark)').matches))document.documentElement.setAttribute('data-theme','dark');})()</script>
 <style>
 * { box-sizing: border-box; }
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0; padding: 20px 24px;
-  font-size: 15px; color: #1a1a1a;
+  font-size: 16px; color: #1a1a1a;
   background: #f8f9fa;
   line-height: 1.5;
 }
 h1 { font-size: 1.8rem; font-weight: 700; margin: 0 0 8px 0; color: #111; }
 h2 { font-size: 1.3rem; font-weight: 600; margin: 24px 0 12px 0; color: #222; border-bottom: 2px solid #e0e0e0; padding-bottom: 6px; }
 h3 { font-size: 1.1rem; font-weight: 600; margin: 16px 0 8px 0; color: #333; }
+
+/* Paper hero header */
+.paper-header {
+  text-align: center;
+  padding: 48px 20px 32px;
+  margin: -20px -24px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+}
+.paper-header .paper-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.3;
+  margin: 0 auto 16px;
+  max-width: 720px;
+}
+.paper-header .paper-authors {
+  font-size: 1.12rem;
+  color: #444;
+  margin: 0 0 4px 0;
+}
+.paper-header .paper-authors .author { color: #5ba3d9; font-weight: 500; }
+.paper-header .paper-authors a.author {
+  color: #5ba3d9;
+  text-decoration: none;
+}
+.paper-header .paper-authors a.author:hover {
+  text-decoration: underline;
+}
+.paper-header .paper-affiliation {
+  font-size: 0.96rem;
+  color: #888;
+  margin: 0 0 20px 0;
+}
+.paper-badges {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.paper-badges a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 18px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  color: #fff;
+  transition: opacity 0.15s;
+}
+.paper-badges a:hover { opacity: 0.85; }
+.paper-badges .badge-arxiv { background: #b31b1b; }
+.paper-badges .badge-code { background: #24292e; }
 
 .container { max-width: 1160px; margin: 0 auto; }
 .card {
@@ -182,22 +239,368 @@ button.toggle-btn:hover { text-decoration: underline; }
 
 /* Loading */
 .loading { text-align: center; padding: 40px; color: #666; }
+
+/* Method section wrapper — keeps heading visible during scroll */
+.method-section > h2 {
+  position: sticky;
+  top: 0;
+  background: #f8f9fa;
+  z-index: 10;
+  padding: 10px 0 6px;
+  margin: 0 0 8px;
+}
+
+/* Pipeline scrollytelling */
+.pipeline-section {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.pipeline-steps {
+  flex: 0 0 280px;
+  display: flex;
+  flex-direction: column;
+}
+.pipeline-step {
+  position: sticky;
+}
+.pipeline-step.step-intro {
+  position: relative;
+  margin-bottom: 16px;
+}
+.scroll-spacer {
+  height: 28vh;
+}
+.pipeline-figure {
+  flex: 1;
+  min-width: 0;
+  position: sticky;
+  top: 16px;
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.pipeline-figure svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.step-content {
+  position: relative;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 10px 14px 10px 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+/* Progress bar – track (desaturated blue) */
+.step-content::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 1.5px;
+  background: #c7d6ea;
+}
+/* Progress bar – fill */
+.step-content::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 3px;
+  height: var(--bar-h, 0px);
+  border-radius: 1.5px;
+  background: #0366d6;
+  transition: height 0.3s ease;
+}
+.step-content h4 {
+  margin: 0 0 4px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+.pipeline-step.card-reached .step-content h4 {
+  opacity: 1;
+}
+.step-content p {
+  margin: 0;
+  font-size: 14px;
+  color: #444;
+  line-height: 1.55;
+}
+/* Sub-step paragraphs within a merged card */
+.step-content .sub-step {
+  margin-top: 2px;
+  padding: 2px 0;
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+.step-content .sub-step:first-of-type {
+  margin-top: 4px;
+}
+.step-content .sub-step.sub-active {
+  opacity: 1;
+}
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+.step-badge-a, .step-badge-b, .step-badge-c { background: #888; }
+
+/* SVG group animation */
+.pipeline-section.animated #pipeline-svg .grp-dimmed,
+.pipeline-section.animated #pipeline-svg .grp-active {
+  transition: opacity 0.5s ease, filter 0.5s ease;
+}
+#pipeline-svg .grp-dimmed {
+  opacity: 0.12;
+  filter: saturate(0.2);
+}
+#pipeline-svg .grp-active {
+  opacity: 1;
+  filter: none;
+}
+/* Connection reveal */
+.pipeline-section.animated #pipeline-svg .conn-hidden,
+.pipeline-section.animated #pipeline-svg .conn-revealed {
+  transition: clip-path 0.8s ease-in-out;
+}
+#pipeline-svg .conn-hidden {
+  clip-path: inset(0 100% 0 0);
+}
+#pipeline-svg .conn-revealed {
+  clip-path: inset(0 0 0 0);
+}
+
+@media (max-width: 768px) {
+  .paper-header { padding: 32px 16px 24px; }
+  .paper-header .paper-title { font-size: 1.5rem; }
+  .pipeline-section { flex-direction: column; }
+  .pipeline-steps { flex: none; }
+  .pipeline-figure { position: relative; top: 0; }
+  .pipeline-step { position: relative; margin-bottom: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pipeline-section.animated #pipeline-svg .grp-dimmed,
+  .pipeline-section.animated #pipeline-svg .grp-active,
+  .pipeline-section.animated #pipeline-svg .conn-hidden,
+  .pipeline-section.animated #pipeline-svg .conn-revealed,
+  .step-content::after {
+    transition: none !important;
+  }
+}
+
+/* ===== Theme toggle button ===== */
+.theme-toggle {
+  position: fixed;
+  top: 16px;
+  right: 20px;
+  z-index: 100;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  transition: background 0.2s, border-color 0.2s;
+  padding: 0;
+  color: #444;
+}
+.theme-toggle:hover { background: #f0f0f0; }
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: block; }
+
+/* ===== Dark Mode ===== */
+html[data-theme="dark"] { color-scheme: dark; }
+
+/* Core */
+[data-theme="dark"] body { background: #1a1b1e; color: #d4d4d8; }
+[data-theme="dark"] h1 { color: #f0f0f0; }
+[data-theme="dark"] h2 { color: #e0e0e0; border-bottom-color: #3a3b40; }
+[data-theme="dark"] h3 { color: #d0d0d0; }
+
+/* Header */
+[data-theme="dark"] .paper-header { background: #222328; border-bottom-color: #3a3b40; }
+[data-theme="dark"] .paper-header .paper-title { color: #f0f0f0; }
+[data-theme="dark"] .paper-header .paper-authors { color: #b0b0b0; }
+[data-theme="dark"] .paper-header .paper-affiliation { color: #888; }
+[data-theme="dark"] .paper-badges .badge-code { background: #3a3b40; }
+
+/* Cards & boxes */
+[data-theme="dark"] .card,
+[data-theme="dark"] .controls { background: #25262b; border-color: #3a3b40; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+[data-theme="dark"] .formula-box { background: #2c2d32; }
+[data-theme="dark"] .formula-box code { background: #383a40; color: #d4d4d8; }
+[data-theme="dark"] .formula-box .sub-formula { color: #999; }
+[data-theme="dark"] .uds-highlight { background: #3d3520; }
+[data-theme="dark"] .higher-better { color: #66bb6a; }
+
+/* Tables */
+[data-theme="dark"] table.styled { background: #25262b; }
+[data-theme="dark"] table.styled th, [data-theme="dark"] table.styled td { border-color: #3a3b40; }
+[data-theme="dark"] table.styled th { background: #2c2d32; }
+[data-theme="dark"] table.styled th:hover { background: #35363c; }
+[data-theme="dark"] table.styled tbody tr:hover { background: #2c2d32; }
+[data-theme="dark"] .fisher-variant td { color: #999; }
+[data-theme="dark"] #method_table .ref-row { background: #2c2d32 !important; }
+[data-theme="dark"] #method_table .ref-row:hover { background: #35363c !important; }
+[data-theme="dark"] .details-row { background: #2c2d32 !important; }
+[data-theme="dark"] .detail-card { background: #25262b; border-color: #3a3b40; }
+[data-theme="dark"] .detail-card h4 { color: #d0d0d0; border-bottom-color: #3a3b40; }
+[data-theme="dark"] .detail-item .label { color: #999; }
+[data-theme="dark"] .detail-item.summary { border-top-color: #3a3b40; }
+[data-theme="dark"] .detail-sub { color: #999; }
+[data-theme="dark"] .rank-bot1, [data-theme="dark"] .rank-bot2 { color: #ef5350; }
+
+/* Controls */
+[data-theme="dark"] .control-label { color: #d0d0d0; }
+[data-theme="dark"] .checkbox-label .count { color: #888; }
+[data-theme="dark"] select, [data-theme="dark"] button.btn { background: #2c2d32; border-color: #3a3b40; color: #d4d4d8; }
+[data-theme="dark"] button.btn:hover { background: #35363c; }
+[data-theme="dark"] button.toggle-btn { color: #58a6ff; }
+[data-theme="dark"] .hint { color: #999; }
+[data-theme="dark"] .loading { color: #999; }
+
+/* Method heading sticky bg */
+[data-theme="dark"] .method-section > h2 { background: #1a1b1e; }
+
+/* Pipeline */
+[data-theme="dark"] .pipeline-figure,
+[data-theme="dark"] .step-content { background: #25262b; border-color: #3a3b40; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+[data-theme="dark"] .step-content::before { background: #3a4555; }
+[data-theme="dark"] .step-content h4 { color: #e0e0e0; }
+[data-theme="dark"] .step-content p { color: #b0b0b0; }
+[data-theme="dark"] .pipeline-figure svg { filter: invert(0.88) hue-rotate(180deg); }
+
+/* KaTeX */
+[data-theme="dark"] .katex { color: #d4d4d8 !important; }
+
+/* Images in details (figures/plots) */
+[data-theme="dark"] details img { filter: invert(0.88) hue-rotate(180deg); }
+
+/* Inline style overrides */
+[data-theme="dark"] a[style*="color:#0366d6"] { color: #58a6ff !important; }
+[data-theme="dark"] [style*="color:#555"] { color: #999 !important; }
+[data-theme="dark"] [style*="color:#444"] { color: #b0b0b0 !important; }
+[data-theme="dark"] [style*="color:#666"] { color: #aaa !important; }
+[data-theme="dark"] [style*="color:#888"] { color: #888 !important; }
+[data-theme="dark"] [style*="background:#fffef5"] { background: #33301a !important; }
+[data-theme="dark"] [style*="background:#edf1f5"] { background: #2c2d32 !important; }
+[data-theme="dark"] [style*="border-bottom:1px solid #e8e8e8"] { border-bottom-color: #3a3b40 !important; }
+[data-theme="dark"] [style*="border-bottom:2px solid #d0d7de"] { border-bottom-color: #3a3b40 !important; }
+[data-theme="dark"] [style*="border-top:2px solid #d0d7de"] { border-top-color: #3a3b40 !important; }
+[data-theme="dark"] [style*="border-top:1px solid #e0e0e0"] { border-top-color: #3a3b40 !important; }
+[data-theme="dark"] #ref-list { color: #999 !important; }
+[data-theme="dark"] #ref-list a { color: #58a6ff !important; }
+
+/* Toggle button in dark mode */
+[data-theme="dark"] .theme-toggle { background: #25262b; border-color: #3a3b40; color: #d4d4d8; box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+[data-theme="dark"] .theme-toggle:hover { background: #35363c; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>Unlearning Depth Score</h1>
-  <p style="color:#666; margin-top:0;">Benchmark results on TOFU <a href="#ref12" style="color:#0366d6;">[12]</a> dataset (forget10) using Llama-3.2-1B-Instruct and Open-Unlearning <a href="#ref18" style="color:#0366d6;">[18]</a> framework</p>
 
-  <!-- UDS Introduction -->
+<button class="theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+  <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+</button>
+
+<header class="paper-header">
+  <h1 class="paper-title">Measuring the Depth of LLM Unlearning via Activation Patching</h1>
+  <p class="paper-authors">
+    <a href="https://www.linkedin.com/in/jaeunglee/" target="_blank" rel="noopener" class="author">Jaeung Lee</a><sup>1,2</sup>,
+    <span class="author">Dohyun Kim</span><sup>1</sup>,
+    <span class="author">Jaemin Jo</span><sup>1</sup>
+  </p>
+  <p class="paper-affiliation"><sup>1</sup>Sungkyunkwan University &nbsp;&nbsp; <sup>2</sup>Samsung Research</p>
+  <div class="paper-badges">
+    <a class="badge-arxiv" href="https://arxiv.org/abs/2605.24614" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      arXiv
+    </a>
+    <a class="badge-code" href="https://github.com/gnueaj/unlearning-depth-score" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 016.02 0c2.3-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.82.58A12.01 12.01 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      Code
+    </a>
+  </div>
+</header>
+
+<div class="container">
+  <p style="color:#555; margin-top:0; line-height:1.6;">
+    We present the <strong>Unlearning Depth Score (UDS)</strong>, a mechanistic metric that quantifies the <em>depth of unlearning</em> by measuring how much target knowledge is recoverable through two-stage activation patching.
+    This page provides: <strong>(i) an interactive walkthrough of the UDS pipeline</strong>, <strong>(ii) a meta-evaluation comparing 20 metrics on faithfulness and robustness</strong>, and <strong>(iii) per-method benchmark results across 150 unlearned models</strong>. The results below benchmark UDS on the TOFU <a href="#ref12" style="color:#0366d6;">[12]</a> dataset (forget10) using Llama-3.2-1B-Instruct and the Open-Unlearning <a href="#ref18" style="color:#0366d6;">[18]</a> framework.
+  </p>
+
+  <div class="method-section">
   <h2>Method</h2>
-  <div class="card">
-    <p style="margin:0 0 10px 0;">
-      The <strong>Unlearning Depth Score (UDS)</strong> is a mechanistic metric that quantifies the <em>depth of unlearning</em> by measuring how much target knowledge is recoverable through two-stage activation patching.
-    </p>
-    <p style="margin:0; text-align:center;">
-      <img src="figs/pipeline.png" alt="UDS Pipeline" style="max-width:98%;height:auto;">
-    </p>
+
+  <div class="pipeline-section" aria-label="UDS Pipeline - interactive diagram">
+    <div class="pipeline-steps" id="pipeline-steps">
+      <!-- Preparing the Input — scrolls away (non-sticky) -->
+      <div class="pipeline-step step-intro" data-step="0" data-steps="0">
+        <div class="step-content">
+          <h4>Preparing the Input</h4>
+          <p class="sub-step" data-sub="0">Construct a prompt from question and answer prefix, and mark the entity span to evaluate.</p>
+        </div>
+      </div>
+      <!-- Stage 1: Baselining (steps 1-3): rows → connections → result -->
+      <div class="pipeline-step" data-step="1" data-steps="1,2,3">
+        <div class="step-content">
+          <h4><span class="step-badge step-badge-a">A</span> Stage 1: Baselining</h4>
+          <p class="sub-step" data-sub="1">Patch retain model's hidden states into the full model at each layer.</p>
+          <p class="sub-step" data-sub="3">Large drops reveal layers encoding knowledge the retain model lacks.</p>
+        </div>
+      </div>
+      <div class="scroll-spacer"></div>
+      <!-- Stage 2: Quantification (steps 4-6): rows → connections → result -->
+      <div class="pipeline-step" data-step="4" data-steps="4,5,6">
+        <div class="step-content">
+          <h4><span class="step-badge step-badge-b">B</span> Stage 2: Quantification</h4>
+          <p class="sub-step" data-sub="4">Repeat with the unlearned model's hidden states.</p>
+          <p class="sub-step" data-sub="6">Drops matching Stage 1 = erased; near-zero = knowledge intact.</p>
+        </div>
+      </div>
+      <div class="scroll-spacer"></div>
+      <!-- Score Aggregation (steps 7-9) -->
+      <div class="pipeline-step" data-step="7" data-steps="7,8,9">
+        <div class="step-content">
+          <h4><span class="step-badge step-badge-c">C</span> Score Aggregation</h4>
+          <p class="sub-step" data-sub="7">① Filter layers that significantly encode the target knowledge.</p>
+          <p class="sub-step" data-sub="8">② Compute per-layer erasure ratio from the two stages.</p>
+          <p class="sub-step" data-sub="9">③ Aggregate into a final score: 0 (intact) → 1 (erased).</p>
+        </div>
+      </div>
+      <div class="scroll-spacer"></div>
+      <!-- End marker for last card progress calculation -->
+      <div id="pipeline-end-marker"></div>
+    </div>
+    <div class="pipeline-figure" id="pipeline-figure">
+      <noscript><img src="figs/pipeline.png" alt="UDS Pipeline" style="max-width:100%;height:auto;"></noscript>
+    </div>
+  </div>
   </div>
 
   <!-- Meta-evaluation Section -->
@@ -354,7 +757,7 @@ button.toggle-btn:hover { text-decoration: underline; }
     </p>
     <p style="margin:0 0 12px 0;">
       <strong>Memorization</strong>: How much target knowledge was forgotten. <span class="higher-better">(↑ higher = more forgotten)</span><br>
-      <strong>Privacy</strong>: How well sensitive information from the forget set is protected from being extracted (assessed via MIAs and UDS). <span class="higher-better">(↑ higher = better protected)</span><br>
+      <strong>Privacy</strong>: How well sensitive information from the forget set is protected from being extracted. <span class="higher-better">(↑ higher = better protected)</span><br>
       <strong>Utility</strong>: How well the model retains general capabilities on non-target knowledge. <span class="higher-better">(↑ higher = better retention)</span><br>
       <strong>Overall</strong>: Harmonic mean of all three axes. <span class="higher-better">(↑ higher = better)</span>
     </p>
@@ -996,6 +1399,295 @@ function setupMethodListeners() {
     renderMethodTable();
   });
 }
+
+// Pipeline scrollytelling
+(function initPipeline() {
+  var figureEl = document.getElementById('pipeline-figure');
+  if (!figureEl) return;
+
+  fetch('figs/page.svg')
+    .then(function(r) { return r.text(); })
+    .then(function(svgText) {
+      figureEl.innerHTML = svgText;
+      var svg = figureEl.querySelector('svg');
+      if (!svg) return;
+
+      svg.id = 'pipeline-svg';
+      svg.removeAttribute('width');
+      svg.removeAttribute('height');
+      svg.style.display = 'block';
+      svg.style.width = '100%';
+      svg.style.height = 'auto';
+
+      setupScrollytelling(svg);
+    })
+    .catch(function() {
+      figureEl.innerHTML = '<img src="figs/pipeline.png" alt="UDS Pipeline" style="max-width:100%;height:auto;">';
+    });
+
+  function setupScrollytelling(svg) {
+    // All animatable SVG group IDs
+    var groupIds = [
+      'input(question-answer.prefix)',
+      'input(answer.entity)',
+      'stage1-header',
+      'stage1-rows',
+      'stage1-result',
+      'stage1-connections',
+      'stage2-header',
+      'stage2-rows',
+      'stage2-result',
+      'stage2-connections',
+      'Rectangle 1917',
+      'stage3-header',
+      'score-first',
+      'score-second',
+      'score-third',
+      'score-arrow'
+    ];
+
+    var groups = {};
+    groupIds.forEach(function(id) {
+      groups[id] = svg.getElementById(id);
+    });
+
+    var connGroups = {
+      'stage1-connections': true,
+      'stage2-connections': true
+    };
+
+    // 10 sub-steps (0-9): cumulative SVG groups per sub-step
+    var stepMap = [
+      // 0: Input
+      ['input(question-answer.prefix)', 'input(answer.entity)'],
+      // 1: S1 header + rows
+      ['input(question-answer.prefix)', 'input(answer.entity)',
+       'stage1-header', 'stage1-rows'],
+      // 2: S1 connections
+      ['input(question-answer.prefix)', 'input(answer.entity)',
+       'stage1-header', 'stage1-rows', 'stage1-connections'],
+      // 3: S1 result
+      ['input(question-answer.prefix)', 'input(answer.entity)',
+       'stage1-header', 'stage1-rows', 'stage1-connections', 'stage1-result'],
+      // 4: S2 header + rows
+      ['input(question-answer.prefix)', 'input(answer.entity)',
+       'stage1-header', 'stage1-rows', 'stage1-connections', 'stage1-result',
+       'stage2-header', 'stage2-rows'],
+      // 5: S2 connections
+      ['input(question-answer.prefix)', 'input(answer.entity)',
+       'stage1-header', 'stage1-rows', 'stage1-connections', 'stage1-result',
+       'stage2-header', 'stage2-rows', 'stage2-connections'],
+      // 6: S2 result
+      ['input(question-answer.prefix)', 'input(answer.entity)',
+       'stage1-header', 'stage1-rows', 'stage1-connections', 'stage1-result',
+       'stage2-header', 'stage2-rows', 'stage2-connections', 'stage2-result'],
+      // 7: Score ①
+      ['input(question-answer.prefix)', 'input(answer.entity)',
+       'stage1-header', 'stage1-rows', 'stage1-connections', 'stage1-result',
+       'stage2-header', 'stage2-rows', 'stage2-connections', 'stage2-result',
+       'Rectangle 1917', 'stage3-header', 'score-first'],
+      // 8: Score ②
+      ['input(question-answer.prefix)', 'input(answer.entity)',
+       'stage1-header', 'stage1-rows', 'stage1-connections', 'stage1-result',
+       'stage2-header', 'stage2-rows', 'stage2-connections', 'stage2-result',
+       'Rectangle 1917', 'stage3-header', 'score-first', 'score-second', 'score-arrow'],
+      // 9: All
+      groupIds.slice()
+    ];
+
+    var currentSubStep = -2; // force first apply
+    var stepsEl = document.getElementById('pipeline-steps');
+    var introCard = document.querySelector('.step-intro');
+    var stickyCards = stepsEl.querySelectorAll('.pipeline-step:not(.step-intro)'); // A, B, C
+    var allStepEls = stepsEl.querySelectorAll('.pipeline-step'); // includes intro
+    var figureEl = document.getElementById('pipeline-figure');
+
+    // Link each sticky card to its scroll-spacer (next sibling)
+    var cardSpacers = [];
+    for (var si = 0; si < stickyCards.length; si++) {
+      var nxt = stickyCards[si].nextElementSibling;
+      while (nxt && !nxt.classList.contains('scroll-spacer')) nxt = nxt.nextElementSibling;
+      cardSpacers.push(nxt);
+    }
+
+    // Position sticky cards (top) and figure to distribute evenly within viewport
+    function setStickyPositions() {
+      var heading = document.querySelector('.method-section > h2');
+      var headingH = heading ? heading.offsetHeight + 8 : 16;
+
+      // Set figure sticky top
+      figureEl.style.top = headingH + 'px';
+
+      // Measure figure height to distribute cards
+      var figH = figureEl.offsetHeight;
+      var totalCardH = 0;
+      for (var i = 0; i < stickyCards.length; i++) {
+        totalCardH += stickyCards[i].offsetHeight;
+      }
+
+      var gap = stickyCards.length > 1
+        ? Math.max(0, (figH - totalCardH) / (stickyCards.length - 1))
+        : 0;
+
+      var cumTop = headingH;
+      for (var i = 0; i < stickyCards.length; i++) {
+        stickyCards[i].style.top = Math.round(cumTop) + 'px';
+        cumTop += stickyCards[i].offsetHeight + gap;
+      }
+    }
+    requestAnimationFrame(setStickyPositions);
+    window.addEventListener('resize', setStickyPositions);
+
+    // --- applyStep: update SVG groups, sub-step text, card headings ---
+    function applyStep(subIdx) {
+      if (subIdx === currentSubStep) return;
+      currentSubStep = subIdx;
+
+      var activeSet = {};
+      (stepMap[subIdx] || []).forEach(function(name) { activeSet[name] = true; });
+
+      Object.keys(groups).forEach(function(name) {
+        var el = groups[name];
+        if (!el) return;
+        var isConn = connGroups[name];
+        if (activeSet[name]) {
+          el.classList.remove('grp-dimmed');
+          el.classList.add('grp-active');
+          if (isConn) { el.classList.remove('conn-hidden'); el.classList.add('conn-revealed'); }
+        } else {
+          el.classList.remove('grp-active');
+          el.classList.add('grp-dimmed');
+          if (isConn) { el.classList.remove('conn-revealed'); el.classList.add('conn-hidden'); }
+        }
+      });
+
+      // Sub-step text highlighting (cumulative downward)
+      document.querySelectorAll('.sub-step').forEach(function(el) {
+        var sub = parseInt(el.getAttribute('data-sub'));
+        if (sub <= subIdx) {
+          el.classList.add('sub-active');
+        } else {
+          el.classList.remove('sub-active');
+        }
+      });
+
+      // Card heading opacity
+      for (var ci = 0; ci < allStepEls.length; ci++) {
+        var firstSub = parseInt(allStepEls[ci].getAttribute('data-steps').split(',')[0]);
+        if (subIdx >= firstSub) {
+          allStepEls[ci].classList.add('card-reached');
+        } else {
+          allStepEls[ci].classList.remove('card-reached');
+        }
+      }
+    }
+
+    // Initial state: all dimmed
+    applyStep(-1);
+
+    // Enable CSS transitions after first paint
+    requestAnimationFrame(function() {
+      document.querySelector('.pipeline-section').classList.add('animated');
+    });
+
+    // --- Main scroll handler: spacer-based progress ---
+    function updateActiveStep() {
+      var triggerY = window.innerHeight * 0.35;
+
+      // Before Input card reaches trigger → all dimmed
+      if (introCard && introCard.getBoundingClientRect().top > triggerY) {
+        applyStep(-1);
+        allStepEls.forEach(function(c) {
+          var sc = c.querySelector('.step-content');
+          if (sc) sc.style.setProperty('--bar-h', '0px');
+        });
+        return;
+      }
+
+      // Find active card: last card that has reached its sticky position
+      // (rect.top ≈ stickyTop means the card is stuck)
+      var activeCardIdx = -1;
+      for (var i = 0; i < stickyCards.length; i++) {
+        var stickyTop = parseInt(stickyCards[i].style.top) || 0;
+        if (stickyCards[i].getBoundingClientRect().top <= stickyTop + 5) {
+          activeCardIdx = i;
+        }
+      }
+
+      // Input reached but no sticky card yet → step 0
+      if (activeCardIdx < 0) {
+        applyStep(0);
+        if (introCard) {
+          var ic = introCard.querySelector('.step-content');
+          ic.style.setProperty('--bar-h', Math.max(ic.offsetHeight - 16, 1) + 'px');
+        }
+        for (var j = 0; j < stickyCards.length; j++) {
+          stickyCards[j].querySelector('.step-content').style.setProperty('--bar-h', '0px');
+        }
+        return;
+      }
+
+      // Calculate progress using spacer position
+      // When card is stuck, spacer scrolls upward past it → progress increases
+      var card = stickyCards[activeCardIdx];
+      var cardBottom = card.getBoundingClientRect().bottom;
+      var spacer = cardSpacers[activeCardIdx];
+      var progress = 0;
+
+      if (spacer) {
+        var spacerRect = spacer.getBoundingClientRect();
+        var spacerH = Math.max(spacer.offsetHeight, 1);
+        // spacerRect.top starts at cardBottom (progress=0), moves above cardBottom (progress→1)
+        progress = Math.max(0, Math.min(1, (cardBottom - spacerRect.top) / spacerH));
+      }
+
+      // Map progress to sub-steps
+      var steps = card.getAttribute('data-steps').split(',').map(Number);
+      var subIdx = steps[Math.min(Math.floor(progress * steps.length), steps.length - 1)];
+      applyStep(subIdx);
+
+      // Update progress bars
+      if (introCard) {
+        var ic = introCard.querySelector('.step-content');
+        ic.style.setProperty('--bar-h', Math.max(ic.offsetHeight - 16, 1) + 'px');
+      }
+      for (var j = 0; j < stickyCards.length; j++) {
+        var content = stickyCards[j].querySelector('.step-content');
+        var trackH = Math.max(content.offsetHeight - 16, 1);
+        var cardProg = j < activeCardIdx ? 1 : (j === activeCardIdx ? progress : 0);
+        content.style.setProperty('--bar-h', Math.round(trackH * cardProg) + 'px');
+      }
+    }
+
+    var scrollTicking = false;
+    window.addEventListener('scroll', function() {
+      if (!scrollTicking) {
+        scrollTicking = true;
+        requestAnimationFrame(function() {
+          scrollTicking = false;
+          var sect = document.querySelector('.pipeline-section');
+          var r = sect.getBoundingClientRect();
+          if (r.bottom < -300 || r.top > window.innerHeight + 300) return;
+          updateActiveStep();
+        });
+      }
+    }, { passive: true });
+
+    updateActiveStep();
+  }
+})();
+
+// Theme toggle
+document.querySelector('.theme-toggle').addEventListener('click', function() {
+  var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (isDark) {
+    document.documentElement.removeAttribute('data-theme');
+    localStorage.setItem('theme', 'light');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    localStorage.setItem('theme', 'dark');
+  }
+});
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
