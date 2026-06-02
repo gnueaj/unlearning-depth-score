@@ -149,4 +149,14 @@ An interactive dashboard with full benchmark results across 150 unlearned models
 
 ## Citation
 
-TBD
+```bibtex
+@misc{lee2026measuring,
+  title={Measuring the Depth of LLM Unlearning via Activation Patching},
+  author={Jaeung Lee and Dohyun Kim and Jaemin Jo},
+  year={2026},
+  eprint={2605.24614},
+  archivePrefix={arXiv},
+  primaryClass={cs.LG},
+  url={https://arxiv.org/abs/2605.24614}
+}
+```
