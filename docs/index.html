@@ -67,7 +67,7 @@ h3 { font-size: 1.1rem; font-weight: 600; margin: 16px 0 8px 0; color: #333; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 18px;
+  padding: 7px 14px;
   border-radius: 20px;
   font-size: 14px;
   font-weight: 600;
@@ -1603,19 +1603,19 @@ function setupMethodListeners() {
     var stepMap = [
       // 0: Input
       ['input(question-answer.prefix)', 'input(answer.entity)'],
-      // 1: S1 header + rows
+      // 1: S1 header + rows + before_patched
       ['input(question-answer.prefix)', 'input(answer.entity)',
-       'stage1-header', 'stage1-rows'],
+       'stage1-header', 'stage1-rows', 's1_before_patched'],
       // 2: S1 connections + after_patched + st_s1 (before_patched auto-hides)
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 's1_after_patched', 'st_s1', 'stage1-connections'],
       // 3: S1 result
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 's1_after_patched', 'st_s1', 'stage1-connections', 'stage1-result'],
-      // 4: S2 header + rows
+      // 4: S2 header + rows + before_patched
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 's1_after_patched', 'st_s1', 'stage1-connections', 'stage1-result',
-       'stage2-header', 'stage2-rows'],
+       'stage2-header', 'stage2-rows', 's2_before_patched'],
       // 5: S2 connections + after_patched + st_s2 (before_patched auto-hides)
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 's1_after_patched', 'st_s1', 'stage1-connections', 'stage1-result',
@@ -1692,6 +1692,12 @@ function setupMethodListeners() {
       var activeSet = {};
       (stepMap[subIdx] || []).forEach(function(name) { activeSet[name] = true; });
 
+      // Overview (step -1): before_patched visible as part of default diagram
+      if (subIdx < 0) {
+        activeSet['s1_before_patched'] = true;
+        activeSet['s2_before_patched'] = true;
+      }
+
       // after_patched: always fully hidden unless in activeSet
       var alwaysHide = {
         's1_after_patched': true,
@@ -1711,16 +1717,12 @@ function setupMethodListeners() {
           // after_patched: fully hidden when not active
           el.classList.remove('grp-active', 'grp-dimmed');
           el.classList.add('grp-hidden');
-        } else if (beforeToAfter[name]) {
-          // before_patched: always visible, hidden only when paired after_patched is active
-          if (activeSet[beforeToAfter[name]]) {
-            el.classList.remove('grp-active', 'grp-dimmed');
-            el.classList.add('grp-hidden');
-          } else {
-            el.classList.remove('grp-dimmed', 'grp-hidden');
-            el.classList.add('grp-active');
-          }
+        } else if (beforeToAfter[name] && activeSet[beforeToAfter[name]]) {
+          // before_patched: hidden when paired after_patched is active
+          el.classList.remove('grp-active', 'grp-dimmed');
+          el.classList.add('grp-hidden');
         } else {
+          // Normal dimming (including before_patched when its stage isn't reached yet)
           el.classList.remove('grp-active', 'grp-hidden');
           el.classList.add('grp-dimmed');
           if (isConn) { el.classList.remove('conn-revealed'); el.classList.add('conn-hidden'); }
