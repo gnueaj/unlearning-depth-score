@@ -78,6 +78,7 @@ h3 { font-size: 1.1rem; font-weight: 600; margin: 16px 0 8px 0; color: #333; }
 .paper-badges a:hover { opacity: 0.85; }
 .paper-badges .badge-arxiv { background: #b31b1b; }
 .paper-badges .badge-code { background: #24292e; }
+.paper-badges .badge-hf { background: #FF9D00; }
 
 .container { max-width: 1160px; margin: 0 auto; }
 .card {
@@ -452,6 +453,7 @@ html[data-theme="dark"] { color-scheme: dark; }
 [data-theme="dark"] .paper-header .paper-authors { color: #b0b0b0; }
 [data-theme="dark"] .paper-header .paper-affiliation { color: #888; }
 [data-theme="dark"] .paper-badges .badge-code { background: #3a3b40; }
+[data-theme="dark"] .paper-badges .badge-hf { background: #cc7d00; }
 
 /* Cards & boxes */
 [data-theme="dark"] .card,
@@ -645,6 +647,10 @@ html[data-theme="dark"] { color-scheme: dark; }
     <a class="badge-code" href="https://github.com/gnueaj/unlearning-depth-score" target="_blank" rel="noopener">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.08 1.84 1.24 1.84 1.24 1.07 1.83 2.81 1.3 3.5 1 .11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.13-.3-.54-1.52.12-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 016.02 0c2.3-1.55 3.3-1.23 3.3-1.23.66 1.66.25 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.61-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.82.58A12.01 12.01 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
       Code
+    </a>
+    <a class="badge-hf" href="https://huggingface.co/datasets/jaeunglee/uds-annotated-tofu" target="_blank" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 95 88" fill="currentColor"><path d="M47.2 0C26.5 0 8.5 12.7 2 31.1c-.4 1.2.2 2.5 1.4 2.9 1.2.4 2.5-.2 2.9-1.4C12.3 15.7 28.7 4.3 47.2 4.3c24.1 0 43.7 19.6 43.7 43.7S71.3 91.7 47.2 91.7 3.5 72.1 3.5 48c0-1.3-1-2.3-2.3-2.3S-1.1 46.7-1.1 48c0 26.7 21.6 48.3 48.3 48.3S95.5 74.7 95.5 48 73.9 0 47.2 0z" transform="scale(0.95) translate(2,0)"/><path d="M28.4 38.2c-1.7 0-3.2.7-4.3 1.8-1.1 1.1-1.8 2.6-1.8 4.3 0 1.7.7 3.2 1.8 4.3 1.1 1.1 2.6 1.8 4.3 1.8s3.2-.7 4.3-1.8c1.1-1.1 1.8-2.6 1.8-4.3 0-1.7-.7-3.2-1.8-4.3-1.1-1.1-2.6-1.8-4.3-1.8zm37 0c-1.7 0-3.2.7-4.3 1.8-1.1 1.1-1.8 2.6-1.8 4.3 0 1.7.7 3.2 1.8 4.3 1.1 1.1 2.6 1.8 4.3 1.8s3.2-.7 4.3-1.8c1.1-1.1 1.8-2.6 1.8-4.3 0-1.7-.7-3.2-1.8-4.3-1.1-1.1-2.6-1.8-4.3-1.8zM22 56.3c-.6.5-.7 1.5-.2 2.1 3.8 4.7 9.5 7.4 15.6 7.4h.1c6.1 0 11.8-2.8 15.6-7.4.5-.6.4-1.6-.2-2.1-.6-.5-1.6-.4-2.1.2-3.3 4-8.1 6.3-13.3 6.3h-.1c-5.2 0-10-2.3-13.3-6.3-.5-.6-1.5-.7-2.1-.2z" transform="scale(0.95) translate(2,0)"/></svg>
+      Dataset
     </a>
   </div>
 </header>
@@ -1597,19 +1603,19 @@ function setupMethodListeners() {
     var stepMap = [
       // 0: Input
       ['input(question-answer.prefix)', 'input(answer.entity)'],
-      // 1: S1 header + rows + before_patched visible
+      // 1: S1 header + rows
       ['input(question-answer.prefix)', 'input(answer.entity)',
-       'stage1-header', 'stage1-rows', 's1_before_patched'],
+       'stage1-header', 'stage1-rows'],
       // 2: S1 connections + after_patched + st_s1 (before_patched auto-hides)
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 's1_after_patched', 'st_s1', 'stage1-connections'],
       // 3: S1 result
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 's1_after_patched', 'st_s1', 'stage1-connections', 'stage1-result'],
-      // 4: S2 header + rows + before_patched visible
+      // 4: S2 header + rows
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 's1_after_patched', 'st_s1', 'stage1-connections', 'stage1-result',
-       'stage2-header', 'stage2-rows', 's2_before_patched'],
+       'stage2-header', 'stage2-rows'],
       // 5: S2 connections + after_patched + st_s2 (before_patched auto-hides)
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 's1_after_patched', 'st_s1', 'stage1-connections', 'stage1-result',
@@ -1686,12 +1692,6 @@ function setupMethodListeners() {
       var activeSet = {};
       (stepMap[subIdx] || []).forEach(function(name) { activeSet[name] = true; });
 
-      // Overview state (step -1): before_patched visible by default
-      if (subIdx < 0) {
-        activeSet['s1_before_patched'] = true;
-        activeSet['s2_before_patched'] = true;
-      }
-
       // after_patched: always fully hidden unless in activeSet
       var alwaysHide = {
         's1_after_patched': true,
@@ -1711,10 +1711,15 @@ function setupMethodListeners() {
           // after_patched: fully hidden when not active
           el.classList.remove('grp-active', 'grp-dimmed');
           el.classList.add('grp-hidden');
-        } else if (beforeToAfter[name] && activeSet[beforeToAfter[name]]) {
-          // before_patched: hidden (not dimmed) when its paired after_patched is active
-          el.classList.remove('grp-active', 'grp-dimmed');
-          el.classList.add('grp-hidden');
+        } else if (beforeToAfter[name]) {
+          // before_patched: always visible, hidden only when paired after_patched is active
+          if (activeSet[beforeToAfter[name]]) {
+            el.classList.remove('grp-active', 'grp-dimmed');
+            el.classList.add('grp-hidden');
+          } else {
+            el.classList.remove('grp-dimmed', 'grp-hidden');
+            el.classList.add('grp-active');
+          }
         } else {
           el.classList.remove('grp-active', 'grp-hidden');
           el.classList.add('grp-dimmed');
