@@ -1,8 +1,8 @@
 # Unlearning Depth Score
 
 [![Paper](https://img.shields.io/badge/Paper-arxiv-b31b1b)](https://arxiv.org/abs/2605.24614)
-[![Benchmark](https://img.shields.io/badge/Benchmark-Results-blue)](https://gnueaj.github.io/unlearning-depth-score)
-[![Dataset](https://img.shields.io/badge/%F0%9F%A4%97-Dataset-FF9D00)](https://huggingface.co/datasets/jaeunglee/uds-annotated-tofu)
+[![Benchmark](https://img.shields.io/badge/Project-Page-blue)](https://gnueaj.github.io/unlearning-depth-score)
+[![Dataset](https://img.shields.io/badge/HuggingFace-Dataset-FF9D00)](https://huggingface.co/datasets/jaeunglee/uds-annotated-tofu)
 
 Official implementation of **"Measuring the Depth of LLM Unlearning via Activation Patching"**.
 
