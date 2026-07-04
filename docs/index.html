@@ -1602,12 +1602,12 @@ function setupMethodListeners() {
 
     // 10 sub-steps (0-9): cumulative SVG groups per sub-step
     var stepMap = [
-      // 0: Input (s1_before visible, s2_before stays dimmed until step 4)
+      // 0: Input
       ['input(question-answer.prefix)', 'input(answer.entity)', 's1_before_patched'],
-      // 1: S1 header + rows + before_patched
+      // 1: S1 header + rows
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 's1_before_patched'],
-      // 2: S1 connections + after_patched + st_s1 (before_patched auto-hides)
+      // 2: S1 connections + after_patched + st_s1
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 's1_after_patched', 'st_s1', 'stage1-connections'],
       // 3: S1 result
@@ -1702,7 +1702,7 @@ function setupMethodListeners() {
       var activeSet = {};
       (stepMap[subIdx] || []).forEach(function(name) { activeSet[name] = true; });
 
-      // Overview (step -1): only s1_before visible (s2 stays dimmed until step 4)
+      // Overview (step -1)
       if (subIdx < 0) {
         activeSet['s1_before_patched'] = true;
       }
@@ -1716,6 +1716,13 @@ function setupMethodListeners() {
         var el = groups[name];
         if (!el) return;
         var isConn = connGroups[name];
+
+        // s2_before_patched: always visible (top z-order) until S2 patching at step 5
+        if (name === 's2_before_patched' && subIdx < 5) {
+          el.classList.remove('grp-dimmed', 'grp-hidden');
+          el.classList.add('grp-active');
+          return;
+        }
 
         // --- before_patched: follows stepMap, hidden only when after replaces it ---
         if (beforeToAfter[name]) {
