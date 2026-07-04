@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Source model layers (left, red) -->
+  <rect x="2" y="6" width="9" height="5" rx="1.2" fill="#D62728" opacity="0.25"/>
+  <rect x="2" y="13" width="9" height="5" rx="1.2" fill="#D62728"/>
+  <rect x="2" y="20" width="9" height="5" rx="1.2" fill="#D62728" opacity="0.25"/>
+  <!-- Target model layers (right, gray → patched layer orange) -->
+  <rect x="21" y="6" width="9" height="5" rx="1.2" fill="#585858" opacity="0.25"/>
+  <rect x="21" y="13" width="9" height="5" rx="1.2" fill="#FF7F0E"/>
+  <rect x="21" y="20" width="9" height="5" rx="1.2" fill="#585858" opacity="0.25"/>
+  <!-- Patching arrow (red, short) -->
+  <line x1="12.5" y1="15.5" x2="17" y2="15.5" stroke="#D62728" stroke-width="0.9" stroke-linecap="round"/>
+  <polygon points="19,15.5 17,14 17,17" fill="#D62728"/>
+</svg>
