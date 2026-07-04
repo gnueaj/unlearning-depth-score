@@ -772,6 +772,19 @@
 <rect id="Rectangle 2175_2" x="567.5" y="650.5" width="57" height="57" rx="3.5" fill="#CCCCCC" stroke="black" stroke-width="3"/>
 <path id="Arrow 117_2" d="M696.061 680.061C696.646 679.475 696.646 678.525 696.061 677.939L686.515 668.393C685.929 667.808 684.979 667.808 684.393 668.393C683.808 668.979 683.808 669.929 684.393 670.515L692.879 679L684.393 687.485C683.808 688.071 683.808 689.021 684.393 689.607C684.979 690.192 685.929 690.192 686.515 689.607L696.061 680.061ZM633 679V680.5H695V679V677.5H633V679Z" fill="black"/>
 </g>
+<g id="s2_before_patched">
+<rect id="Rectangle 2178_3" x="1877.5" y="525.5" width="57" height="57" rx="3.5" fill="black" fill-opacity="0.2" stroke="black" stroke-width="3"/>
+<rect id="Rectangle 2179_3" x="1877.5" y="650.5" width="57" height="57" rx="3.5" fill="black" fill-opacity="0.2" stroke="black" stroke-width="3"/>
+<path id="Vector 10_3" d="M1806 429C1822.71 429 1836.25 442.544 1836.25 459.252V649.252C1836.25 665.681 1849.57 679 1866 679" stroke="black" stroke-width="3" stroke-linecap="square"/>
+<path id="Vector 9_3" d="M1806 429C1822.71 429 1836.25 442.544 1836.25 459.252V524.252C1836.25 540.681 1849.57 554 1866 554" stroke="black" stroke-width="3" stroke-linecap="square"/>
+<text id="..._27" fill="black" style="white-space: pre" xml:space="preserve" font-family="Roboto" font-size="36" font-weight="500" letter-spacing="0em"><tspan x="1702.97" y="556.805">...</tspan></text>
+<rect id="Rectangle 2172_3" x="1739.5" y="525.5" width="57" height="57" rx="3.5" fill="#CCCCCC" stroke="black" stroke-width="3"/>
+<path id="Arrow 115_3" d="M1868.06 555.061C1868.65 554.475 1868.65 553.525 1868.06 552.939L1858.51 543.393C1857.93 542.808 1856.98 542.808 1856.39 543.393C1855.81 543.979 1855.81 544.929 1856.39 545.515L1864.88 554L1856.39 562.485C1855.81 563.071 1855.81 564.021 1856.39 564.607C1856.98 565.192 1857.93 565.192 1858.51 564.607L1868.06 555.061ZM1805 554V555.5H1867V554V552.5H1805V554Z" fill="black"/>
+<path id="Vector 13_3" d="M1806 554C1822.71 554 1836.25 567.544 1836.25 584.252V649.252C1836.25 665.681 1849.57 679 1866 679" stroke="black" stroke-width="3" stroke-linecap="square"/>
+<text id="..._28" fill="black" style="white-space: pre" xml:space="preserve" font-family="Roboto" font-size="36" font-weight="500" letter-spacing="0em"><tspan x="1702.97" y="680.805">...</tspan></text>
+<rect id="Rectangle 2175_3" x="1739.5" y="650.5" width="57" height="57" rx="3.5" fill="#CCCCCC" stroke="black" stroke-width="3"/>
+<path id="Arrow 117_3" d="M1868.06 680.061C1868.65 679.475 1868.65 678.525 1868.06 677.939L1858.51 668.393C1857.93 667.808 1856.98 667.808 1856.39 668.393C1855.81 668.979 1855.81 669.929 1856.39 670.515L1864.88 679L1856.39 687.485C1855.81 688.071 1855.81 689.021 1856.39 689.607C1856.98 690.192 1857.93 690.192 1858.51 689.607L1868.06 680.061ZM1805 679V680.5H1867V679V677.5H1805V679Z" fill="black"/>
+</g>
 <path id="Arrow 118" d="M836.061 680.061C836.646 679.475 836.646 678.525 836.061 677.939L826.515 668.393C825.929 667.808 824.979 667.808 824.393 668.393C823.808 668.979 823.808 669.929 824.393 670.515L832.879 679L824.393 687.485C823.808 688.071 823.808 689.021 824.393 689.607C824.979 690.192 825.929 690.192 826.515 689.607L836.061 680.061ZM773 679V680.5H835V679V677.5H773V679Z" fill="black"/>
 <g id="st_s1">
 <g id="Group_177">
@@ -1206,19 +1219,6 @@
 <text id="0.0 (Intact)" fill="black" fill-opacity="0.8" style="white-space: pre" xml:space="preserve" font-family="Roboto" font-size="32" letter-spacing="0em"><tspan x="2194" y="1266.94">0.0&#10;</tspan><tspan x="2194" y="1304.94">(Intact)</tspan></text>
 <text id="1.0 (Erased)" fill="black" fill-opacity="0.8" style="white-space: pre" xml:space="preserve" font-family="Roboto" font-size="32" letter-spacing="0em"><tspan x="2194" y="1073.94">1.0 &#10;</tspan><tspan x="2194" y="1111.94">(Erased)</tspan></text>
 </g>
-</g>
-<g id="s2_before_patched">
-<rect id="Rectangle 2178_3" x="1877.5" y="525.5" width="57" height="57" rx="3.5" fill="black" fill-opacity="0.2" stroke="black" stroke-width="3"/>
-<rect id="Rectangle 2179_3" x="1877.5" y="650.5" width="57" height="57" rx="3.5" fill="black" fill-opacity="0.2" stroke="black" stroke-width="3"/>
-<path id="Vector 10_3" d="M1806 429C1822.71 429 1836.25 442.544 1836.25 459.252V649.252C1836.25 665.681 1849.57 679 1866 679" stroke="black" stroke-width="3" stroke-linecap="square"/>
-<path id="Vector 9_3" d="M1806 429C1822.71 429 1836.25 442.544 1836.25 459.252V524.252C1836.25 540.681 1849.57 554 1866 554" stroke="black" stroke-width="3" stroke-linecap="square"/>
-<text id="..._27" fill="black" style="white-space: pre" xml:space="preserve" font-family="Roboto" font-size="36" font-weight="500" letter-spacing="0em"><tspan x="1702.97" y="556.805">...</tspan></text>
-<rect id="Rectangle 2172_3" x="1739.5" y="525.5" width="57" height="57" rx="3.5" fill="#CCCCCC" stroke="black" stroke-width="3"/>
-<path id="Arrow 115_3" d="M1868.06 555.061C1868.65 554.475 1868.65 553.525 1868.06 552.939L1858.51 543.393C1857.93 542.808 1856.98 542.808 1856.39 543.393C1855.81 543.979 1855.81 544.929 1856.39 545.515L1864.88 554L1856.39 562.485C1855.81 563.071 1855.81 564.021 1856.39 564.607C1856.98 565.192 1857.93 565.192 1858.51 564.607L1868.06 555.061ZM1805 554V555.5H1867V554V552.5H1805V554Z" fill="black"/>
-<path id="Vector 13_3" d="M1806 554C1822.71 554 1836.25 567.544 1836.25 584.252V649.252C1836.25 665.681 1849.57 679 1866 679" stroke="black" stroke-width="3" stroke-linecap="square"/>
-<text id="..._28" fill="black" style="white-space: pre" xml:space="preserve" font-family="Roboto" font-size="36" font-weight="500" letter-spacing="0em"><tspan x="1702.97" y="680.805">...</tspan></text>
-<rect id="Rectangle 2175_3" x="1739.5" y="650.5" width="57" height="57" rx="3.5" fill="#CCCCCC" stroke="black" stroke-width="3"/>
-<path id="Arrow 117_3" d="M1868.06 680.061C1868.65 679.475 1868.65 678.525 1868.06 677.939L1858.51 668.393C1857.93 667.808 1856.98 667.808 1856.39 668.393C1855.81 668.979 1855.81 669.929 1856.39 670.515L1864.88 679L1856.39 687.485C1855.81 688.071 1855.81 689.021 1856.39 689.607C1856.98 690.192 1857.93 690.192 1858.51 689.607L1868.06 680.061ZM1805 679V680.5H1867V679V677.5H1805V679Z" fill="black"/>
 </g>
 </g>
 <defs>
