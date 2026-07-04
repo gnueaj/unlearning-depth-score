@@ -1850,7 +1850,7 @@ document.querySelector('.theme-toggle').addEventListener('click', function() {
     if (scrollLocked) return;
 
     var docH = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
-    if (window.scrollY + window.innerHeight >= docH - 50) {
+    if (window.scrollY + window.innerHeight >= docH - 150) {
       links.forEach(function(l) { l.classList.remove('active'); });
       sections[sections.length - 1].link.classList.add('active');
       return;
