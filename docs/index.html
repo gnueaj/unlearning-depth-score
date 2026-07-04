@@ -1686,6 +1686,12 @@ function setupMethodListeners() {
       var activeSet = {};
       (stepMap[subIdx] || []).forEach(function(name) { activeSet[name] = true; });
 
+      // Overview state (step -1): before_patched visible by default
+      if (subIdx < 0) {
+        activeSet['s1_before_patched'] = true;
+        activeSet['s2_before_patched'] = true;
+      }
+
       // after_patched: always fully hidden unless in activeSet
       var alwaysHide = {
         's1_after_patched': true,
