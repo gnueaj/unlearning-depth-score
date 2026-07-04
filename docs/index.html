@@ -60,7 +60,7 @@ h3 { font-size: 1.1rem; font-weight: 600; margin: 16px 0 8px 0; color: #333; }
 }
 .paper-badges {
   display: flex;
-  gap: 14px;
+  gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
 }
@@ -1602,8 +1602,8 @@ function setupMethodListeners() {
 
     // 10 sub-steps (0-9): cumulative SVG groups per sub-step
     var stepMap = [
-      // 0: Input
-      ['input(question-answer.prefix)', 'input(answer.entity)'],
+      // 0: Input (s1_before visible, s2_before stays dimmed until step 4)
+      ['input(question-answer.prefix)', 'input(answer.entity)', 's1_before_patched'],
       // 1: S1 header + rows + before_patched
       ['input(question-answer.prefix)', 'input(answer.entity)',
        'stage1-header', 'stage1-rows', 's1_before_patched'],
@@ -1686,49 +1686,118 @@ function setupMethodListeners() {
     window.addEventListener('resize', setStickyPositions);
 
     // --- applyStep: update SVG groups, sub-step text, card headings ---
+    var patchTimeout = null;
+
     function applyStep(subIdx) {
       if (subIdx === currentSubStep) return;
+      var prevStep = currentSubStep;
       currentSubStep = subIdx;
+
+      // Cancel any pending patch transition from a previous step
+      if (patchTimeout) {
+        clearTimeout(patchTimeout);
+        patchTimeout = null;
+      }
 
       var activeSet = {};
       (stepMap[subIdx] || []).forEach(function(name) { activeSet[name] = true; });
 
-      // Overview (step -1): before_patched visible as part of default diagram
+      // Overview (step -1): only s1_before visible (s2 stays dimmed until step 4)
       if (subIdx < 0) {
         activeSet['s1_before_patched'] = true;
-        activeSet['s2_before_patched'] = true;
       }
 
-      // after_patched: always fully hidden unless in activeSet
-      var alwaysHide = {
-        's1_after_patched': true,
-        's2_after_patched': true
-      };
+      // Delayed patch: arrow animates first (0.8s), then before→after swap
+      // Only when scrolling forward INTO the patching step
+      var delayS1 = (subIdx === 2 && prevStep < 2);
+      var delayS2 = (subIdx === 5 && prevStep < 5);
 
       Object.keys(groups).forEach(function(name) {
         var el = groups[name];
         if (!el) return;
         var isConn = connGroups[name];
 
+        // --- before_patched: follows stepMap, hidden only when after replaces it ---
+        if (beforeToAfter[name]) {
+          var afterActive = activeSet[beforeToAfter[name]];
+          var isDelayed = (name === 's1_before_patched' && delayS1) ||
+                          (name === 's2_before_patched' && delayS2);
+          if (isDelayed) {
+            // Arrow animating: keep before visible temporarily
+            el.classList.remove('grp-dimmed', 'grp-hidden');
+            el.classList.add('grp-active');
+          } else if (afterActive) {
+            // After replaced it: hide before
+            el.classList.remove('grp-active', 'grp-dimmed');
+            el.classList.add('grp-hidden');
+          } else if (activeSet[name]) {
+            // In stepMap for this step: active (1.0)
+            el.classList.remove('grp-dimmed', 'grp-hidden');
+            el.classList.add('grp-active');
+          } else {
+            // Not its turn yet: dimmed like other groups
+            el.classList.remove('grp-active', 'grp-hidden');
+            el.classList.add('grp-dimmed');
+          }
+          return;
+        }
+
+        // --- after_patched + st labels: hidden unless explicitly active, delayed with arrow ---
+        if (name === 's1_after_patched' || name === 's2_after_patched' ||
+            name === 'st_s1' || name === 'st_s2') {
+          var isDelayedAfter = ((name === 's1_after_patched' || name === 'st_s1') && delayS1) ||
+                               ((name === 's2_after_patched' || name === 'st_s2') && delayS2);
+          if (isDelayedAfter) {
+            // Arrow animating: keep hidden temporarily, reveal after delay
+            el.classList.remove('grp-active', 'grp-dimmed');
+            el.classList.add('grp-hidden');
+          } else if (activeSet[name]) {
+            el.classList.remove('grp-dimmed', 'grp-hidden');
+            el.classList.add('grp-active');
+          } else {
+            el.classList.remove('grp-active', 'grp-dimmed');
+            el.classList.add('grp-hidden');
+          }
+          return;
+        }
+
+        // --- Normal groups ---
         if (activeSet[name]) {
           el.classList.remove('grp-dimmed', 'grp-hidden');
           el.classList.add('grp-active');
           if (isConn) { el.classList.remove('conn-hidden'); el.classList.add('conn-revealed'); }
-        } else if (alwaysHide[name]) {
-          // after_patched: fully hidden when not active
-          el.classList.remove('grp-active', 'grp-dimmed');
-          el.classList.add('grp-hidden');
-        } else if (beforeToAfter[name] && activeSet[beforeToAfter[name]]) {
-          // before_patched: hidden when paired after_patched is active
-          el.classList.remove('grp-active', 'grp-dimmed');
-          el.classList.add('grp-hidden');
         } else {
-          // Normal dimming (including before_patched when its stage isn't reached yet)
           el.classList.remove('grp-active', 'grp-hidden');
           el.classList.add('grp-dimmed');
           if (isConn) { el.classList.remove('conn-revealed'); el.classList.add('conn-hidden'); }
         }
       });
+
+      // Schedule delayed patch swap after connection animation completes
+      if (delayS1 || delayS2) {
+        var beforeName = delayS1 ? 's1_before_patched' : 's2_before_patched';
+        var afterName = delayS1 ? 's1_after_patched' : 's2_after_patched';
+        var stName = delayS1 ? 'st_s1' : 'st_s2';
+        patchTimeout = setTimeout(function() {
+          if (currentSubStep !== subIdx) return; // user scrolled away, abort
+          var before = groups[beforeName];
+          var after = groups[afterName];
+          var st = groups[stName];
+          if (before) {
+            before.classList.remove('grp-active', 'grp-dimmed');
+            before.classList.add('grp-hidden');
+          }
+          if (after) {
+            after.classList.remove('grp-hidden', 'grp-dimmed');
+            after.classList.add('grp-active');
+          }
+          if (st) {
+            st.classList.remove('grp-hidden', 'grp-dimmed');
+            st.classList.add('grp-active');
+          }
+          patchTimeout = null;
+        }, 800); // matches connection clip-path animation (0.8s)
+      }
 
       // Sub-step text highlighting (cumulative downward)
       document.querySelectorAll('.sub-step').forEach(function(el) {

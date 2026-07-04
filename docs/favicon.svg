@@ -1,13 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 32" width="32" height="32">
   <!-- Source model layers (left, red) -->
-  <rect x="2" y="5.5" width="8.5" height="5.5" rx="1.2" fill="#D62728" opacity="0.25"/>
-  <rect x="2" y="12.5" width="8.5" height="5.5" rx="1.2" fill="#D62728"/>
-  <rect x="2" y="19.5" width="8.5" height="5.5" rx="1.2" fill="#D62728" opacity="0.25"/>
+  <rect x="3" y="6.5" width="7.5" height="5.5" rx="0.8" fill="#D62728" opacity="0.25"/>
+  <rect x="3" y="13" width="7.5" height="5.5" rx="0.8" fill="#D62728"/>
+  <rect x="3" y="19.5" width="7.5" height="5.5" rx="0.8" fill="#D62728" opacity="0.25"/>
   <!-- Target model layers (right, gray → patched layer orange) -->
-  <rect x="19.8" y="5.5" width="8.5" height="5.5" rx="1.2" fill="#585858" opacity="0.25"/>
-  <rect x="19.8" y="12.5" width="8.5" height="5.5" rx="1.2" fill="#FF7F0E"/>
-  <rect x="19.8" y="19.5" width="8.5" height="5.5" rx="1.2" fill="#585858" opacity="0.25"/>
+  <rect x="19.3" y="6.5" width="7.5" height="5.5" rx="0.8" fill="#585858" opacity="0.25"/>
+  <rect x="19.3" y="13" width="7.5" height="5.5" rx="0.8" fill="#FF7F0E"/>
+  <rect x="19.3" y="19.5" width="7.5" height="5.5" rx="0.8" fill="#585858" opacity="0.25"/>
   <!-- Patching arrow -->
-  <line x1="12" y1="15.25" x2="16.5" y2="15.25" stroke="#D62728" stroke-width="1.3" stroke-linecap="round"/>
-  <polygon points="19,15.25 16.5,13.5 16.5,17" fill="#D62728"/>
+  <line x1="12" y1="15.75" x2="15.5" y2="15.75" stroke="#D62728" stroke-width="1.6" stroke-linecap="round"/>
+  <polygon points="18.5,15.75 15.5,13.25 15.5,18.25" fill="#D62728"/>
 </svg>
