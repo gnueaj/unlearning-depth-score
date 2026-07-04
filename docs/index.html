@@ -1873,7 +1873,7 @@ document.querySelector('.theme-toggle').addEventListener('click', function() {
     // While locked, keep resetting idle timer — unlock only after scroll fully stops
     if (scrollLocked) {
       clearTimeout(idleTimer);
-      idleTimer = setTimeout(function() { scrollLocked = false; }, 150);
+      idleTimer = setTimeout(function() { scrollLocked = false; updateActive(); }, 150);
       return;
     }
     if (!ticking) {
