@@ -297,12 +297,23 @@ button.toggle-btn:hover { text-decoration: underline; }
   width: 100%;
   height: auto;
 }
+.pipeline-notation {
+  font-size: 12.5px;
+  color: #888;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+}
+.pipeline-notation em {
+  font-style: italic;
+  color: #555;
+}
 .step-content {
   position: relative;
   background: #fff;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
-  padding: 10px 14px 10px 18px;
+  padding: 7px 14px 7px 18px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 /* Progress bar – track (desaturated blue) */
@@ -509,6 +520,8 @@ html[data-theme="dark"] { color-scheme: dark; }
 [data-theme="dark"] .step-content h4 { color: #e0e0e0; }
 [data-theme="dark"] .step-content p { color: #b0b0b0; }
 [data-theme="dark"] .pipeline-figure svg { filter: invert(0.88) hue-rotate(180deg); }
+[data-theme="dark"] .pipeline-notation { color: #999; border-top-color: #3a3b40; }
+[data-theme="dark"] .pipeline-notation em { color: #ccc; }
 [data-theme="dark"] #pipeline-svg > g > rect:first-child { opacity: 0; }
 
 /* KaTeX */
@@ -687,6 +700,7 @@ html[data-theme="dark"] { color-scheme: dark; }
         <div class="step-content">
           <h4><span class="step-badge step-badge-a">A</span> Stage 1: Baselining</h4>
           <p class="sub-step" data-sub="1">Patch retain model's hidden states into the full model at each layer.</p>
+          <p class="sub-step" data-sub="2">Log-probs are compared token-by-token under teacher forcing.</p>
           <p class="sub-step" data-sub="3">Large drops reveal layers encoding knowledge the retain model lacks.</p>
         </div>
       </div>
@@ -714,7 +728,10 @@ html[data-theme="dark"] { color-scheme: dark; }
       <div id="pipeline-end-marker"></div>
     </div>
     <div class="pipeline-figure" id="pipeline-figure">
-      <noscript><img src="figs/pipeline.png" alt="UDS Pipeline" style="max-width:100%;height:auto;"></noscript>
+      <noscript>
+        <img src="figs/pipeline.png" alt="UDS Pipeline" style="max-width:100%;height:auto;">
+        <div class="pipeline-notation">Notation: <em>i</em> = forget set example, <em>l</em> = layer, <em>t</em> = token position within the entity span (<em>T</em> = span length).</div>
+      </noscript>
     </div>
   </div>
   </div>
@@ -1559,10 +1576,22 @@ function setupMethodListeners() {
       svg.style.width = '100%';
       svg.style.height = 'auto';
 
+      var noteDiv = document.createElement('div');
+      noteDiv.className = 'pipeline-notation';
+      noteDiv.innerHTML = 'Notation: $i$ = forget set example, $l$ = layer, $t$ = token position within the entity span ($T$ = span length).';
+      figureEl.appendChild(noteDiv);
+      if (window.renderMathInElement) {
+        renderMathInElement(noteDiv, {delimiters:[{left:'$',right:'$',display:false}], throwOnError:false});
+      }
+
       setupScrollytelling(svg);
     })
     .catch(function() {
-      figureEl.innerHTML = '<img src="figs/pipeline.png" alt="UDS Pipeline" style="max-width:100%;height:auto;">';
+      figureEl.innerHTML = '<img src="figs/pipeline.png" alt="UDS Pipeline" style="max-width:100%;height:auto;">'
+        + '<div class="pipeline-notation">Notation: $i$ = forget set example, $l$ = layer, $t$ = token position within the entity span ($T$ = span length).</div>';
+      if (window.renderMathInElement) {
+        renderMathInElement(figureEl.querySelector('.pipeline-notation'), {delimiters:[{left:'$',right:'$',display:false}], throwOnError:false});
+      }
     });
 
   function setupScrollytelling(svg) {
