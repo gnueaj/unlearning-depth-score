@@ -40,6 +40,13 @@ h3 { font-size: 1.1rem; font-weight: 600; margin: 16px 0 8px 0; color: #333; }
   margin: 0 auto 16px;
   max-width: 720px;
 }
+.paper-header .paper-title .title-icon {
+  width: 40px;
+  height: 40px;
+  vertical-align: text-bottom;
+  margin-right: 8px;
+  margin-left: -48px;
+}
 .paper-header .paper-authors {
   font-size: 1.12rem;
   color: #444;
@@ -451,6 +458,7 @@ html[data-theme="dark"] { color-scheme: dark; }
 /* Header */
 [data-theme="dark"] .paper-header { background: #222328; border-bottom-color: #3a3b40; }
 [data-theme="dark"] .paper-header .paper-title { color: #f0f0f0; }
+[data-theme="dark"] .paper-header .paper-title .title-icon rect[fill="#585858"] { fill: #aaa; }
 [data-theme="dark"] .paper-header .paper-authors { color: #b0b0b0; }
 [data-theme="dark"] .paper-header .paper-affiliation { color: #888; }
 [data-theme="dark"] .paper-badges .badge-code { background: #3a3b40; }
@@ -633,7 +641,7 @@ html[data-theme="dark"] { color-scheme: dark; }
 </button>
 
 <header class="paper-header" id="section-overview">
-  <h1 class="paper-title">Measuring the Depth of LLM Unlearning via Activation Patching</h1>
+  <h1 class="paper-title"><svg class="title-icon" xmlns="http://www.w3.org/2000/svg" viewBox="1.5 5 27 21" width="42" height="42"><rect x="3" y="6.5" width="7.5" height="5.5" rx="0.8" fill="#D62728" opacity="0.4"/><rect x="3" y="13" width="7.5" height="5.5" rx="0.8" fill="#D62728"/><rect x="3" y="19.5" width="7.5" height="5.5" rx="0.8" fill="#D62728" opacity="0.4"/><rect x="19.3" y="6.5" width="7.5" height="5.5" rx="0.8" fill="#585858" opacity="0.4"/><rect x="19.3" y="13" width="7.5" height="5.5" rx="0.8" fill="#FF7F0E"/><rect x="19.3" y="19.5" width="7.5" height="5.5" rx="0.8" fill="#585858" opacity="0.4"/><line x1="12.5" y1="15.75" x2="16" y2="15.75" stroke="#D62728" stroke-width="1.6" stroke-linecap="square"/><polygon points="18.8,15.75 16,13.5 16,18" fill="#D62728"/></svg>Measuring the Depth of LLM Unlearning via Activation Patching</h1>
   <p class="paper-authors">
     <a href="https://www.linkedin.com/in/jaeunglee/" target="_blank" rel="noopener" class="author">Jaeung Lee</a><sup>1,2</sup>,
     <span class="author">Dohyun Kim</span><sup>1</sup>,
@@ -1791,10 +1799,14 @@ function setupMethodListeners() {
             after.classList.remove('grp-hidden', 'grp-dimmed');
             after.classList.add('grp-active');
           }
-          if (st) {
-            st.classList.remove('grp-hidden', 'grp-dimmed');
-            st.classList.add('grp-active');
-          }
+          // st label appears after after_patched has rendered
+          setTimeout(function() {
+            if (currentSubStep !== subIdx) return;
+            if (st) {
+              st.classList.remove('grp-hidden', 'grp-dimmed');
+              st.classList.add('grp-active');
+            }
+          }, 400);
           patchTimeout = null;
         }, 800); // matches connection clip-path animation (0.8s)
       }
