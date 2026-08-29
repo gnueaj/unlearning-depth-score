@@ -4,6 +4,8 @@
 [![Paper](https://img.shields.io/badge/Paper-arxiv-b31b1b)](https://arxiv.org/abs/2605.24614)
 [![Dataset](https://img.shields.io/badge/HuggingFace-Dataset-FF9D00)](https://huggingface.co/datasets/jaeunglee/uds-annotated-tofu)
 
+📢 **[News]** Unlearning Depth Score was accepted to **EMNLP 2026 (Main)** with a top 4.1% score.
+
 Official implementation of **"Measuring the Depth of LLM Unlearning via Activation Patching"**.
 
 UDS quantifies the mechanistic depth of unlearning via two-stage activation patching, producing a per-example score from 0 (knowledge intact) to 1 (knowledge erased to the level of the retain model).

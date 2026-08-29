@@ -41,11 +41,11 @@ h3 { font-size: 1.1rem; font-weight: 600; margin: 16px 0 8px 0; color: #333; }
   max-width: 720px;
 }
 .paper-header .paper-title .title-icon {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   vertical-align: text-bottom;
   margin-right: 8px;
-  margin-left: -48px;
+  margin-left: -44px;
 }
 .paper-header .paper-authors {
   font-size: 1.12rem;
@@ -63,6 +63,12 @@ h3 { font-size: 1.1rem; font-weight: 600; margin: 16px 0 8px 0; color: #333; }
 .paper-header .paper-affiliation {
   font-size: 0.96rem;
   color: #888;
+  margin: 0 0 14px 0;
+}
+.paper-header .paper-venue {
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: #111;
   margin: 0 0 20px 0;
 }
 .paper-badges {
@@ -472,6 +478,7 @@ html[data-theme="dark"] { color-scheme: dark; }
 [data-theme="dark"] .paper-header .paper-title .title-icon rect[fill="#585858"] { fill: #aaa; }
 [data-theme="dark"] .paper-header .paper-authors { color: #b0b0b0; }
 [data-theme="dark"] .paper-header .paper-affiliation { color: #888; }
+[data-theme="dark"] .paper-header .paper-venue { color: #eee; }
 [data-theme="dark"] .paper-badges .badge-code { background: #3a3b40; }
 [data-theme="dark"] .paper-badges .badge-hf { background: #cc7d00; }
 
@@ -661,6 +668,7 @@ html[data-theme="dark"] { color-scheme: dark; }
     <span class="author">Jaemin Jo</span><sup>1</sup>
   </p>
   <p class="paper-affiliation"><sup>1</sup>Sungkyunkwan University &nbsp;&nbsp; <sup>2</sup>Samsung Research</p>
+  <p class="paper-venue">EMNLP 2026</p>
   <div class="paper-badges">
     <a class="badge-arxiv" href="https://arxiv.org/abs/2605.24614" target="_blank" rel="noopener">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
