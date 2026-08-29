@@ -4,7 +4,7 @@
 [![Paper](https://img.shields.io/badge/Paper-arxiv-b31b1b)](https://arxiv.org/abs/2605.24614)
 [![Dataset](https://img.shields.io/badge/HuggingFace-Dataset-FF9D00)](https://huggingface.co/datasets/jaeunglee/uds-annotated-tofu)
 
-📢 **[News]** Unlearning Depth Score was accepted to **EMNLP 2026 (Main)** with a top 4.1% score.
+📢 **[Aug 2026]** Unlearning Depth Score was accepted to **EMNLP 2026 (Main)** with a top 4.1% score.
 
 Official implementation of **"Measuring the Depth of LLM Unlearning via Activation Patching"**.
 
