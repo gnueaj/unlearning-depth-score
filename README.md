@@ -96,11 +96,13 @@ The main script `compute_uds.py` orchestrates the full pipeline: data loading, m
 | `--delta_threshold` | 0.05 | KE layer threshold |
 | `--batch_size` | 1 | Batch size for patching |
 | `--gpu` | 0 | GPU index |
-| `--data_path` | `tofu_data/forget10_filtered.json` | Forget set with entity annotations |
+| `--data_path` | `tofu_data/forget10_filtered.json` | Forget set with entity annotations (auto-downloaded) |
 
 ## 📦 Dataset
 
-`tofu_data/forget10_filtered.json` contains 367 examples from TOFU forget10 with entity span annotations:
+The annotated forget set is hosted on the Hugging Face Hub at [`jaeunglee/uds-annotated-tofu`](https://huggingface.co/datasets/jaeunglee/uds-annotated-tofu) and is **downloaded automatically on first run**, so no manual setup is needed. To use a local copy instead, place the file at `tofu_data/forget10_filtered.json` or pass `--data_path`.
+
+It contains 367 examples from TOFU forget10 with entity span annotations:
 
 ```json
 {

@@ -111,8 +111,6 @@ def run_one(
         "continuation",
         "--delta_threshold",
         "0.05",
-        "--data_path",
-        "tofu_data/forget10_filtered.json",
         "--num_examples",
         str(num_examples),
         "--batch_size",

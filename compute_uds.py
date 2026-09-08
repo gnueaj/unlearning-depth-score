@@ -34,11 +34,12 @@ from uds.models import load_model, load_tokenizer, get_num_layers
 from uds.core import generate_baseline
 from uds.utils import set_seed, safe_mkdir, parse_layers
 from uds.config import get_model_id
+from uds.data import DEFAULT_DATA_PATH, load_prefix_data
 
 
 TOFU_FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
 TOFU_RETAIN_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90"
-PREFIX_DATA_PATH = "tofu_data/forget10_filtered.json"
+PREFIX_DATA_PATH = DEFAULT_DATA_PATH
 
 
 def sanitize_name_for_path(name: str) -> str:
@@ -61,12 +62,6 @@ def load_model_for_exp(
         device_map=device_map,
         attn_implementation=attn_implementation,
     )
-
-
-def load_prefix_data(path: str) -> List[Dict]:
-    """Load validated prefix+entity data."""
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
 
 
 def clean_text(s: str, max_len: int = 200) -> str:
@@ -883,7 +878,8 @@ def main():
     parser.add_argument("--gpu", type=str, default="0",
                         help="CUDA visible devices, e.g., '0' or '0,1'.")
     parser.add_argument("--data_path", type=str, default=PREFIX_DATA_PATH,
-                        help="Path to forget set with entity annotations.")
+                        help="Path to forget set with entity annotations. "
+                             "Downloaded from the Hugging Face Hub if absent.")
     parser.add_argument("--num_examples", type=int, default=None,
                         help="Limit number of examples (for testing).")
     parser.add_argument("--layers", type=str, default="auto",

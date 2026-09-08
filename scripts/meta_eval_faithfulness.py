@@ -37,6 +37,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from uds.models import load_model, load_tokenizer, get_num_layers
 from uds.core import generate_baseline
 from uds.utils import set_seed, safe_mkdir
+from uds.data import DEFAULT_DATA_PATH
 from uds.meta_eval_utils import (
     MEM_METRICS,
     GENERATION_METRICS,
@@ -67,7 +68,7 @@ from compute_uds import (
 
 TOFU_FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
 TOFU_RETAIN_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90"
-PREFIX_DATA_PATH = "tofu_data/forget10_filtered.json"
+PREFIX_DATA_PATH = DEFAULT_DATA_PATH
 
 # P pool: trained WITH forget10 knowledge (3 variants × 5 LR × 2 epochs = 30)
 _P_BASE = "open-unlearning/pos_tofu_Llama-3.2-1B-Instruct"

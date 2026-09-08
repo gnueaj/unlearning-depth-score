@@ -25,6 +25,7 @@ from tqdm import tqdm
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from uds.models import load_model, load_tokenizer, get_num_layers
+from uds.data import DEFAULT_DATA_PATH
 from compute_uds import (
     load_prefix_data,
     build_logprob_ctx,
@@ -37,7 +38,7 @@ from compute_uds import (
 
 TOFU_FULL_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_full"
 TOFU_RETAIN_MODEL = "open-unlearning/tofu_Llama-3.2-1B-Instruct_retain90"
-PREFIX_DATA_PATH = "tofu_data/forget10_filtered.json"
+PREFIX_DATA_PATH = DEFAULT_DATA_PATH
 
 
 # ============================================================================
