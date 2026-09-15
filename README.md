@@ -1,3 +1,5 @@
+
+
 # Unlearning Depth Score
 
 [![Benchmark](https://img.shields.io/badge/Project-Page-blue)](https://gnueaj.github.io/unlearning-depth-score)
@@ -100,7 +102,7 @@ The main script `compute_uds.py` orchestrates the full pipeline: data loading, m
 
 ## 📦 Dataset
 
-The annotated forget set is hosted on the Hugging Face Hub at [`jaeunglee/uds-annotated-tofu`](https://huggingface.co/datasets/jaeunglee/uds-annotated-tofu) and is **downloaded automatically on first run**, so no manual setup is needed. To use a local copy instead, place the file at `tofu_data/forget10_filtered.json` or pass `--data_path`.
+The annotated forget set is hosted on the Hugging Face Hub at [`jaeunglee/uds-annotated-tofu`](https://huggingface.co/datasets/jaeunglee/uds-annotated-tofu) and is **downloaded automatically on first run**, so no manual setup is needed. To use a local copy instead, place the file at `tofu_data/forget10_filtered.json` or pass `--data_path`. A custom `--data_path` must exist; only the default path is auto-downloaded.
 
 It contains 367 examples from TOFU forget10 with entity span annotations:
 
