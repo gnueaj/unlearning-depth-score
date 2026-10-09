@@ -6,6 +6,10 @@
 
 📢 **[Sep 2026]** Unlearning Depth Score was selected for an **Oral** presentation at **EMNLP 2026 (<2.62%)**.
 
+<p align="center">
+  <img src="docs/figs/faith_robust.png" alt="Faithfulness vs. robustness of 20 unlearning metrics" width="80%">
+</p>
+
 Official implementation of **"Measuring the Depth of LLM Unlearning via Activation Patching"**.
 
 UDS quantifies the mechanistic depth of unlearning via two-stage activation patching, producing a per-example score from 0 (knowledge intact) to 1 (knowledge erased to the level of the retain model).
