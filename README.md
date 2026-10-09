@@ -2,6 +2,7 @@
 
 [![Benchmark](https://img.shields.io/badge/Project-Page-blue)](https://gnueaj.github.io/unlearning-depth-score)
 [![Paper](https://img.shields.io/badge/Paper-arxiv-b31b1b)](https://arxiv.org/abs/2605.24614)
+[![Slides](https://img.shields.io/badge/Slides-EMNLP-2b6652)](https://gnueaj.github.io/unlearning-depth-score/slides/UDS_EMNLP2026_slides.pdf)
 [![Dataset](https://img.shields.io/badge/HuggingFace-Dataset-FF9D00)](https://huggingface.co/datasets/jaeunglee/uds-annotated-tofu)
 
 📢 **[Sep 2026]** Unlearning Depth Score was selected for an **Oral** presentation at **EMNLP 2026 (<2.62%)**.
