@@ -1,7 +1,8 @@
 # Unlearning Depth Score
 
 [![Benchmark](https://img.shields.io/badge/Project-Page-blue)](https://gnueaj.github.io/unlearning-depth-score)
-[![Paper](https://img.shields.io/badge/Paper-arxiv-b31b1b)](https://arxiv.org/abs/2605.24614)
+[![Paper](https://img.shields.io/badge/Paper-EMNLP%202026-ED1C24)](https://aclanthology.org/2026.emnlp-main.18/)
+[![arXiv](https://img.shields.io/badge/arXiv-2605.24614-b31b1b)](https://arxiv.org/abs/2605.24614)
 [![Slides](https://img.shields.io/badge/Slides-EMNLP-2b6652)](https://gnueaj.github.io/unlearning-depth-score/slides/UDS_EMNLP2026_slides.pdf)
 [![Dataset](https://img.shields.io/badge/HuggingFace-Dataset-FF9D00)](https://huggingface.co/datasets/jaeunglee/uds-annotated-tofu)
 
@@ -160,13 +161,23 @@ An interactive dashboard with full benchmark results across 150 unlearned models
 ## Citation
 
 ```bibtex
-@misc{lee2026measuring,
-  title={Measuring the Depth of LLM Unlearning via Activation Patching},
-  author={Jaeung Lee and Dohyun Kim and Jaemin Jo},
-  year={2026},
-  eprint={2605.24614},
-  archivePrefix={arXiv},
-  primaryClass={cs.LG},
-  url={https://arxiv.org/abs/2605.24614}
+@inproceedings{lee2026uds,
+    title = "Measuring the Depth of {LLM} Unlearning via Activation Patching",
+    author = "Lee, Jaeung  and
+      Kim, Dohyun  and
+      Jo, Jaemin",
+    editor = "Lee, Hung-Yi  and
+      Dev, Sunipa  and
+      Li, Jessy  and
+      Elliott, Desmond",
+    booktitle = "Proceedings of the 2026 Conference on Empirical Methods in Natural Language Processing",
+    month = oct,
+    year = "2026",
+    address = "Budapest, Hungary",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2026.emnlp-main.18/",
+    doi = "10.18653/2026.emnlp-main.18",
+    pages = "400--418",
+    ISBN = "979-8-89176-459-0"
 }
 ```
